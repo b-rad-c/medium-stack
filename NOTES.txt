@@ -1,0 +1,3 @@
+https://choosealicense.com
+
+https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#custom-discovery

@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  mstack:
+    build: .
+    container_name: mstack
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - MONGO_DB_URI=mongodb://db:27017
+
+  db:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - db-data:/data/db
+
+volumes:
+  db-data:
