@@ -1,4 +1,13 @@
-from mcore.models import User, ImageFile, AudioFile, VideoFile
+from mcore.models import (
+    ContentModelCreator,
+
+    User,
+    UserCreator,
+    ImageFile,
+    AudioFile,
+    VideoFile
+)
+
 from bson import ObjectId
 
 
@@ -35,9 +44,21 @@ def _test_model_json_str(obj, cid, model_type):
     assert obj == model_type.model_validate_json(as_json)
 
 
+def _test_model_creator_and_example(model_type, model_creator_type):
+    try:
+        examples = model_type.model_config['json_schema_extra']['examples']
+    except KeyError:
+        raise TypeError(f'model {model_type.__name__} does not have examples defined')
+    
+    for example in examples:
+        model_creator:ContentModelCreator = model_creator_type(**example)
+        model = model_creator.create_content_model()
+        assert isinstance(model, model_type)
+
 def test_user(user, user_cid):
     _test_dumped_model(user, user_cid, User)
     _test_model_json_str(user, user_cid, User)
+    _test_model_creator_and_example(User, UserCreator)
 
 
 def test_user_w_id(user, user_cid):

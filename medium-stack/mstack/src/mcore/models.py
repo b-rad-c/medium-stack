@@ -55,6 +55,12 @@ class ContentModel(BaseModel):
         data = self.model_dump(exclude={'id', 'cid'})
         self.cid = ContentId.from_dict(data)
         return self
+    
+
+class ContentModelCreator(BaseModel):
+
+    def create_content_model(self) -> 'ContentModel':
+        return self.CONTENT_MODEL(**self.model_dump())
 
 
 #
@@ -91,6 +97,18 @@ class User(ContentModel):
             ]
         }
     }
+
+
+class UserCreator(ContentModelCreator):
+    CONTENT_MODEL: ClassVar[str] = User
+
+    email: EmailStr
+    phone_number: PhoneNumber
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
+    middle_name: str = Field(min_length=1, max_length=100, default=None, validate_default=False)    
+
+    model_config = User.model_config
 
 
 #
@@ -130,7 +148,6 @@ class ImageFile(ContentModel):
             raise MediumFilePayloadError(f'Unknown error getting media info: {filepath}')
 
         return cls(payload_cid=payload_cid, height=height, width=width)
-
 
 
 AudioFileId = Annotated[MongoId, id_schema('a string representing an audio file id')]

@@ -33,7 +33,7 @@ API_PREFIX = '/api/v0'
 # main router
 #
 
-main_router = APIRouter()
+main_router = APIRouter(tags=['Main'])
 
 class IndexResponse(BaseModel):
     mserve_version: str

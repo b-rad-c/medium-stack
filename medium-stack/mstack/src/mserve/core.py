@@ -1,14 +1,15 @@
-from mcore.models import User
+from mcore.models import User, UserCreator
 from mcore.mongo import MongoDB
 from mcore.errors import NotFoundError
 from mcore.types import ModelIdType
 
 from fastapi import APIRouter, HTTPException, Depends
 
-core_router = APIRouter()
+core_router = APIRouter(tags=['Core'])
 
 @core_router.post('/users/', response_model=User)
-def create_user(user:User, db:MongoDB = Depends(MongoDB.from_cache)):
+def create_user(user_creator:UserCreator, db:MongoDB = Depends(MongoDB.from_cache)):
+    user = user_creator.create_content_model()
     db.create(user)
     return user
 
