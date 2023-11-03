@@ -3,6 +3,7 @@ import re
 import json
 import base64
 
+from enum import Enum
 from pathlib import Path
 from hashlib import sha3_256
 from dataclasses import dataclass
@@ -22,6 +23,8 @@ import boto3
 
 
 __all__ = [
+    'ModelIdType',
+    
     'ContentId',
     'cid_kwargs',
 
@@ -32,6 +35,12 @@ __all__ = [
     'DataHierarchy',
     'Hierarchy'
 ]
+
+
+class ModelIdType(str, Enum):
+    id = 'id'
+    cid = 'cid'
+
 
 #
 # content id

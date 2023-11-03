@@ -52,7 +52,6 @@ class MongoDB:
         collection = self.get_collection(model)
         result = collection.insert_one(model.model_dump(by_alias=True, exclude=['id']))
         model.id = result.inserted_id
-        # return model
 
     def read(self, model:InstanceOrType, id:Union[str, ObjectId]=None, cid: Union[str, ContentId]=None) -> BaseModel:
         query = {}

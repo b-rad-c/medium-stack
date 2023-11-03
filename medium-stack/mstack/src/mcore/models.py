@@ -78,6 +78,20 @@ class User(ContentModel):
     last_name: str = Field(min_length=1, max_length=100)
     middle_name: str = Field(min_length=1, max_length=100, default=None, validate_default=False)    
 
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'email': 'email@example.com',
+                    'phone_number': 'tel:+1-513-555-0123',
+                    'first_name': 'Alice',
+                    'last_name': 'Smith',
+                    'middle_name': 'C'
+                }
+            ]
+        }
+    }
+
 
 #
 # media / file primatives

@@ -1,9 +1,11 @@
 version: '3.8'
 
 services:
-  mstack:
+  mserve:
     build: .
-    container_name: mstack
+    container_name: mserve
+    volumes:
+      - ./medium-stack:/app
     ports:
       - "8000:8000"
     depends_on:
