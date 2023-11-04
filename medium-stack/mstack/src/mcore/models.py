@@ -2,8 +2,10 @@ from typing import Annotated, ClassVar, Union, Optional
 from pathlib import Path
 from os import environ
 from enum import Enum
+from datetime import datetime
 
-from .errors import MediumFilePayloadError
+from mcore.errors import MediumFilePayloadError
+from mcore.util import utc_now
 
 from pymediainfo import MediaInfo
 from pydantic_extra_types.phone_numbers import PhoneNumber
@@ -42,7 +44,6 @@ __all__ = [
 
 # MEDIAINFO_LIB_PATH = environ.get('MEDIAINFO_LIB_PATH', '/opt/homebrew/Cellar/libmediainfo/23.09/lib/libmediainfo.dylib')
 MEDIAINFO_LIB_PATH = environ.get('MEDIAINFO_LIB_PATH', '')
-MSERVE_UPLOAD_DIRECTORY = environ.get('MSERVE_UPLOAD_DIRECTORY', '/tmp/mserver/uploads')
 MSERVE_LOCAL_STORAGE_DIRECTORY = environ.get('MSERVE_LOCAL_STORAGE_DIRECTORY', '/mstack/files')
 
 #
@@ -157,6 +158,9 @@ class FileUploader(BaseModel):
 
     total_size: int
 
+    created: datetime = Field(default_factory=utc_now)
+    modifed: Optional[datetime] = None
+
     status: FileUploadStatus = FileUploadStatus.uploading
     total_uploaded: int = 0
     error: Optional[str] = None
@@ -168,6 +172,8 @@ class FileUploader(BaseModel):
                     'id': '6546a5cd1a209851b7136441',
                     'type': 'image',
                     'total_size': 100_000,
+                    'created': '2023-11-04T22:21:02.185694Z',
+                    'modified': None,
                     'status': 'uploading',
                     'total_uploaded': 10_000
                 }
@@ -175,11 +181,9 @@ class FileUploader(BaseModel):
         }
     }
 
-    def upload_path(self) -> Path:
-        if self.id is None:
-            raise ValueError(f'FileUploader must have an id to get an upload path')
-        
-        return Path(MSERVE_UPLOAD_DIRECTORY) / str(self.id)
+    def update_timestamp(self) -> None:
+        self.modifed = utc_now()
+
     
     def local_storage_path(self) -> Path:
         if self.id is None:

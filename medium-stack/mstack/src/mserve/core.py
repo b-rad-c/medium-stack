@@ -1,22 +1,28 @@
-import os
+from typing import List
 
 from mcore.models import User, UserCreator, FileUploader, FileUploadStatus
 from mcore.mongo import MongoDB
 from mcore.errors import NotFoundError
 from mcore.types import ModelIdType
 
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, BackgroundTasks
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Depends, UploadFile
 
 core_router = APIRouter(tags=['Core'])
 
-# users #
+#
+# users
+#
 
 @core_router.post('/users', response_model=User, response_model_by_alias=False)
 def create_user(user_creator:UserCreator, db:MongoDB = Depends(MongoDB.from_cache)):
     user = user_creator.create_content_model()
     db.create(user)
     return user
+
+
+@core_router.get('/users', response_model=List[User], response_model_by_alias=False)
+def list_users(db:MongoDB = Depends(MongoDB.from_cache)):
+    return list(db.find(User))
 
 
 @core_router.get('/users/{id_type}/{id}', response_model=User, response_model_by_alias=False)
@@ -31,18 +37,36 @@ def read_user(id_type:ModelIdType, id:str, db:MongoDB = Depends(MongoDB.from_cac
 def delete_user(id_type:ModelIdType, id:str, db:MongoDB = Depends(MongoDB.from_cache)):
     return db.delete(User, **{id_type.value: id})
 
-# file upload #
+#
+# file uploads
+#
 
-@core_router.post('file/uploader', response_model=FileUploader, response_model_by_alias=False)
-async def create_upload(total_size: int, db:MongoDB = Depends(MongoDB.from_cache)):
+@core_router.post('file-uploader', response_model=FileUploader, response_model_by_alias=False)
+async def create_file_upload(total_size: int, db:MongoDB = Depends(MongoDB.from_cache)):
     uploader = FileUploader(total_size=total_size)
     db.create(uploader)
     uploader.upload_path().touch()
     return uploader
 
-@core_router.post('file/uploader/{uploader_id}', response_model=FileUploader, response_model_by_alias=False, status_code=201)
+
+@core_router.get('file-uploader', response_model=List[FileUploader], response_model_by_alias=False)
+async def list_file_uploads(db:MongoDB = Depends(MongoDB.from_cache)):
+    return list(db.find(FileUploader))
+
+
+@core_router.get('file-uploader/{uploader_id}', response_model=FileUploader, response_model_by_alias=False)
+def read_file_upload(uploader_id:str, db:MongoDB = Depends(MongoDB.from_cache)):
+    try:
+        return db.read(User, id=uploader_id)
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@core_router.post('file-uploader/{uploader_id}', response_model=FileUploader, response_model_by_alias=False, status_code=201)
 async def upload_file(uploader_id: str, file: UploadFile, db:MongoDB = Depends(MongoDB.from_cache)):
+
     # init upload #
+
     try:
         uploader: FileUploader = db.read(FileUploader, id=uploader_id)
     except NotFoundError as e:
@@ -62,6 +86,7 @@ async def upload_file(uploader_id: str, file: UploadFile, db:MongoDB = Depends(M
         written = f.write(await file.read())
     
     uploader.total_uploaded += written
+    uploader.update_timestamp()
     
     # file upload error #
 

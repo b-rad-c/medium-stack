@@ -4,6 +4,7 @@ from os import environ
 from os.path import join
 
 from mserve.core import core_router
+from mcore.util import utc_now
 
 from fastapi import FastAPI, APIRouter
 from pydantic import BaseModel
@@ -42,7 +43,7 @@ class IndexResponse(BaseModel):
 
 @main_router.get('/', response_model=IndexResponse)
 async def index():
-    return IndexResponse(mserve_version=MSERVE_VERSION, utc_time=datetime.datetime.utcnow())
+    return IndexResponse(mserve_version=MSERVE_VERSION, utc_time=utc_now())
 
 #
 # app
