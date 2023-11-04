@@ -1,6 +1,7 @@
-from typing import Annotated, ClassVar, Union
+from typing import Annotated, ClassVar, Union, Optional
 from pathlib import Path
 from os import environ
+from enum import Enum
 
 from .errors import MediumFilePayloadError
 
@@ -41,7 +42,8 @@ __all__ = [
 
 # MEDIAINFO_LIB_PATH = environ.get('MEDIAINFO_LIB_PATH', '/opt/homebrew/Cellar/libmediainfo/23.09/lib/libmediainfo.dylib')
 MEDIAINFO_LIB_PATH = environ.get('MEDIAINFO_LIB_PATH', '')
-
+MSERVE_UPLOAD_DIRECTORY = environ.get('MSERVE_UPLOAD_DIRECTORY', '/tmp/mserver/uploads')
+MSERVE_LOCAL_STORAGE_DIRECTORY = environ.get('MSERVE_LOCAL_STORAGE_DIRECTORY', '/mstack/files')
 
 #
 # base models
@@ -55,7 +57,7 @@ class ContentModel(BaseModel):
         data = self.model_dump(exclude={'id', 'cid'})
         self.cid = ContentId.from_dict(data)
         return self
-    
+
 
 class ContentModelCreator(BaseModel):
 
@@ -88,6 +90,8 @@ class User(ContentModel):
         'json_schema_extra': {
             'examples': [
                 {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
                     'email': 'email@example.com',
                     'phone_number': 'tel:+1-513-555-0123',
                     'first_name': 'Alice',
@@ -108,12 +112,81 @@ class UserCreator(ContentModelCreator):
     last_name: str = Field(min_length=1, max_length=100)
     middle_name: str = Field(min_length=1, max_length=100, default=None, validate_default=False)    
 
-    model_config = User.model_config
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'email': 'email@example.com',
+                    'phone_number': 'tel:+1-513-555-0123',
+                    'first_name': 'Alice',
+                    'last_name': 'Smith',
+                    'middle_name': 'C'
+                }
+            ]
+        }
+    }
 
 
 #
 # media / file primatives
 #
+
+
+
+FileUploaderId = Annotated[MongoId, id_schema('a string representing a file uploader id')]
+
+class FileUploadStatus(str, Enum):
+    uploading = 'uploading'
+    error = 'error'
+    processing = 'processing'
+    pending = 'pending'
+    complete = 'complete'
+
+class FileUploadTypes(str, Enum):
+    audio = 'audio'
+    image = 'image'
+    text = 'text'
+    video = 'video'
+
+
+class FileUploader(BaseModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'file_uploads'
+
+    id: FileUploaderId = Field(**db_id_kwargs)
+    type: FileUploadTypes
+
+    total_size: int
+
+    status: FileUploadStatus = FileUploadStatus.uploading
+    total_uploaded: int = 0
+    error: Optional[str] = None
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'type': 'image',
+                    'total_size': 100_000,
+                    'status': 'uploading',
+                    'total_uploaded': 10_000
+                }
+            ]
+        }
+    }
+
+    def upload_path(self) -> Path:
+        if self.id is None:
+            raise ValueError(f'FileUploader must have an id to get an upload path')
+        
+        return Path(MSERVE_UPLOAD_DIRECTORY) / str(self.id)
+    
+    def local_storage_path(self) -> Path:
+        if self.id is None:
+            raise ValueError(f'FileUploader must have an id to get a local file path')
+        
+        return Path(MSERVE_LOCAL_STORAGE_DIRECTORY) / str(self.id)
+
 
 def mediainfo(path: Union[str, Path]) -> MediaInfo:
     library_file = None if MEDIAINFO_LIB_PATH == '' else MEDIAINFO_LIB_PATH
@@ -135,6 +208,20 @@ class ImageFile(ContentModel):
     height: int
     width: int
 
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441', 
+                    'cid': '0VcRfJsAIeMvHFxW2c1FFgk2PFc5S16zFEydoCtKhaSg105.json', 
+                    'payload_cid': '0Wh2aaOSrURBH32Z_Dgg8BgHB_fQllwLo_0arWPH_PQo7103671.jpg', 
+                    'height': 3584, 
+                    'width': 5376
+                }
+            ]
+        }
+    }
+
     @classmethod
     def from_filepath(cls:'ImageFile', filepath:Union[str, Path]) -> 'ImageFile':
         payload_cid = ContentId.from_filepath(filepath)
@@ -152,6 +239,7 @@ class ImageFile(ContentModel):
 
 AudioFileId = Annotated[MongoId, id_schema('a string representing an audio file id')]
 AudioFileCid = Annotated[ContentIdType, id_schema('a string representing an audio file cid')]
+AudioFilePayloadCid = Annotated[ContentIdType, id_schema('a string representing an audio file payload cid')]
 
 class AudioFile(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'audio_files'
@@ -159,10 +247,24 @@ class AudioFile(ContentModel):
     id: AudioFileId = Field(**db_id_kwargs)
     cid: AudioFileCid = Field(**cid_kwargs)
     
-    payload_cid: ContentId
+    payload_cid: AudioFilePayloadCid = Field(**cid_kwargs)
 
     duration: float   # number of seconds
     bit_rate: int
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441', 
+                    'cid': '0qB-A2d1Jt-DTBqAZZgBuTvH4tDbIFpxyfWmkxTZejXo114.json', 
+                    'payload_cid': '0SOT7ZsLeQYg6MbcabM049T_DKWbLXl6BR724v3xD9fo2633142.mp3', 
+                    'duration': 65.828, 
+                    'bit_rate': 320000
+                }
+            ]
+        }
+    }
 
     @classmethod
     def from_filepath(cls:'AudioFile', filepath:Union[str, Path]) -> 'AudioFile':
@@ -184,7 +286,7 @@ class AudioFile(ContentModel):
 
 VideoFileId = Annotated[MongoId, id_schema('a string representing a video file id')]
 VideoFileCid = Annotated[ContentIdType, id_schema('a string representing a video file cid')]
-
+VideoFilePayloadCid = Annotated[ContentIdType, id_schema('a string representing a video file payload cid')]
 
 class VideoFile(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_files'
@@ -192,13 +294,30 @@ class VideoFile(ContentModel):
     id: VideoFileId = Field(**db_id_kwargs)
     cid: VideoFileCid = Field(**cid_kwargs)
     
-    payload_cid: ContentId
+    payload_cid: VideoFilePayloadCid = Field(**cid_kwargs)
 
     height: int
     width: int
     duration: float
     bit_rate: int
     has_audio: bool
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441', 
+                    'cid': '0r62C64HF6Qn5WqjilmNmSlsZjnK52ifR178pPyA8bgI164.json', 
+                    'payload_cid': '0j_d4uuRMK-Q2LIoT-n6oIT_oE-nriwlp_K8_W8oa1r011061011.mov', 
+                    'height': 480, 
+                    'width': 853, 
+                    'duration': 32.995, 
+                    'bit_rate': 2681864, 
+                    'has_audio': True
+                }
+            ]
+        }
+    }
 
     @classmethod
     def from_filepath(cls:'VideoFile', filepath:Union[str, Path]) -> 'VideoFile':
@@ -224,7 +343,7 @@ class VideoFile(ContentModel):
 
 TextFileId = Annotated[MongoId, id_schema('a string representing a text file id')]
 TextFileCid = Annotated[ContentIdType, id_schema('a string representing a text file cid')]
-
+TextFilePayloadCid = Annotated[ContentIdType, id_schema('a string representing a text file payload cid')]
 
 class TextFile(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'text_files'
@@ -232,4 +351,4 @@ class TextFile(ContentModel):
     id: TextFileId = Field(**db_id_kwargs)
     cid: TextFileCid = Field(**cid_kwargs)
     
-    payload_cid: ContentId
+    payload_cid: TextFilePayloadCid = Field(**cid_kwargs)

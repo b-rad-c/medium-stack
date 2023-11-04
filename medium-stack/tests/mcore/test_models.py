@@ -1,8 +1,10 @@
 from mcore.models import (
+    ContentModel,
     ContentModelCreator,
 
     User,
     UserCreator,
+    FileUploader,
     ImageFile,
     AudioFile,
     VideoFile
@@ -10,11 +12,20 @@ from mcore.models import (
 
 from bson import ObjectId
 
+#
+# reusable functions
+#
 
 def _test_dumped_model(obj, cid, model_type):
     as_dict = obj.model_dump()
 
-    assert as_dict['cid'] == str(cid)
+    if issubclass(model_type, ContentModel):
+        assert as_dict['cid'] == str(cid)
+
+    try:
+        assert isinstance(as_dict['payload_cid'], str)
+    except KeyError:
+        "ignore if model doesn't have payload_cid"
     
 
     if obj.id is None:
@@ -26,48 +37,89 @@ def _test_dumped_model(obj, cid, model_type):
 
     assert obj == model_type(**as_dict)     # create model with cid string
     
-    as_dict['cid'] = cid
+    if issubclass(model_type, ContentModel):
+        as_dict['cid'] = cid
+
     assert obj == model_type(**as_dict)     # create model with cid object
 
 
 def _test_model_json_str(obj, cid, model_type):
     as_json = obj.model_dump_json()
-    assert str(cid) in as_json
+
+    if issubclass(model_type, ContentModel):
+        assert str(cid) in as_json
 
     if obj.id is None:
         assert '"id":null' in as_json
     else:
         assert f'"id":"{obj.id}"' in as_json
+
+    # fod models that have a payload cid, assert that it is not getting dumped as a dict
+    assert '"payload_cid":{' not in as_json
     
     assert '"_id"' not in as_json
 
     assert obj == model_type.model_validate_json(as_json)
 
 
-def _test_model_creator_and_example(model_type, model_creator_type):
+def _test_model_examples(model_type):
     try:
         examples = model_type.model_config['json_schema_extra']['examples']
     except KeyError:
         raise TypeError(f'model {model_type.__name__} does not have examples defined')
+    
+    assert len(examples) > 0
+    
+    for example in examples:
+        model = model_type(**example)
+        assert isinstance(model, model_type)
+
+
+def _test_model_creator_and_examples(model_type, model_creator_type):
+    try:
+        examples = model_creator_type.model_config['json_schema_extra']['examples']
+    except KeyError:
+        raise TypeError(f'model {model_creator_type.__name__} does not have examples defined')
+    
+    assert len(examples) > 0
     
     for example in examples:
         model_creator:ContentModelCreator = model_creator_type(**example)
         model = model_creator.create_content_model()
         assert isinstance(model, model_type)
 
+
+#
+# tests
+#
+
+
 def test_user(user, user_cid):
+    _test_model_examples(User)
+    _test_model_creator_and_examples(User, UserCreator)
+
     _test_dumped_model(user, user_cid, User)
     _test_model_json_str(user, user_cid, User)
-    _test_model_creator_and_example(User, UserCreator)
-
-
-def test_user_w_id(user, user_cid):
+    
     user.id = ObjectId()
     _test_dumped_model(user, user_cid, User)
     _test_model_json_str(user, user_cid, User)
 
 
+def test_file_uploader(file_uploader):
+    _test_model_examples(FileUploader)
+
+    _test_dumped_model(file_uploader, None, FileUploader)
+    _test_model_json_str(file_uploader, None, FileUploader)
+    
+    file_uploader.id = ObjectId()
+    _test_dumped_model(file_uploader, None, FileUploader)
+    _test_model_json_str(file_uploader, None, FileUploader)
+
+
 def test_image_file(image_file, image_file_cid, image_file_payload):
+    _test_model_examples(ImageFile)
+
     image_file.payload_cid == image_file_payload
 
     assert image_file.height == 3584
@@ -78,15 +130,14 @@ def test_image_file(image_file, image_file_cid, image_file_payload):
     _test_dumped_model(image_file, image_file_cid, ImageFile) 
     _test_model_json_str(image_file, image_file_cid, ImageFile)
 
-
-def test_image_file_w_id(image_file, image_file_cid):
     image_file.id = ObjectId()
     _test_dumped_model(image_file, image_file_cid, ImageFile) 
     _test_model_json_str(image_file, image_file_cid, ImageFile)
 
 
-
 def test_audio_file(audio_file, audio_file_cid, audio_file_payload):
+    _test_model_examples(AudioFile)
+
     audio_file.payload_cid == audio_file_payload
 
     assert audio_file.duration == 65.828
@@ -96,13 +147,14 @@ def test_audio_file(audio_file, audio_file_cid, audio_file_payload):
     _test_dumped_model(audio_file, audio_file_cid, AudioFile) 
     _test_model_json_str(audio_file, audio_file_cid, AudioFile)
 
-
-def test_audio_file_w_id(audio_file, audio_file_cid):
     audio_file.id = ObjectId()
     _test_dumped_model(audio_file, audio_file_cid, AudioFile) 
     _test_model_json_str(audio_file, audio_file_cid, AudioFile)
 
+
 def test_video_file(video_file, video_file_cid, video_file_payload):
+    _test_model_examples(VideoFile)
+
     assert video_file.payload_cid == video_file_payload
     assert video_file.height == 480
     assert isinstance(video_file.height, int)
@@ -116,8 +168,6 @@ def test_video_file(video_file, video_file_cid, video_file_payload):
     _test_dumped_model(video_file, video_file_cid, VideoFile)
     _test_model_json_str(video_file, video_file_cid, VideoFile)
 
-
-def test_video_file_w_id(video_file, video_file_cid):
     video_file.id = ObjectId()
     _test_dumped_model(video_file, video_file_cid, VideoFile)
     _test_model_json_str(video_file, video_file_cid, VideoFile)

@@ -1,5 +1,5 @@
 from mcore.types import ContentId
-from mcore.models import User, ImageFile, AudioFile, VideoFile
+from mcore.models import User, FileUploader, FileUploadTypes, FileUploadStatus, ImageFile, AudioFile, VideoFile
 
 from pathlib import Path
 
@@ -18,6 +18,11 @@ def user():
 def user_cid():
     """cids should be hardcoded strings for testing to ensure the cid generation logic doesn't change"""
     return ContentId(hash='qCOVki8sEA_Nt-5dsPc6402H7JIpEN1q3na_e7WzkIE', size=130, ext='json')
+
+
+@pytest.fixture(scope='session')
+def file_uploader():
+    return FileUploader(type=FileUploadTypes.image, total_size=100_000, status=FileUploadStatus.uploading, total_uploaded=10_000)
 
 
 @pytest.fixture(scope='session')
@@ -45,7 +50,7 @@ def audio_file():
 
 @pytest.fixture(scope='session')
 def audio_file_cid():
-    return ContentId(hash='1MBP4ymrsH4NpRtrUmjl1F4qCUVH6EQ-Dytv_XYT-ik', size=143, ext='json')
+    return ContentId(hash='qB-A2d1Jt-DTBqAZZgBuTvH4tDbIFpxyfWmkxTZejXo', size=114, ext='json')
 
 
 @pytest.fixture(scope='session')
@@ -61,7 +66,7 @@ def video_file():
 
 @pytest.fixture(scope='session')
 def video_file_cid():
-    return ContentId(hash='oJ43joZ6n3Vboxj5NYrIeXPoBFbWDxtvd1e3sGvdqg8', size=193, ext='json')
+    return ContentId(hash='r62C64HF6Qn5WqjilmNmSlsZjnK52ifR178pPyA8bgI', size=164, ext='json')
 
 
 @pytest.fixture(scope='session')
