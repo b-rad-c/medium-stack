@@ -21,8 +21,8 @@ def create_user(user_creator:UserCreator, db:MongoDB = Depends(MongoDB.from_cach
 
 
 @core_router.get('/users', response_model=List[User], response_model_by_alias=False)
-def list_users(db:MongoDB = Depends(MongoDB.from_cache)):
-    return list(db.find(User))
+def list_users(offset:int=0, size:int=50, db:MongoDB = Depends(MongoDB.from_cache)):
+    return list(db.find(User, offset, size))
 
 
 @core_router.get('/users/{id_type}/{id}', response_model=User, response_model_by_alias=False)

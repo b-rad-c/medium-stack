@@ -1,6 +1,6 @@
 from mcore.mongo import MongoDB
 from mcore.models import User, ImageFile, AudioFile, VideoFile
-from mcore.errors import NotFoundError, MediumDBError
+from mcore.errors import NotFoundError, MStackDBError
 from bson import ObjectId
 import pytest
 
@@ -46,7 +46,7 @@ def _test_model(obj, obj_cid, model_type):
     assert db.read(model_type, cid=obj_cid) == obj
     assert db.read(model_type, id=obj.id, cid=obj_cid) == obj
 
-    with pytest.raises(MediumDBError):
+    with pytest.raises(MStackDBError):
         db.read(model_type)
 
     # db delete method (instance signature) #
@@ -68,7 +68,7 @@ def _test_model(obj, obj_cid, model_type):
     db.delete(model_type, id=obj.id, cid=obj_cid)
     _verify_does_not_exist(obj)
 
-    with pytest.raises(MediumDBError):
+    with pytest.raises(MStackDBError):
         db.delete(model_type)
 
     _reset_cid(obj)

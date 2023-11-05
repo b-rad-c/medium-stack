@@ -1,4 +1,4 @@
-from .errors import MediumDBError, NotFoundError
+from .errors import MStackDBError, NotFoundError
 from .types import ContentId
 
 from os import environ
@@ -44,7 +44,7 @@ class MongoDB:
             try:
                 name = model.MONGO_COLLECTION_NAME
             except AttributeError:
-                raise MediumDBError(f'Invalid model: does not define a database collection')
+                raise MStackDBError(f'Invalid model: does not define a database collection')
         
         return self.db[name]
 
@@ -69,7 +69,7 @@ class MongoDB:
                 query['cid'] = str(cid)
 
         if '_id' not in query and 'cid' not in query:
-            raise MediumDBError('must supply id and or cid to read method')
+            raise MStackDBError('must supply id and or cid to read method')
 
         document = self.get_collection(model).find_one(query)
         if document is None:
@@ -105,14 +105,14 @@ class MongoDB:
                 query['cid'] = str(cid)
 
         if '_id' not in query and 'cid' not in query:
-            raise MediumDBError('must supply id and or cid to delete method')
+            raise MStackDBError('must supply id and or cid to delete method')
 
         collection = self.get_collection(model)
         collection.delete_one(query)
 
-    def find(self, model_type: Type[BaseModel], *args, **kwargs) -> List[BaseModel]:
+    def find(self, model_type: Type[BaseModel], offset:int=0, size:int=50, **kwargs) -> List[BaseModel]:
         collection = self.get_collection(model_type)
-        for entry in collection.find(*args, **kwargs):
+        for entry in collection.find(skip=offset, limit=size, **kwargs):
             yield model_type(**entry)
 
     @classmethod

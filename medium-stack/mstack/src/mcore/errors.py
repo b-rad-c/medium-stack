@@ -1,14 +1,27 @@
-class MediumCoreError(Exception):
+
+
+class MStackCoreError(Exception):
     pass
 
 
-class MediumFilePayloadError(MediumCoreError):
+class MStackClientError(MStackCoreError):
+    def __init__(self, msg, url, exc, response=None) -> None:
+        super().__init__(msg)
+        self.url = url
+        self.exc = exc
+        self.response = response
+        try:
+            self.status_code = response.status_code
+        except AttributeError:
+            self.status_code = None
+
+class MStackFilePayloadError(MStackCoreError):
     pass
 
 
-class MediumDBError(MediumCoreError):
+class MStackDBError(MStackCoreError):
     pass
 
 
-class NotFoundError(MediumCoreError):
+class NotFoundError(MStackCoreError):
     pass

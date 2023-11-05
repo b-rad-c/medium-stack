@@ -4,7 +4,7 @@ from os import environ
 from enum import Enum
 from datetime import datetime
 
-from mcore.errors import MediumFilePayloadError
+from mcore.errors import MStackFilePayloadError
 from mcore.util import utc_now
 
 from pymediainfo import MediaInfo
@@ -234,9 +234,9 @@ class ImageFile(ContentModel):
             height = info.image_tracks[0].height
             width = info.image_tracks[0].width
         except IndexError:
-            raise MediumFilePayloadError(f'Does not contain image data: {filepath}')
+            raise MStackFilePayloadError(f'Does not contain image data: {filepath}')
         except AttributeError:
-            raise MediumFilePayloadError(f'Unknown error getting media info: {filepath}')
+            raise MStackFilePayloadError(f'Unknown error getting media info: {filepath}')
 
         return cls(payload_cid=payload_cid, height=height, width=width)
 
@@ -275,15 +275,15 @@ class AudioFile(ContentModel):
         payload_cid = ContentId.from_filepath(filepath)
         info = mediainfo(filepath)
         if len(info.audio_tracks) == 0:
-            raise MediumFilePayloadError(f'Does not contain audio track(s): {filepath}')
+            raise MStackFilePayloadError(f'Does not contain audio track(s): {filepath}')
         if len(info.video_tracks) > 0:
-            raise MediumFilePayloadError(f'Audio file contains video track(s): {filepath}')
+            raise MStackFilePayloadError(f'Audio file contains video track(s): {filepath}')
         
         try:
             duration = info.general_tracks[0].duration / 1000
             bit_rate = info.general_tracks[0].overall_bit_rate
         except (AttributeError, IndexError):
-            raise MediumFilePayloadError(f'Unknown error getting media info: {filepath}')
+            raise MStackFilePayloadError(f'Unknown error getting media info: {filepath}')
 
         return cls(payload_cid=payload_cid, duration=duration, bit_rate=bit_rate)
 
@@ -329,7 +329,7 @@ class VideoFile(ContentModel):
         info = mediainfo(filepath)
 
         if len(info.video_tracks) == 0:
-            raise MediumFilePayloadError(f'Does not contain video track: {filepath}')
+            raise MStackFilePayloadError(f'Does not contain video track: {filepath}')
         
         height = info.video_tracks[0].height
         width = info.video_tracks[0].width
@@ -338,7 +338,7 @@ class VideoFile(ContentModel):
             duration = info.general_tracks[0].duration / 1000
             bit_rate = info.general_tracks[0].overall_bit_rate
         except (AttributeError, IndexError):
-            raise MediumFilePayloadError(f'Unknown error getting media info: {filepath}')
+            raise MStackFilePayloadError(f'Unknown error getting media info: {filepath}')
         
         has_audio = len(info.audio_tracks) > 0
 
