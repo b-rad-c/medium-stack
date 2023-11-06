@@ -1,10 +1,11 @@
 from mcore.models import (
     ContentModel,
-    ContentModelCreator,
+    ModelCreator,
 
     User,
     UserCreator,
     FileUploader,
+    FileUploaderCreator,
     ImageFile,
     AudioFile,
     VideoFile
@@ -84,8 +85,8 @@ def _test_model_creator_and_examples(model_type, model_creator_type):
     assert len(examples) > 0
     
     for example in examples:
-        model_creator:ContentModelCreator = model_creator_type(**example)
-        model = model_creator.create_content_model()
+        model_creator:ModelCreator = model_creator_type(**example)
+        model = model_creator.create_model()
         assert isinstance(model, model_type)
 
 
@@ -108,6 +109,7 @@ def test_user(user, user_cid):
 
 def test_file_uploader(file_uploader):
     _test_model_examples(FileUploader)
+    _test_model_creator_and_examples(FileUploader, FileUploaderCreator)
 
     _test_dumped_model(file_uploader, None, FileUploader)
     _test_model_json_str(file_uploader, None, FileUploader)

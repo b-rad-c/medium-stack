@@ -29,6 +29,11 @@ __all__ = [
     'User',
     'UserCreator',
 
+    'FileUploadStatus',
+    'FileUploadTypes',
+    'FileUploader',
+    'FileUploaderCreator',
+
     'ImageFile',
     'ImageFileId',
     'ImageFileCid',
@@ -61,10 +66,12 @@ class ContentModel(BaseModel):
         return self
 
 
-class ContentModelCreator(BaseModel):
+class ModelCreator(BaseModel):
 
-    def create_content_model(self) -> 'ContentModel':
-        return self.CONTENT_MODEL(**self.model_dump())
+    MODEL: ClassVar[str] = None
+
+    def create_model(self) -> 'ContentModel':
+        return self.MODEL(**self.model_dump())
 
 
 #
@@ -105,8 +112,8 @@ class User(ContentModel):
     }
 
 
-class UserCreator(ContentModelCreator):
-    CONTENT_MODEL: ClassVar[str] = User
+class UserCreator(ModelCreator):
+    MODEL: ClassVar[str] = User
 
     email: EmailStr
     phone_number: PhoneNumber
@@ -143,6 +150,7 @@ class FileUploadStatus(str, Enum):
     processing = 'processing'
     pending = 'pending'
     complete = 'complete'
+
 
 class FileUploadTypes(str, Enum):
     audio = 'audio'
@@ -191,6 +199,24 @@ class FileUploader(BaseModel):
             raise ValueError(f'FileUploader must have an id to get a local file path')
         
         return Path(MSERVE_LOCAL_STORAGE_DIRECTORY) / str(self.id)
+
+
+class FileUploaderCreator(ModelCreator):
+    MODEL: ClassVar[str] = FileUploader
+
+    type: FileUploadTypes
+    total_size: int    
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'type': 'image',
+                    'total_size': 100_000
+                }
+            ]
+        }
+    }
 
 
 def mediainfo(path: Union[str, Path]) -> MediaInfo:

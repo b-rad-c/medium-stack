@@ -1,5 +1,6 @@
-from .errors import MStackDBError, NotFoundError
-from .types import ContentId
+from mcore.errors import MStackDBError, NotFoundError
+from mcore.types import ContentId
+from mcore.models import ModelCreator
 
 from os import environ
 
@@ -48,10 +49,14 @@ class MongoDB:
         
         return self.db[name]
 
-    def create(self, model:BaseModel) -> BaseModel:
-        collection = self.get_collection(model)
+    def create(self, creator:ModelCreator) -> BaseModel:
+        model = creator.create_model()
+
+        collection = self.get_collection(creator.MODEL)
         result = collection.insert_one(model.model_dump(by_alias=True, exclude=['id']))
+
         model.id = result.inserted_id
+        return model
 
     def read(self, model:InstanceOrType, id:Union[str, ObjectId]=None, cid: Union[str, ContentId]=None) -> BaseModel:
         query = {}

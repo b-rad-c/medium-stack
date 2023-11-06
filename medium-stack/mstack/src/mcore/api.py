@@ -8,7 +8,9 @@ from mserve import IndexResponse
 from mcore.types import ModelIdType
 from mcore.models import (
     User,
-    UserCreator
+    UserCreator,
+    FileUploader,
+    FileUploaderCreator
 )
 
 import requests
@@ -107,3 +109,20 @@ class MStackClient:
     def list_users(self, offset:int=0, size:int=50) -> List[User]:
         data = self._get('core/users', params={'offset': offset, 'size': size})
         return [User(**user) for user in data]
+
+    # file upload #
+
+    def create_file_uploader(self, file_upload_creator: FileUploaderCreator) -> FileUploader:
+        data = self._post('core/file-uploader', json=file_upload_creator.model_dump())
+        return FileUploader(**data)
+
+    def read_file_uploader(self, id: str) -> FileUploader:
+        data = self._get(f'core/file-uploader/{id}')
+        return FileUploader(**data)
+
+    def delete_file_uploader(self, id:str = None) -> None:
+        self._delete(f'core/file-uploader/{id}')
+
+    def list_file_uploaders(self, offset:int=0, size:int=50) -> List[FileUploader]:
+        data = self._get('core/file-uploader', params={'offset': offset, 'size': size})
+        return [FileUploader(**uploader) for uploader in data]
