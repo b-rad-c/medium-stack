@@ -1,12 +1,30 @@
 from mcore.types import ContentId
+from mcore.mongo import MongoDB
 from mcore.models import User, FileUploader, FileUploadTypes, FileUploadStatus, ImageFile, AudioFile, VideoFile
 
 from pathlib import Path
 
 import pytest
 
-
 SAMPLE_BIN = Path(__file__).parent / 'samples'
+
+#
+# db fixtures
+#
+
+@pytest.fixture(scope='session')
+def db():
+    return MongoDB.from_cache()
+
+
+@pytest.fixture(scope='session')
+def reset_collection(db):
+    return lambda model_type: db.get_collection(model_type).drop()
+
+
+#
+# model fixtures
+#
 
 
 @pytest.fixture(scope='session')

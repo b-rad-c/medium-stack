@@ -2,17 +2,13 @@ from string import ascii_uppercase
 
 from mcore.api import *
 from mcore.models import *
-from mcore.mongo import MongoDB
 from mcore.errors import NotFoundError
 from mserve import IndexResponse
 
 import pytest
 
 mstack = MStackClient()
-db = MongoDB.from_cache()
 
-def _reset_collection(model_type):
-    db.get_collection(model_type).drop()
 
 
 def test_main():
@@ -21,18 +17,18 @@ def test_main():
     assert isinstance(data, IndexResponse)
 
 
-def test_core_users():
+def test_core_users(reset_collection):
 
     # init #
 
-    _reset_collection(User)
+    reset_collection(User)
     assert len(mstack.list_users()) == 0, 'user collection was not reset'
 
     # create #
 
     creator_params = UserCreator.model_config['json_schema_extra']['examples'][0]
     created_users = []
-    
+
     for index in range(10):
         new_user = UserCreator(**creator_params)        # create user by incrementing middle initial
         new_user.middle_name = ascii_uppercase[index]   # to ensure each user has a unique cid
@@ -104,6 +100,8 @@ def test_core_users():
 
     with pytest.raises(NotFoundError):
         mstack.read_user(cid=created_users[1].cid)
+
+    reset_collection(User)
 
 
 def test_core_file_uploader():
