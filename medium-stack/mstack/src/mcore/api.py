@@ -1,7 +1,6 @@
 import os 
 
 from typing import List
-from urllib.parse import urljoin
 from os.path import join
 
 from mcore.errors import MStackClientError, NotFoundError
@@ -35,11 +34,11 @@ class MStackClient:
 
     def __init__(self):
         self.session = requests.Session()
-        self.url_base = urljoin(MSTACK_API_HOST, MSTACK_API_PREFIX)
+        self.url_base = join(MSTACK_API_HOST, MSTACK_API_PREFIX)
         self.response = None
 
     def _call(self, method:str, endpoint:str, *args, **kwargs) -> dict:
-        url = urljoin(self.url_base, endpoint)
+        url = join(self.url_base, endpoint)
         try:
             self.response = self.session.request(method, url, *args, **kwargs)
         except RequestException as e:
@@ -94,17 +93,17 @@ class MStackClient:
     # users #
 
     def create_user(self, user_creator: UserCreator) -> User:
-        data = self._post('/api/v0/core/users', json=user_creator.model_dump())
+        data = self._post('core/users', json=user_creator.model_dump())
         return User(**data)
 
     def read_user(self, id:str = None, cid:str = None) -> User:
-        url = self._model_id_type_url('/api/v0/core/users', id, cid)
+        url = self._model_id_type_url('core/users', id, cid)
         data = self._get(url)
         return User(**data)
 
     def delete_user(self, id:str = None, cid:str = None) -> None:
-        self._delete(self._model_id_type_url('/api/v0/core/users', id, cid))
+        self._delete(self._model_id_type_url('core/users', id, cid))
 
     def list_users(self, offset:int=0, size:int=50) -> List[User]:
-        data = self._get('/api/v0/core/users', params={'offset': offset, 'size': size})
+        data = self._get('core/users', params={'offset': offset, 'size': size})
         return [User(**user) for user in data]
