@@ -27,6 +27,7 @@ __all__ = [
     'UserId',
     'UserCid',
     'User',
+    'UserCreator',
 
     'ImageFile',
     'ImageFileId',

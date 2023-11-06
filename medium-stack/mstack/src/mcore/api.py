@@ -2,8 +2,9 @@ import os
 
 from typing import List
 from urllib.parse import urljoin
+from os.path import join
 
-from mcore.errors import MStackClientError
+from mcore.errors import MStackClientError, NotFoundError
 from mserve import IndexResponse
 from mcore.types import ModelIdType
 from mcore.models import (
@@ -44,13 +45,15 @@ class MStackClient:
         except RequestException as e:
             raise MStackClientError(str(e), url, e)
         
+        if self.response.status_code == 404:
+            raise NotFoundError(f'Not Found: {url}')
+        
         try:
             self.response.raise_for_status()
             return self.response.json()
         except RequestException as e:
             raise MStackClientError(str(e), url, e, self.response)
         
-
     def _get(self, endpoint: str, *args, **kwargs) -> dict:
         return self._call('GET', endpoint, *args, **kwargs)
 
@@ -65,6 +68,17 @@ class MStackClient:
 
     def _delete(self, endpoint: str, *args, **kwargs) -> dict:
         return self._call('DELETE', endpoint, *args, **kwargs)
+    
+    @staticmethod
+    def _model_id_type_url(endpoint, id:str = None, cid:str = None) -> str:
+        if id is not None:
+            return join(endpoint, f'{ModelIdType.id.value}/{id}')
+        
+        elif cid is not None:
+            return join(endpoint, f'{ModelIdType.cid.value}/{cid}')
+        
+        else:
+            raise MStackClientError(f'must provide cid or id')
 
     #
     # main
@@ -83,13 +97,14 @@ class MStackClient:
         data = self._post('/api/v0/core/users', json=user_creator.model_dump())
         return User(**data)
 
+    def read_user(self, id:str = None, cid:str = None) -> User:
+        url = self._model_id_type_url('/api/v0/core/users', id, cid)
+        data = self._get(url)
+        return User(**data)
+
+    def delete_user(self, id:str = None, cid:str = None) -> None:
+        self._delete(self._model_id_type_url('/api/v0/core/users', id, cid))
+
     def list_users(self, offset:int=0, size:int=50) -> List[User]:
         data = self._get('/api/v0/core/users', params={'offset': offset, 'size': size})
         return [User(**user) for user in data]
-
-    def read_user(self, id_type: ModelIdType, id: str) -> User:
-        data = self._get(f'/api/v0/core/users/{id_type}/{id}')
-        return User(**data)
-
-    def delete_user(self, id_type: ModelIdType, id: str) -> None:
-        self._delete(f'/api/v0/core/users/{id_type}/{id}')

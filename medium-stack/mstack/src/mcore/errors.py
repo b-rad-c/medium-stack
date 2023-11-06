@@ -1,5 +1,3 @@
-
-
 class MStackCoreError(Exception):
     pass
 
@@ -14,6 +12,7 @@ class MStackClientError(MStackCoreError):
             self.status_code = response.status_code
         except AttributeError:
             self.status_code = None
+
 
 class MStackFilePayloadError(MStackCoreError):
     pass
