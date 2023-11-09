@@ -1,6 +1,6 @@
 from string import ascii_uppercase
 
-from mcore.api import *
+from mcore.client import *
 from mcore.models import *
 from mcore.errors import NotFoundError
 from mserve import IndexResponse
