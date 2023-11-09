@@ -1,4 +1,4 @@
-from typing import Annotated, ClassVar, Union, Optional
+from typing import Annotated, ClassVar, Union, Optional, Type
 from pathlib import Path
 from os import environ
 from enum import Enum
@@ -23,6 +23,9 @@ __all__ = [
     'MongoId',
     'db_id_kwargs',
     'cid_kwargs',
+
+    'ContentModel',
+    'ModelCreator',
     
     'UserId',
     'UserCid',
@@ -35,14 +38,20 @@ __all__ = [
     'FileUploaderCreator',
 
     'ImageFile',
+    'ImageFileCreator',
     'ImageFileId',
     'ImageFileCid',
+
     'AudioFile',
+    'AudioFileCreator',
     'AudioFileId',
     'AudioFileCid',
+
     'VideoFile',
+    'VideoFileCreator',
     'VideoFileId',
     'VideoFileCid',
+    
     'TextFile',
     'TextFileId',
     'TextFileCid'
@@ -113,7 +122,7 @@ class User(ContentModel):
 
 
 class UserCreator(ModelCreator):
-    MODEL: ClassVar[str] = User
+    MODEL: ClassVar[Type[User]] = User
 
     email: EmailStr
     phone_number: PhoneNumber
@@ -202,7 +211,7 @@ class FileUploader(BaseModel):
 
 
 class FileUploaderCreator(ModelCreator):
-    MODEL: ClassVar[str] = FileUploader
+    MODEL: ClassVar[Type[FileUploader]] = FileUploader
 
     type: FileUploadTypes
     total_size: int    
@@ -228,6 +237,7 @@ ImageFileId = Annotated[MongoId, id_schema('a string representing an image file 
 ImageFileCid = Annotated[ContentIdType, id_schema('a string representing an image file cid')]
 ImageFilePayloadCid = Annotated[ContentIdType, id_schema('a string representing an image file payload cid')]
 
+
 class ImageFile(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'image_files'
 
@@ -236,8 +246,8 @@ class ImageFile(ContentModel):
 
     payload_cid: ImageFilePayloadCid = Field(**cid_kwargs)
 
-    height: int
-    width: int
+    height: int = Field(gt=0)
+    width: int = Field(gt=0)
 
     model_config = {
         'json_schema_extra': {
@@ -268,6 +278,24 @@ class ImageFile(ContentModel):
         return cls(payload_cid=payload_cid, height=height, width=width)
 
 
+class ImageFileCreator(ModelCreator):
+    MODEL: ClassVar[Type[ImageFile]] = ImageFile
+
+    height: int = Field(gt=0)
+    width: int = Field(gt=0)
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'height': 3584, 
+                    'width': 5376
+                }
+            ]
+        }
+    }
+
+
 AudioFileId = Annotated[MongoId, id_schema('a string representing an audio file id')]
 AudioFileCid = Annotated[ContentIdType, id_schema('a string representing an audio file cid')]
 AudioFilePayloadCid = Annotated[ContentIdType, id_schema('a string representing an audio file payload cid')]
@@ -280,8 +308,8 @@ class AudioFile(ContentModel):
     
     payload_cid: AudioFilePayloadCid = Field(**cid_kwargs)
 
-    duration: float   # number of seconds
-    bit_rate: int
+    duration: float = Field(gt=0) # numer of seconds
+    bit_rate: int = Field(gt=0)
 
     model_config = {
         'json_schema_extra': {
@@ -315,6 +343,24 @@ class AudioFile(ContentModel):
         return cls(payload_cid=payload_cid, duration=duration, bit_rate=bit_rate)
 
 
+class AudioFileCreator(ModelCreator):
+    MODEL: ClassVar[Type[AudioFile]] = AudioFile
+
+    duration: float = Field(gt=0)
+    bit_rate: int = Field(gt=0)
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'duration': 65.828,
+                    'bit_rate': 320000
+                }
+            ]
+        }
+    }
+
+
 VideoFileId = Annotated[MongoId, id_schema('a string representing a video file id')]
 VideoFileCid = Annotated[ContentIdType, id_schema('a string representing a video file cid')]
 VideoFilePayloadCid = Annotated[ContentIdType, id_schema('a string representing a video file payload cid')]
@@ -327,10 +373,10 @@ class VideoFile(ContentModel):
     
     payload_cid: VideoFilePayloadCid = Field(**cid_kwargs)
 
-    height: int
-    width: int
-    duration: float
-    bit_rate: int
+    height: int = Field(gt=0)
+    width: int = Field(gt=0)
+    duration: float = Field(gt=0) 
+    bit_rate: int = Field(gt=0)
     has_audio: bool
 
     model_config = {
@@ -370,6 +416,30 @@ class VideoFile(ContentModel):
         has_audio = len(info.audio_tracks) > 0
 
         return cls(payload_cid=payload_cid, height=height, width=width, duration=duration, bit_rate=bit_rate, has_audio=has_audio)
+
+
+class VideoFileCreator(ModelCreator):
+    MODEL: ClassVar[Type[VideoFile]] = VideoFile
+
+    height: int = Field(gt=0)
+    width: int = Field(gt=0)
+    duration: float = Field(gt=0) 
+    bit_rate: int = Field(gt=0)
+    has_audio: bool
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'height': 480,
+                    'width': 853,
+                    'duration': 32.995,
+                    'bit_rate': 2681864,
+                    'has_audio': True
+                }
+            ]
+        }
+    }
 
 
 TextFileId = Annotated[MongoId, id_schema('a string representing a text file id')]

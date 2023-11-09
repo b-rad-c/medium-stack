@@ -15,7 +15,9 @@ core_router = APIRouter(tags=['Core'])
 
 @core_router.post('/users', response_model=User, response_model_by_alias=False)
 def create_user(user_creator:UserCreator, db:MongoDB = Depends(MongoDB.from_cache)):
-    return db.create(user_creator)
+    user = user_creator.create_model()
+    db.create(user)
+    return user
 
 
 @core_router.get('/users', response_model=List[User], response_model_by_alias=False)
@@ -41,7 +43,8 @@ def delete_user(id_type:ModelIdType, id:str, db:MongoDB = Depends(MongoDB.from_c
 
 @core_router.post('/file-uploader', response_model=FileUploader, response_model_by_alias=False)
 async def create_file_uploader(creator: FileUploaderCreator, db:MongoDB = Depends(MongoDB.from_cache)):
-    uploader:FileUploader = db.create(creator)
+    uploader:FileUploader = creator.create_model()
+    db.create(uploader)
     uploader.local_storage_path().touch()
     return uploader
 

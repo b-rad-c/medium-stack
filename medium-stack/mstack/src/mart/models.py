@@ -1,4 +1,4 @@
-from typing import Annotated, ClassVar, Union, Optional
+from typing import Annotated, ClassVar, Union, Optional, Type
 from enum import StrEnum
 from pydantic import BaseModel, Field, conlist, conset
 
@@ -53,6 +53,52 @@ class Artist(ContentModel):
     description: str = Field(min_length=1, max_length=1500)
     types: conset(ArtType)
 
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '',
+                    'cid': '',
+                    'name': 'Frida Kahlo',
+                    'short_name': 'Kahlo',
+                    'abreviated_name': 'FK',
+                    'summary': 'Mexican painter known for her many portraits, self-portraits, and works inspired by the nature and artifacts of Mexico.',
+                    'description': 'Frida Kahlo de Rivera was a Mexican artist who painted many portraits, self-portraits, and works inspired by the nature and artifacts of Mexico. Her work has been celebrated internationally as emblematic of Mexican national and indigenous traditions, and by feminists for its uncompromising depiction of the female experience and form.',
+                    'types': ['still']
+                }
+            ]
+        }
+    }
+
+
+class ArtistCreator(BaseModel):
+
+    MODEL: ClassVar[Type[Artist]] = Artist
+
+    name: str = Field(min_length=1, max_length=300)
+    short_name: str = Field(min_length=1, max_length=50)
+    abreviated_name: str = Field(max_length=10)
+    summary: str = Field(min_length=1, max_length=300)
+    description: str = Field(min_length=1, max_length=1500)
+    types: conset(ArtType)
+
+    MODEL = Artist  # This references the model that this Creator is for
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'name': 'Frida Kahlo',
+                    'short_name': 'Kahlo',
+                    'abreviated_name': 'FK',
+                    'summary': 'Mexican painter known for her many portraits, self-portraits, and works inspired by the nature and artifacts of Mexico.',
+                    'description': 'Frida Kahlo de Rivera was a Mexican artist who painted many portraits, self-portraits, and works inspired by the nature and artifacts of Mexico. Her work has been celebrated internationally as emblematic of Mexican national and indigenous traditions, and by feminists for its uncompromising depiction of the female experience and form.',
+                    'types': ['still']
+                }
+            ]
+        }
+    }
+
 
 ArtistGroupId = Annotated[MongoId, id_schema('a string representing an artist group id')]
 ArtistGroupCid = Annotated[ContentId, id_schema('a string representing an artist content id')]
@@ -77,7 +123,7 @@ class ArtistGroup(ContentModel):
 CreditId = Annotated[MongoId, id_schema('a string representing a credit id')]
 CreditCid = Annotated[ContentId, id_schema('a string representing a credit content id')]
 
-class Credit(BaseModel):
+class Credit(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'credits'
 
     id: CreditId = Field(**db_id_kwargs)
@@ -90,7 +136,7 @@ class Credit(BaseModel):
 TitleDataId = Annotated[MongoId, id_schema('a string representing a title data id')]
 TitleDataCid = Annotated[ContentId, id_schema('a string representing a title data content id')]
 
-class TitleData(BaseModel):
+class TitleData(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'title_data'
 
     id: TitleDataId = Field(**db_id_kwargs)

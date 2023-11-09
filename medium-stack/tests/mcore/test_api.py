@@ -10,7 +10,6 @@ import pytest
 mstack = MStackClient()
 
 
-
 def test_main():
     data = mstack.index()
     assert mstack.response.status_code == 200
@@ -103,7 +102,6 @@ def test_core_users(reset_collection):
         mstack.read_user(cid=created_users[1].cid)
 
     reset_collection(User)
-
 
 
 def test_core_file_uploader(reset_collection):

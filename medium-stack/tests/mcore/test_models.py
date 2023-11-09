@@ -1,17 +1,8 @@
-from mcore.models import (
-    ContentModel,
-    ModelCreator,
-
-    User,
-    UserCreator,
-    FileUploader,
-    FileUploaderCreator,
-    ImageFile,
-    AudioFile,
-    VideoFile
-)
+from mcore.models import *
 
 from bson import ObjectId
+
+from pydantic import BaseModel
 
 #
 # reusable functions
@@ -63,9 +54,9 @@ def _test_model_json_str(obj, cid, model_type):
     assert obj == model_type.model_validate_json(as_json)
 
 
-def _test_model_examples(model_type):
+def _test_model_examples(model_type:BaseModel):
     try:
-        examples = model_type.model_config['json_schema_extra']['examples']
+        examples = model_type.model_json_schema()['examples']
     except KeyError:
         raise TypeError(f'model {model_type.__name__} does not have examples defined')
     
@@ -76,9 +67,9 @@ def _test_model_examples(model_type):
         assert isinstance(model, model_type)
 
 
-def _test_model_creator_and_examples(model_type, model_creator_type):
+def _test_model_creator_and_examples(model_type, model_creator_type:ModelCreator):
     try:
-        examples = model_creator_type.model_config['json_schema_extra']['examples']
+        examples = model_creator_type.model_json_schema()['examples']
     except KeyError:
         raise TypeError(f'model {model_creator_type.__name__} does not have examples defined')
     
@@ -121,6 +112,7 @@ def test_file_uploader(file_uploader):
 
 def test_image_file(image_file, image_file_cid, image_file_payload):
     _test_model_examples(ImageFile)
+    _test_model_creator_and_examples(ImageFile, ImageFileCreator)
 
     image_file.payload_cid == image_file_payload
 
@@ -139,6 +131,7 @@ def test_image_file(image_file, image_file_cid, image_file_payload):
 
 def test_audio_file(audio_file, audio_file_cid, audio_file_payload):
     _test_model_examples(AudioFile)
+    _test_model_creator_and_examples(AudioFile, AudioFileCreator)
 
     audio_file.payload_cid == audio_file_payload
 
@@ -156,6 +149,7 @@ def test_audio_file(audio_file, audio_file_cid, audio_file_payload):
 
 def test_video_file(video_file, video_file_cid, video_file_payload):
     _test_model_examples(VideoFile)
+    _test_model_creator_and_examples(VideoFile, VideoFileCreator)
 
     assert video_file.payload_cid == video_file_payload
     assert video_file.height == 480
