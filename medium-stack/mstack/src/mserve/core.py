@@ -68,7 +68,7 @@ def delete_file_uploader(id:str, db:MongoDB = Depends(MongoDB.from_cache)):
 
 
 @core_router.post('/file-uploader/{id}', response_model=FileUploader, response_model_by_alias=False, status_code=201)
-async def upload_file(id: str, file: UploadFile, db:MongoDB = Depends(MongoDB.from_cache)):
+async def upload_file(id: str, chunk: UploadFile, db:MongoDB = Depends(MongoDB.from_cache)):
 
     # init upload #
 
@@ -88,7 +88,7 @@ async def upload_file(id: str, file: UploadFile, db:MongoDB = Depends(MongoDB.fr
     path = uploader.local_storage_path()
     
     with path.open('ab') as f:
-        written = f.write(await file.read())
+        written = f.write(await chunk.read())
     
     uploader.total_uploaded += written
     uploader.update_timestamp()

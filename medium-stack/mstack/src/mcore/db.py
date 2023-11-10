@@ -82,11 +82,10 @@ class MongoDB:
                 return model.__class__(**document)
     
     def update(self, model:BaseModel) -> None:
-        query = {'_id': ObjectId(model.id), 'cid': str(model.cid)}
         dumped_data = model.model_dump(by_alias=True)
 
         collection = self.get_collection(model)
-        result = collection.update_one(query, dumped_data)
+        result = collection.update_one({'_id': ObjectId(model.id)}, {'$set': dumped_data})
         if result.matched_count != 1:
             raise NotFoundError(f'Item not found in database')
 

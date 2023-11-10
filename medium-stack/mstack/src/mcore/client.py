@@ -1,6 +1,7 @@
 import os 
 
-from typing import List
+from io import BytesIO
+from typing import List, Callable, Tuple
 from os.path import join
 
 from mcore.errors import MStackClientError, NotFoundError
@@ -10,7 +11,8 @@ from mcore.models import (
     User,
     UserCreator,
     FileUploader,
-    FileUploaderCreator
+    FileUploaderCreator,
+    FileUploadTypes
 )
 
 import requests
@@ -126,3 +128,23 @@ class MStackClient:
     def list_file_uploaders(self, offset:int=0, size:int=50) -> List[FileUploader]:
         data = self._get('core/file-uploader', params={'offset': offset, 'size': size})
         return [FileUploader(**uploader) for uploader in data]
+    
+    def upload_chunk(self, id:str, chunk:bytes) -> FileUploader:
+        data = self._post(f'core/file-uploader/{id}', files={'chunk': BytesIO(chunk)})
+        return FileUploader(**data)
+
+    def upload_file(self, file_path:str, type:FileUploadTypes, chunk_size=250_000, on_update=Callable[[], FileUploader]) -> FileUploader:
+        size = os.path.getsize(file_path)
+        uploader = self.create_file_uploader(FileUploaderCreator(total_size=size, type=type))
+
+        with open(file_path, 'rb') as file:
+            while True:
+                chunk = file.read(chunk_size)
+                if not chunk:
+                    break
+
+                uploader = self.upload_chunk(uploader.id, chunk)
+                if on_update is not None:
+                    on_update(uploader)
+
+        return uploader

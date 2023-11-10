@@ -1,4 +1,5 @@
 from string import ascii_uppercase
+from typing import List
 
 from mcore.client import *
 from mcore.models import *
@@ -21,6 +22,7 @@ def _check_id(mstack:MStackClient):
         assert 'id' in data
     else:
         raise Exception('Invalid response type')
+
 
 def test_main():
     data = mstack.index()
@@ -200,3 +202,26 @@ def test_core_file_uploader(reset_collection):
         mstack.read_user(id=created_uploader.id)
 
     reset_collection(FileUploader)
+
+
+def test_core_file_upload_process(image_file_path):
+    updates:List[FileUploader] = []
+
+    def progress(uploader:FileUploader):
+        updates.append(uploader)
+
+    uploader = mstack.upload_file(image_file_path, FileUploadTypes.image, on_update=progress)
+
+    assert uploader.status == FileUploadStatus.pending
+
+    last_uploaded = -1
+    for update in updates:
+        assert update.total_uploaded <= update.total_size
+        assert update.total_uploaded > last_uploaded
+
+        if update.total_uploaded == update.total_size:
+            assert update.status == FileUploadStatus.pending
+        else:
+            assert update.status == FileUploadStatus.uploading
+        
+        last_uploaded = update.total_uploaded

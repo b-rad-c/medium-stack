@@ -54,6 +54,7 @@ def example_cid(model_type:BaseModel, index=0):
     
     return ContentId.parse(cid)
 
+
 @pytest.fixture(scope='function')
 def user():
     return example_model(User)
@@ -69,11 +70,14 @@ def file_uploader():
     return example_model(FileUploader)
 
 
-@pytest.fixture(scope='function')
-def image_file():
+@pytest.fixture(scope='session')
+def image_file_path():
     name = 'Water_reflection_of_stringy_gray_and_white_clouds_in_a_pond_on_a_sand_beach_of_Don_Khon_at_sunrise_in_Laos.jpg'
-    path = SAMPLE_BIN / name
-    return ImageFile.from_filepath(path)
+    return SAMPLE_BIN / name
+
+@pytest.fixture(scope='function')
+def image_file(image_file_path):
+    return ImageFile.from_filepath(image_file_path)
 
 
 @pytest.fixture(scope='function')
