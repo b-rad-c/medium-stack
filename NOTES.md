@@ -1,5 +1,4 @@
 # TO DO
-+ add locking to upload daemon to support paralell process
 + integrate uploads with mart
 + add mock user auth
 + add actual auth

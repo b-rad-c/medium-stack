@@ -1,3 +1,5 @@
+import time
+
 from string import ascii_uppercase
 from typing import List
 
@@ -225,3 +227,11 @@ def test_core_file_upload_process(image_file_path):
             assert update.status == FileUploadStatus.uploading
         
         last_uploaded = update.total_uploaded
+
+    for _ in range(10):
+        uploader = mstack.read_file_uploader(id=uploader.id)
+        if uploader.status not in [FileUploadStatus.processing, FileUploadStatus.process_queue]:
+            break
+        time.sleep(0.5)
+    
+    assert uploader.status == FileUploadStatus.complete
