@@ -157,7 +157,7 @@ class FileUploadStatus(str, Enum):
     uploading = 'uploading'
     error = 'error'
     processing = 'processing'
-    pending = 'pending'
+    process_queue = 'process_queue'
     complete = 'complete'
 
 

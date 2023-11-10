@@ -212,7 +212,7 @@ def test_core_file_upload_process(image_file_path):
 
     uploader = mstack.upload_file(image_file_path, FileUploadTypes.image, on_update=progress)
 
-    assert uploader.status == FileUploadStatus.pending
+    assert uploader.status == FileUploadStatus.process_queue
 
     last_uploaded = -1
     for update in updates:
@@ -220,7 +220,7 @@ def test_core_file_upload_process(image_file_path):
         assert update.total_uploaded > last_uploaded
 
         if update.total_uploaded == update.total_size:
-            assert update.status == FileUploadStatus.pending
+            assert update.status == FileUploadStatus.process_queue
         else:
             assert update.status == FileUploadStatus.uploading
         

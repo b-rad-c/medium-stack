@@ -6,6 +6,7 @@ services:
     container_name: mserve
     volumes:
       - ./medium-stack:/app
+      - ./lstack:/mstack/
     ports:
       - "8000:8000"
     depends_on:
@@ -19,6 +20,18 @@ services:
       - "27017:27017"
     volumes:
       - db-data:/data/db
+
+  uploader:
+    build: .
+    container_name: uploader
+    volumes:
+      - ./medium-stack:/app
+      - ./lstack:/mstack/
+    command: python3 -m mserve.uploads
+    depends_on:
+      - db
+    environment:
+      - MONGO_DB_URI=mongodb://db:27017
 
 volumes:
   db-data:

@@ -1,7 +1,9 @@
 # TO DO
-## comment out mongo/api tests for everything but users, uploads and images
-## add Artist and ImageRelease endpoints + tests
-
++ add locking to upload daemon to support paralell process
++ integrate uploads with mart
++ add mock user auth
++ add actual auth
++ add ACLs for CRUD operations
 
 ### links
 

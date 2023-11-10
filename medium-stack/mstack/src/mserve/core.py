@@ -1,3 +1,5 @@
+import os
+
 from typing import List
 
 from mcore.models import User, UserCreator, FileUploader, FileUploaderCreator, FileUploadStatus
@@ -22,7 +24,7 @@ def create_user(user_creator:UserCreator, db:MongoDB = Depends(MongoDB.from_cach
 
 @core_router.get('/users', response_model=List[User], response_model_by_alias=False)
 def list_users(offset:int=0, size:int=50, db:MongoDB = Depends(MongoDB.from_cache)):
-    return list(db.find(User, offset, size))
+    return list(db.find(User, offset=offset, size=size))
 
 
 @core_router.get('/users/{id_type}/{id}', response_model=User, response_model_by_alias=False)
@@ -45,13 +47,18 @@ def delete_user(id_type:ModelIdType, id:str, db:MongoDB = Depends(MongoDB.from_c
 async def create_file_uploader(creator: FileUploaderCreator, db:MongoDB = Depends(MongoDB.from_cache)):
     uploader:FileUploader = creator.create_model()
     db.create(uploader)
-    uploader.local_storage_path().touch()
+    try:
+        uploader.local_storage_path().touch()
+    except FileNotFoundError:
+        os.makedirs(uploader.local_storage_path().parent, exist_ok=True)
+        uploader.local_storage_path().touch()
+
     return uploader
 
 
 @core_router.get('/file-uploader', response_model=List[FileUploader], response_model_by_alias=False)
 async def list_file_uploaders(offset:int=0, size:int=50, db:MongoDB = Depends(MongoDB.from_cache)):
-    return list(db.find(FileUploader, offset, size))
+    return list(db.find(FileUploader, offset=offset, size=size))
 
 
 @core_router.get('/file-uploader/{id}', response_model=FileUploader, response_model_by_alias=False)
@@ -104,7 +111,7 @@ async def upload_file(id: str, chunk: UploadFile, db:MongoDB = Depends(MongoDB.f
     # file upload finished, update status #
 
     if uploader.total_uploaded == uploader.total_size:
-        uploader.status = FileUploadStatus.pending
+        uploader.status = FileUploadStatus.process_queue
 
     db.update(uploader)
 

@@ -110,9 +110,9 @@ class MongoDB:
         collection = self.get_collection(model)
         collection.delete_one(query)
 
-    def find(self, model_type: Type[BaseModel], offset:int=0, size:int=50, **kwargs) -> List[BaseModel]:
+    def find(self, model_type: Type[BaseModel], filter=None, offset:int=0, size:int=50, **kwargs) -> List[BaseModel]:
         collection = self.get_collection(model_type)
-        for entry in collection.find(skip=offset, limit=size, **kwargs):
+        for entry in collection.find(filter=filter, skip=offset, limit=size, **kwargs):
             yield model_type(**entry)
 
     @classmethod
