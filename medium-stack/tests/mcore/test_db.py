@@ -1,5 +1,7 @@
 from ..conftest import example_model, example_cid
 
+from typing import Type
+
 from mcore.db import MongoDB
 from mcore.models import *
 from mcore.errors import NotFoundError, MStackDBError
@@ -7,14 +9,15 @@ from mcore.errors import NotFoundError, MStackDBError
 import pytest
 
 from bson import ObjectId
+from pydantic import BaseModel
 
 
 db = MongoDB.from_cache()
 
 
-def _reset_cid(model_type, cid):
+def _drop_collection(model_type):
     collection = db.get_collection(model_type)
-    collection.delete_many({'cid': str(cid)})
+    collection.drop()
 
 
 def _verify_does_not_exist(obj):
@@ -31,67 +34,10 @@ def _verify_does_not_exist(obj):
         pass
 
 
-def _test_model_and_creator(obj_creator, model_type, obj_cid):
-    
-    if obj_cid is not None:
-        _reset_cid(model_type, obj_cid)
-    
-    # insert into db and verify id #
-    obj = db.create(obj_creator)
-    assert isinstance(obj.id, ObjectId)
-
-    # verify raw db entry #
-    col = db.get_collection(obj)
-    db_entry = col.find_one({'_id': obj.id})
-    assert db_entry is not None
-    assert 'id' not in db_entry
-    if obj_cid is not None:
-        assert db_entry['cid'] == str(obj_cid)
-    assert obj == model_type(**db_entry)
-
-    # db read method (each signature) #
-    assert db.read(obj) == obj
-    assert db.read(model_type, id=obj.id) == obj
-    if obj_cid is not None:
-        assert db.read(model_type, cid=obj_cid) == obj
-        assert db.read(model_type, id=obj.id, cid=obj_cid) == obj
-        assert obj.cid == obj_cid
-
-    with pytest.raises(MStackDBError):
-        db.read(model_type)
-
-    # db delete method (instance signature) #
-    db.delete(obj)
-    _verify_does_not_exist(obj)
-
-    # db delete method (id signature) #
-    obj = db.create(obj_creator)
-    db.delete(model_type, id=obj.id)
-    _verify_does_not_exist(obj)
-
-    # db delete method (cid signature) #
-    if obj_cid is not None:
-        obj = db.create(obj_creator)
-        db.delete(model_type, cid=obj_cid)
-        _verify_does_not_exist(obj)
-
-    # db delete method (id + cid signature) #
-    if obj_cid is not None:
-        obj = db.create(obj_creator)
-        db.delete(model_type, id=obj.id, cid=obj_cid)
-        _verify_does_not_exist(obj)
-
-    with pytest.raises(MStackDBError):
-        db.delete(model_type)
-
-    if obj_cid is not None:
-        _reset_cid(model_type, obj_cid)
-
-
 def _test_model(obj, obj_cid, model_type):
     if obj_cid is not None:
         assert obj.cid == obj_cid
-        _reset_cid(model_type, obj_cid)
+        _drop_collection(model_type)
     
     # insert into db and verify id #
     assert obj.id is None
@@ -141,7 +87,53 @@ def _test_model(obj, obj_cid, model_type):
         db.delete(model_type)
 
     if obj_cid is not None:
-        _reset_cid(model_type, obj_cid)
+        _drop_collection(model_type)
+
+
+def _test_pagination(model:BaseModel, model_type:Type):
+
+    _drop_collection(model_type)
+
+    # create multiple entries
+
+    entries = []
+
+    for _ in range(10):
+        new_entry = model.model_copy()
+        entries.append(db.create(new_entry))
+
+    # list #
+
+    model_list = db.find(model_type)
+    assert len(list(model_list)) == 10
+    for entry in model_list:
+        assert isinstance(entry, model_type)
+
+    # pagination by 10 #
+    model_list = db.find(model_type, offset=0, size=10)
+    assert len(list(model_list)) == 10
+
+    # pagination by 5 #
+
+    total = 0
+    for offset in range(0, 10, 5):
+        for entry in db.find(model_type, offset=offset, size=5):
+            assert isinstance(entry, model_type)
+            total += 1
+
+    assert total == 10
+
+    # pagination by 3 #
+
+    total = 0
+    for offset in range(0, 10, 3):
+        for entry in db.find(model_type, offset=offset, size=3):
+            assert isinstance(entry, model_type)
+            total += 1
+
+    assert total == 10
+
+    _drop_collection(model_type)
 
 
 def test_user():
@@ -149,24 +141,29 @@ def test_user():
     user = user_creator.create_model()
     user_cid = example_cid(User)
     _test_model(user, user_cid, User)
+    _test_pagination(user, User)
 
 
 def test_file_uploader():
     creator:FileUploaderCreator = example_model(FileUploaderCreator)
     file_uploader = creator.create_model()
     _test_model(file_uploader, None, FileUploader)
+    _test_pagination(file_uploader, FileUploader)
 
 
 def test_image_file(image_file, image_file_cid):
     _test_model(image_file, image_file_cid, ImageFile)
+    _test_pagination(image_file, ImageFile)
 
 
 def test_audio_file(audio_file, audio_file_cid):
     _test_model(audio_file, audio_file_cid, AudioFile)
+    _test_pagination(audio_file, AudioFile)
 
 
 def test_video_file(video_file, video_file_cid):
     _test_model(video_file, video_file_cid, VideoFile)
+    _test_pagination(video_file, VideoFile)
 
 
 def test_text_file():

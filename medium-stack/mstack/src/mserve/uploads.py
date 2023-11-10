@@ -1,20 +1,13 @@
 import os
 import time
-import signal
+from mcore.util import DaemonController
+
 
 
 MSERVE_INGEST_DAEMON_INTERVAL = float(os.environ.get('MSERVE_INGEST_DAEMON_INTERVAL', 5.0))
 MSERVE_UPLOAD_CLEANUP_THRESHOLD = int(os.environ.get('MSERVE_UPLOAD_CLEANUP_THRESHOLD'), 3600)
 MSERVE_UPLOAD_TIMEOUT_THRESHOLD = int(os.environ.get('MSERVE_UPLOAD_TIMEOUT_THRESHOLD'), 3600)
 
-RUN_DAEMON = True
-
-def handle_sigterm(signum, _):
-    global RUN_DAEMON
-    print(f"Caught signal {signum}...")
-    RUN_DAEMON = False
-
-signal.signal(signal.SIGTERM, handle_sigterm)
 
 
 def ingest_uploaded_file():
@@ -31,13 +24,13 @@ def ingest_daemon():
     infinite loop that quieries for file uploads with status "pending" and calls ingest_uploaded_file
         -> uses multiprocessing pool
     """
-    while RUN_DAEMON:
-        time.sleep(MSERVE_INGEST_DAEMON_INTERVAL)
+    controller = DaemonController()
 
-        if not RUN_DAEMON:
-            break
+    while controller.run_daemon:
 
         ingest_loop()
+
+        controller.sleep(MSERVE_INGEST_DAEMON_INTERVAL)
         
     print('exiting ingest daemon')
 
