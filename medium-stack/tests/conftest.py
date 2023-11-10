@@ -1,5 +1,5 @@
 from mcore.types import ContentId
-from mcore.mongo import MongoDB
+from mcore.db import MongoDB
 from mcore.models import User, FileUploader, FileUploadTypes, FileUploadStatus, ImageFile, AudioFile, VideoFile
 
 from pathlib import Path

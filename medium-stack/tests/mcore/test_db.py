@@ -1,6 +1,6 @@
 from ..conftest import example_model, example_cid
 
-from mcore.mongo import MongoDB
+from mcore.db import MongoDB
 from mcore.models import *
 from mcore.errors import NotFoundError, MStackDBError
 

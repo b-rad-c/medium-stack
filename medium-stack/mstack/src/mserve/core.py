@@ -1,7 +1,7 @@
 from typing import List
 
 from mcore.models import User, UserCreator, FileUploader, FileUploaderCreator, FileUploadStatus
-from mcore.mongo import MongoDB
+from mcore.db import MongoDB
 from mcore.errors import NotFoundError
 from mcore.types import ModelIdType
 
