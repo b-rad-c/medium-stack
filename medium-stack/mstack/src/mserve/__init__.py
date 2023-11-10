@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from os import environ
 from os.path import join
@@ -8,6 +9,10 @@ from mcore.util import utc_now
 
 from fastapi import FastAPI, APIRouter
 from pydantic import BaseModel
+
+
+logger = logging.getLogger('mserve')
+
 
 def env_to_bool(variable_name:str, default_value:str) -> bool:
     true = ('1', 't', 'true')
@@ -50,6 +55,7 @@ async def index():
 #
 
 app = FastAPI()
+
 if MSERVE_INCLUDE_MAIN:
     app.include_router(main_router, prefix=API_PREFIX)
 

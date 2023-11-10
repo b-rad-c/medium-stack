@@ -47,12 +47,6 @@ def delete_user(id_type:ModelIdType, id:str, db:MongoDB = Depends(MongoDB.from_c
 async def create_file_uploader(creator: FileUploaderCreator, db:MongoDB = Depends(MongoDB.from_cache)):
     uploader:FileUploader = creator.create_model()
     db.create(uploader)
-    try:
-        uploader.local_storage_path().touch()
-    except FileNotFoundError:
-        os.makedirs(uploader.local_storage_path().parent, exist_ok=True)
-        uploader.local_storage_path().touch()
-
     return uploader
 
 
@@ -67,7 +61,7 @@ def read_file_uploader(id:str, db:MongoDB = Depends(MongoDB.from_cache)):
         return db.read(FileUploader, id=id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    
+
 
 @core_router.delete('/file-uploader/{id}', status_code=201)
 def delete_file_uploader(id:str, db:MongoDB = Depends(MongoDB.from_cache)):
@@ -90,9 +84,17 @@ async def upload_file(id: str, chunk: UploadFile, db:MongoDB = Depends(MongoDB.f
     if uploader.total_uploaded >= uploader.total_size:
         raise HTTPException(status_code=400, detail=f'FileUploader {uploader.id} is already at or over upload size')
     
-    # write chunk to disk #
-    
+    # touch / create path if doesn't exist #
+
     path = uploader.local_storage_path()
+
+    try:
+        uploader.local_storage_path().touch()
+    except FileNotFoundError:
+        os.makedirs(uploader.local_storage_path().parent, exist_ok=True)
+        uploader.local_storage_path().touch()
+    
+    # write chunk to disk #
     
     with path.open('ab') as f:
         written = f.write(await chunk.read())

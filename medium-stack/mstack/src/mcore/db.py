@@ -86,7 +86,7 @@ class MongoDB:
 
         collection = self.get_collection(model)
         result = collection.update_one({'_id': ObjectId(model.id)}, {'$set': dumped_data})
-        if result.matched_count != 1:
+        if result.modified_count != 1:
             raise NotFoundError(f'Item not found in database')
 
     def delete(self, model:InstanceOrType, id:Union[str, ObjectId]=None, cid: Union[str, ContentId]=None) -> None:

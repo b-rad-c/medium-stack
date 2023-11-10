@@ -1,7 +1,9 @@
+import os 
+
+from enum import Enum
+
 from typing import Annotated, ClassVar, Union, Optional, Type
 from pathlib import Path
-from os import environ
-from enum import Enum
 from datetime import datetime
 
 from mcore.errors import MStackFilePayloadError
@@ -58,8 +60,9 @@ __all__ = [
 ]
 
 # MEDIAINFO_LIB_PATH = environ.get('MEDIAINFO_LIB_PATH', '/opt/homebrew/Cellar/libmediainfo/23.09/lib/libmediainfo.dylib')
-MEDIAINFO_LIB_PATH = environ.get('MEDIAINFO_LIB_PATH', '')
-MSERVE_LOCAL_STORAGE_DIRECTORY = environ.get('MSERVE_LOCAL_STORAGE_DIRECTORY', '/mstack/files')
+MEDIAINFO_LIB_PATH = os.environ.get('MEDIAINFO_LIB_PATH', '')
+MSERVE_LOCAL_STORAGE_DIRECTORY = os.environ.get('MSERVE_LOCAL_STORAGE_DIRECTORY', '/mstack/files')
+
 
 #
 # base models
@@ -183,6 +186,8 @@ class FileUploader(BaseModel):
     total_uploaded: int = 0
     error: Optional[str] = None
 
+    lock: Optional[str] = None
+
     model_config = {
         'json_schema_extra': {
             'examples': [
@@ -198,6 +203,7 @@ class FileUploader(BaseModel):
             ]
         }
     }
+        
 
     def update_timestamp(self) -> None:
         self.modifed = utc_now()
