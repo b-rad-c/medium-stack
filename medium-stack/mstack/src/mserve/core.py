@@ -85,7 +85,7 @@ async def upload_file(id: str, file: UploadFile, db:MongoDB = Depends(MongoDB.fr
     
     # write chunk to disk #
     
-    path = uploader.upload_path()
+    path = uploader.local_storage_path()
     
     with path.open('ab') as f:
         written = f.write(await file.read())

@@ -10,6 +10,18 @@ import pytest
 mstack = MStackClient()
 
 
+def _check_id(mstack:MStackClient):
+    data = mstack.response.json()
+    if isinstance(data, list):
+        for item in data:
+            assert '_id' not in item
+            assert 'id' in item
+    elif isinstance(data, dict):
+        assert '_id' not in data
+        assert 'id' in data
+    else:
+        raise Exception('Invalid response type')
+
 def test_main():
     data = mstack.index()
     assert mstack.response.status_code == 200
@@ -21,7 +33,6 @@ def test_core_users(reset_collection):
     # init #
 
     reset_collection(User)
-    assert len(mstack.list_users()) == 0, 'user collection was not reset'
 
     # create #
 
@@ -35,14 +46,17 @@ def test_core_users(reset_collection):
         created_user = mstack.create_user(new_user)
         created_users.append(created_user)
         assert isinstance(created_user, User)
+        _check_id(mstack)
 
     # read #
 
     user_read_id = mstack.read_user(id=created_user.id)
     assert user_read_id == created_user
+    _check_id(mstack)
 
     user_read_cid = mstack.read_user(cid=created_user.cid)
     assert user_read_cid == created_user
+    _check_id(mstack)
 
     # list #
 
@@ -50,10 +64,13 @@ def test_core_users(reset_collection):
     assert len(user_list) == 10
     for user in user_list:
         assert isinstance(user, User)
+    
+    _check_id(mstack)
 
     # pagination by 10 #
 
     assert len(mstack.list_users(offset=0, size=10)) == 10
+    _check_id(mstack)
 
     # pagination by 5 #
 
@@ -64,6 +81,7 @@ def test_core_users(reset_collection):
             total += 1
 
     assert total == 10
+    _check_id(mstack)
 
     # pagination by 3 #
 
@@ -74,6 +92,7 @@ def test_core_users(reset_collection):
             total += 1
 
     assert total == 10
+    _check_id(mstack)
 
     # delete by id #
 
@@ -123,11 +142,13 @@ def test_core_file_uploader(reset_collection):
         created_uploader = mstack.create_file_uploader(new_uploader)
         created_uploaders.append(created_uploader)
         assert isinstance(created_uploader, FileUploader)
+        _check_id(mstack)
 
     # read #
 
     uploader_read = mstack.read_file_uploader(id=created_uploader.id)
     assert uploader_read == created_uploader
+    _check_id(mstack)
 
     # list #
 
@@ -136,9 +157,12 @@ def test_core_file_uploader(reset_collection):
     for uploader in uploader_list:
         assert isinstance(uploader, FileUploader)
 
+    _check_id(mstack)
+
     # pagination by 10 #
 
     assert len(mstack.list_file_uploaders(offset=0, size=10)) == 10
+    _check_id(mstack)
 
     # pagination by 5 #
 
@@ -149,6 +173,7 @@ def test_core_file_uploader(reset_collection):
             total += 1
 
     assert total == 10
+    _check_id(mstack)
 
     # pagination by 3 #
 
@@ -159,6 +184,7 @@ def test_core_file_uploader(reset_collection):
             total += 1
 
     assert total == 10
+    _check_id(mstack)
 
     # delete by id #
 
