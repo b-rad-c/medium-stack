@@ -14,6 +14,7 @@ from mcore.models import (
     VideoFile
 )
 from mcore.db import MongoDB
+from mcore.errors import MStackFilePayloadError
 from mcore.util import DaemonController, utc_now
 
 
@@ -26,49 +27,49 @@ MSERVE_UPLOAD_TIMEOUT_THRESHOLD = int(os.environ.get('MSERVE_UPLOAD_TIMEOUT_THRE
 db = MongoDB.from_cache()
 
 stream_handler = logging.StreamHandler(sys.stdout)
- 
+
 logging.basicConfig(handlers=[stream_handler], level=logging.INFO)
 
 
 def obtain_lock(uploader:FileUploader) -> FileUploader | None:
-        """atttempt to obtain a lock on the file uploader for processing,
-        returns the updated file uploader if successful, None if not"""
+    """atttempt to obtain a lock on the file uploader for processing,
+    returns the updated file uploader if successful, None if not"""
 
-        logging.info(f'obtaining lock for: {uploader.id}')
+    logging.info(f'obtaining lock for: {uploader.id}')
 
-        status = FileUploadStatus.process_queue.value
+    status = FileUploadStatus.process_queue.value
 
-        if uploader.id is None:
-            raise ValueError(f'FileUploader must have an id to obtain a lock')
-        if uploader.lock is not None:
-            raise ValueError(f'FileUploader already has a lock')
-        if uploader.status != FileUploadStatus.process_queue:
-            raise ValueError(f'FileUploader status must be {status} to obtain a lock')
-        
-        collection = db.get_collection(uploader)
-        
-        # create lock name and set on database object
-        # this call uses collection.update_one instead of db.update method so that
-        # it can filter for the id & status instead of just the id bc there may be a race
-        # condition where another process has already changed the status
-        lock_name = md5(f'{gethostname()}-{os.getpid()}'.encode()).hexdigest()
-        result = collection.update_one({'_id': uploader.id, 'status': status}, {'$set': {'lock': lock_name}})
-        if result.modified_count != 1:
-            return None
+    if uploader.id is None:
+        raise ValueError(f'FileUploader must have an id to obtain a lock')
+    if uploader.lock is not None:
+        raise ValueError(f'FileUploader already has a lock')
+    if uploader.status != FileUploadStatus.process_queue:
+        raise ValueError(f'FileUploader status must be {status} to obtain a lock')
+    
+    collection = db.get_collection(uploader)
+    
+    # create lock name and set on database object
+    # this call uses collection.update_one instead of db.update method so that
+    # it can filter for the id & status instead of just the id bc there may be a race
+    # condition where another process has already changed the status
+    lock_name = md5(f'{gethostname()}-{os.getpid()}'.encode()).hexdigest()
+    result = collection.update_one({'_id': uploader.id, 'status': status}, {'$set': {'lock': lock_name}})
+    if result.modified_count != 1:
+        return None
 
-        # query for id & lock_name and attempt to update status,
-        # if result modifies 1 document we have obtained lock,
-        # if not there was a race condition and another process has the lock
-        # this call uses collection.update_one instead of db.update method so that
-        # it can filter for the id & lock_name to verify that it obtained the lock
-        updates = {'$set': {'status': FileUploadStatus.processing, 'modifed': utc_now()}}
-        result = collection.update_one({'_id': uploader.id, 'lock': lock_name, 'status': status}, updates)
-        if result.modified_count == 1:
-            logging.info(f'lock obtained for: {uploader.id}')
-            return db.read(uploader)
-        else:
-            logging.info(f'could not obtain lock for: {uploader.id}')
-            return None
+    # query for id & lock_name and attempt to update status,
+    # if result modifies 1 document we have obtained lock,
+    # if not there was a race condition and another process has the lock
+    # this call uses collection.update_one instead of db.update method so that
+    # it can filter for the id & lock_name to verify that it obtained the lock
+    updates = {'$set': {'status': FileUploadStatus.processing, 'modifed': utc_now()}}
+    result = collection.update_one({'_id': uploader.id, 'lock': lock_name, 'status': status}, updates)
+    if result.modified_count == 1:
+        logging.info(f'lock obtained for: {uploader.id}')
+        return db.read(uploader)
+    else:
+        logging.info(f'could not obtain lock for: {uploader.id}')
+        return None
 
 
 def ingest_uploaded_file(uploader:FileUploader):
@@ -105,8 +106,9 @@ def ingest_daemon():
                     try:
                         ingest_uploaded_file(locked_uploader)
                     except Exception as e:
+                        msg = str(e) if isinstance(e, MStackFilePayloadError) else 'Error during ingest process'
+                        locked_uploader.error = msg
                         locked_uploader.status = FileUploadStatus.error
-                        locked_uploader.error = 'Error during ingest process'
                         db.update(locked_uploader)
                         logging.error(f'error ingest file uploader: {locked_uploader.id} - {e}', exc_info=True)
 

@@ -306,6 +306,7 @@ AudioFileId = Annotated[MongoId, id_schema('a string representing an audio file 
 AudioFileCid = Annotated[ContentIdType, id_schema('a string representing an audio file cid')]
 AudioFilePayloadCid = Annotated[ContentIdType, id_schema('a string representing an audio file payload cid')]
 
+
 class AudioFile(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'audio_files'
 
