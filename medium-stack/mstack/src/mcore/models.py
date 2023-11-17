@@ -262,7 +262,7 @@ class ImageFile(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441', 
-                    'cid': '0VcRfJsAIeMvHFxW2c1FFgk2PFc5S16zFEydoCtKhaSg105.json', 
+                    'cid': '0O6Q2voNc_yv7ETIlqrLcni9C1BtYYIHSyq4g1AlS8FQ123.json', 
                     'payload_cid': '0Wh2aaOSrURBH32Z_Dgg8BgHB_fQllwLo_0arWPH_PQo7103671.jpg', 
                     'height': 3584, 
                     'width': 5376
@@ -326,7 +326,7 @@ class AudioFile(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441', 
-                    'cid': '0qB-A2d1Jt-DTBqAZZgBuTvH4tDbIFpxyfWmkxTZejXo114.json', 
+                    'cid': '0LDHxLDdQ-4eZd0CiuftNik-8nhUEuzHdo6VV0dmnaQw132.json', 
                     'payload_cid': '0SOT7ZsLeQYg6MbcabM049T_DKWbLXl6BR724v3xD9fo2633142.mp3', 
                     'duration': 65.828, 
                     'bit_rate': 320000
@@ -395,7 +395,7 @@ class VideoFile(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441', 
-                    'cid': '0r62C64HF6Qn5WqjilmNmSlsZjnK52ifR178pPyA8bgI164.json', 
+                    'cid': '0onyDuzj4DGrq4uIbipGKkS51gACr4z9WYW_-Np_9bgI182.json', 
                     'payload_cid': '0j_d4uuRMK-Q2LIoT-n6oIT_oE-nriwlp_K8_W8oa1r011061011.mov', 
                     'height': 480, 
                     'width': 853, 

@@ -7,17 +7,18 @@ from enum import Enum
 from pathlib import Path
 from hashlib import sha3_256
 from dataclasses import dataclass
-from typing import Annotated, ClassVar, ClassVar, Union, Dict, List, BinaryIO
+from typing import Annotated, ClassVar, ClassVar, Union, Dict, List, BinaryIO, Optional
 from bson import ObjectId
 from bson.errors import InvalidId
 from hashlib import sha3_256
 
 from pydantic import (
-    BaseModel,
     PlainValidator,
+    BeforeValidator,
     WithJsonSchema,
     PlainSerializer,
-    AliasChoices
+    AliasChoices,
+    conset
 )
 
 import boto3
@@ -34,7 +35,10 @@ __all__ = [
     'db_id_kwargs',
 
     'DataHierarchy',
-    'Hierarchy'
+    'Hierarchy',
+
+    'set_serializer',
+    'TagList'
 ]
 
 
@@ -177,6 +181,7 @@ def id_schema(description):
 
 ContentIdType = Annotated[
     ContentId, 
+    BeforeValidator(lambda cid: ContentId.validate(cid)),
     PlainValidator(lambda cid: ContentId.validate(cid)),
     PlainSerializer(lambda cid: str(cid), when_used='unless-none'),
     id_schema('a string representing a content id')
@@ -252,4 +257,16 @@ Hierarchy = Annotated[
     PlainValidator(lambda hierarchy: DataHierarchy.validate(hierarchy)),
     PlainSerializer(lambda hierarchy: str(hierarchy), when_used='json-unless-none'),
     id_schema('a string representing a data hierarcy')
+]
+
+#
+# misc 
+#
+
+set_serializer = PlainSerializer(lambda value: sorted(list(value)), return_type=list)
+
+TagList = Annotated[
+    Optional[conset(str, min_length=0, max_length=15)], 
+    set_serializer, 
+    id_schema('a set (list) of strings')
 ]

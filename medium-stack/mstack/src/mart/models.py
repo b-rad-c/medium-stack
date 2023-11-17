@@ -1,11 +1,13 @@
 from typing import Annotated, ClassVar, Union, Optional, Type
 from enum import StrEnum
-from pydantic import BaseModel, Field, conset, PlainSerializer
+from pydantic import BaseModel, Field, conset
+
+from mcore.types import TagList, set_serializer
 
 from mcore.models import (
     MongoId, 
     ContentModel, 
-    ContentId, 
+    ContentIdType, 
     ModelCreator,
     UserCid,
 
@@ -29,19 +31,22 @@ from mcore.models import (
 #
 
 
-class ArtType(StrEnum):
+class ArtMedium(StrEnum):
     audio = 'audio'
     podcast = 'podcast'
     still = 'still'
     text = 'text'
     video = 'video'
 
+ArtMediumList = Annotated[
+    conset(ArtMedium, min_length=1, max_length=5), 
+    set_serializer, 
+    id_schema('a set (list) of art mediums')
+]
+
 
 ArtistId = Annotated[MongoId, id_schema('a string representing an artist id')]
-ArtistCid = Annotated[ContentId, id_schema('a string representing an artist content id')]
-
-
-set_serializer = PlainSerializer(lambda value: list(value), return_type=list)
+ArtistCid = Annotated[ContentIdType, id_schema('a string representing an artist content id')]
 
 
 class Artist(ContentModel):
@@ -57,21 +62,23 @@ class Artist(ContentModel):
 
     summary: str = Field(min_length=1, max_length=300)
     description: str = Field(min_length=1, max_length=1500)
-    types: Annotated[conset(ArtType, min_length=1, max_length=5), set_serializer]
+    mediums: ArtMediumList
+    tags: TagList = None
 
     model_config = {
         'json_schema_extra': {
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
-                    'cid': '',
+                    'cid': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'user_cid': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
                     'name': 'Frida Kahlo',
                     'short_name': 'Kahlo',
                     'abreviated_name': 'FK',
                     'summary': 'Mexican painter known for her many portraits, self-portraits, and works inspired by the nature and artifacts of Mexico.',
                     'description': 'Frida Kahlo de Rivera was a Mexican artist who painted many portraits, self-portraits, and works inspired by the nature and artifacts of Mexico. Her work has been celebrated internationally as emblematic of Mexican national and indigenous traditions, and by feminists for its uncompromising depiction of the female experience and form.',
-                    'types': ['still']
+                    'mediums': ['still'],
+                    'tags': ['painting', 'mexico', 'feminist', 'surrealism']
                 }
             ]
         }
@@ -90,7 +97,8 @@ class ArtistCreator(ModelCreator):
 
     summary: str = Field(min_length=1, max_length=300)
     description: str = Field(min_length=1, max_length=1500)
-    types: Annotated[conset(ArtType, min_length=1, max_length=5), set_serializer]
+    mediums: ArtMediumList
+    tags: TagList = None
 
     model_config = {
         'json_schema_extra': {
@@ -102,7 +110,8 @@ class ArtistCreator(ModelCreator):
                     'abreviated_name': 'FK',
                     'summary': 'Mexican painter known for her many portraits, self-portraits, and works inspired by the nature and artifacts of Mexico.',
                     'description': 'Frida Kahlo de Rivera was a Mexican artist who painted many portraits, self-portraits, and works inspired by the nature and artifacts of Mexico. Her work has been celebrated internationally as emblematic of Mexican national and indigenous traditions, and by feminists for its uncompromising depiction of the female experience and form.',
-                    'types': ['still']
+                    'mediums': ['still'],
+                    'tags': ['painting', 'mexico', 'feminist', 'surrealism']
                 }
             ]
         }
@@ -110,7 +119,7 @@ class ArtistCreator(ModelCreator):
 
 
 ArtistGroupId = Annotated[MongoId, id_schema('a string representing an artist group id')]
-ArtistGroupCid = Annotated[ContentId, id_schema('a string representing an artist content id')]
+ArtistGroupCid = Annotated[ContentIdType, id_schema('a string representing an artist content id')]
 
 class ArtistGroup(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'artist_groups'
@@ -124,13 +133,13 @@ class ArtistGroup(ContentModel):
 
     summary: str = Field(min_length=1, max_length=300)
     description: str = Field(min_length=1, max_length=1500)
-    types: conset(ArtType)
+    mediums: ArtMediumList
 
     artists: conset(Union[ArtistCid, ArtistGroupCid], min_length=1, max_length=50)
 
 
 CreditId = Annotated[MongoId, id_schema('a string representing a credit id')]
-CreditCid = Annotated[ContentId, id_schema('a string representing a credit content id')]
+CreditCid = Annotated[ContentIdType, id_schema('a string representing a credit content id')]
 
 class Credit(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'credits'
@@ -142,8 +151,11 @@ class Credit(ContentModel):
     artist: ArtistCid
 
 
+CreditList = Annotated[conset(Credit, max_length=15), set_serializer]
+
+
 TitleDataId = Annotated[MongoId, id_schema('a string representing a title data id')]
-TitleDataCid = Annotated[ContentId, id_schema('a string representing a title data content id')]
+TitleDataCid = Annotated[ContentIdType, id_schema('a string representing a title data content id')]
 
 class TitleData(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'title_data'
@@ -170,7 +182,7 @@ class TitleData(ContentModel):
 
 
 ImageReleaseId = Annotated[MongoId, id_schema('a string representing an image release id')]
-ImageReleaseCid = Annotated[ContentId, id_schema('a string representing an image release id')]
+ImageReleaseCid = Annotated[ContentIdType, id_schema('a string representing an image release id')]
 
 class ImageRelease(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'image_release'
@@ -193,7 +205,7 @@ class ImageRelease(ContentModel):
 
     
 AudioReleaseId = Annotated[MongoId, id_schema('a string representing an audio release id')]
-AudioReleaseCid = Annotated[ContentId, id_schema('a string representing an audio release id')]
+AudioReleaseCid = Annotated[ContentIdType, id_schema('a string representing an audio release id')]
 
 class AudioRelease(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'audio_release'
@@ -214,7 +226,7 @@ class AudioRelease(ContentModel):
 
 
 VideoReleaseId = Annotated[MongoId, id_schema('a string representing a video release id')]
-VideoReleaseCid = Annotated[ContentId, id_schema('a string representing a video release id')]
+VideoReleaseCid = Annotated[ContentIdType, id_schema('a string representing a video release id')]
 
 class VideoRelease(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_releases'
@@ -235,7 +247,7 @@ class VideoRelease(ContentModel):
 
 
 TextDocumentReleaseId = Annotated[MongoId, id_schema('a string representing a text document file id')]
-TextDocumentReleaseCid = Annotated[ContentId, id_schema('a string representing a text document file id')]
+TextDocumentReleaseCid = Annotated[ContentIdType, id_schema('a string representing a text document file id')]
 
 class TextDocumentRelease(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'text_document_release'
@@ -264,7 +276,7 @@ AnyRelease = Union[AnyReleaseCid, AnyReleaseModel]
 
 
 StillArtworkId = Annotated[MongoId, id_schema('a string representing a still artwork id')]
-StillArtworkCid = Annotated[ContentId, id_schema('a string representing a still artwork content id')]
+StillArtworkCid = Annotated[ContentIdType, id_schema('a string representing a still artwork content id')]
 
 class StillArtwork(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'still_artwork'
@@ -278,7 +290,7 @@ class StillArtwork(ContentModel):
 
 
 StillArtworkAlbumId = Annotated[MongoId, id_schema('a string representing a still artwork album id')]
-StillArtworkAlbumCid = Annotated[ContentId, id_schema('a string representing a still artwork album content id')]
+StillArtworkAlbumCid = Annotated[ContentIdType, id_schema('a string representing a still artwork album content id')]
 
 class StillArtworkAlbum(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'still_artwork_album'
@@ -295,7 +307,7 @@ class StillArtworkAlbum(ContentModel):
 
 
 SongId = Annotated[MongoId, id_schema('a string representing a song id')]
-SongCid = Annotated[ContentId, id_schema('a string representing a song content id')]
+SongCid = Annotated[ContentIdType, id_schema('a string representing a song content id')]
 
 class Song(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'songs'
@@ -318,7 +330,7 @@ class AlbumType(StrEnum):
 
 
 AlbumId = Annotated[MongoId, id_schema('a string representing an album id')]
-AlbumCid = Annotated[ContentId, id_schema('a string representing an album content id')]
+AlbumCid = Annotated[ContentIdType, id_schema('a string representing an album content id')]
 
 class Album(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'albums'
@@ -343,7 +355,7 @@ class VideoProgramType(StrEnum):
 
 
 VideoProgramId = Annotated[MongoId, id_schema('a string representing a video program id')]
-VideoProgramCid = Annotated[ContentId, id_schema('a string representing a video program content id')]
+VideoProgramCid = Annotated[ContentIdType, id_schema('a string representing a video program content id')]
 
 class VideoProgram(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_programs'
@@ -361,7 +373,7 @@ class VideoProgram(ContentModel):
 
 
 VideoMiniSeriesId = Annotated[MongoId, id_schema('a string representing a video mini series id')]
-VideoMiniSeriesCid = Annotated[ContentId, id_schema('a string representing a video mini series content id')]
+VideoMiniSeriesCid = Annotated[ContentIdType, id_schema('a string representing a video mini series content id')]
 
 class VideoMiniSeries(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_mini_series'
@@ -378,7 +390,7 @@ class VideoMiniSeries(ContentModel):
 
 
 VideoSeasonId = Annotated[MongoId, id_schema('a string representing a video season id')]
-VideoSeasonCid = Annotated[ContentId, id_schema('a string representing a video season content id')]
+VideoSeasonCid = Annotated[ContentIdType, id_schema('a string representing a video season content id')]
 
 class VideoSeason(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_seasons'
@@ -395,7 +407,7 @@ class VideoSeason(ContentModel):
 
 
 VideoEpisodicSeriesId = Annotated[MongoId, id_schema('a string representing a video episodic series id')]
-VideoEpisodicSeriesCid = Annotated[ContentId, id_schema('a string representing a video episodic series content id')]
+VideoEpisodicSeriesCid = Annotated[ContentIdType, id_schema('a string representing a video episodic series content id')]
 
 class VideoEpisodicSeries(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_episodic_series'
@@ -415,7 +427,7 @@ class VideoEpisodicSeries(ContentModel):
 
 
 PodcastProgramId = Annotated[MongoId, id_schema('a string representing a podcast program id')]
-PodcastProgramCid = Annotated[ContentId, id_schema('a string representing a podcast program content id')]
+PodcastProgramCid = Annotated[ContentIdType, id_schema('a string representing a podcast program content id')]
 
 class PodcastProgram(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_program'
@@ -432,7 +444,7 @@ class PodcastProgram(ContentModel):
 
 
 PodcastSeriesId = Annotated[MongoId, id_schema('a string representing a podcast series id')]
-PodcastSeriesCid = Annotated[ContentId, id_schema('a string representing a podcast series content id')]
+PodcastSeriesCid = Annotated[ContentIdType, id_schema('a string representing a podcast series content id')]
 
 class PodcastSeries(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_series'
@@ -449,7 +461,7 @@ class PodcastSeries(ContentModel):
 
 
 PodcastSeasonId = Annotated[MongoId, id_schema('a string representing a podcast season id')]
-PodcastSeasonCid = Annotated[ContentId, id_schema('a string representing a podcast season content id')]
+PodcastSeasonCid = Annotated[ContentIdType, id_schema('a string representing a podcast season content id')]
 
 class PodcastSeason(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_season'
@@ -466,7 +478,7 @@ class PodcastSeason(ContentModel):
 
 
 PodcastEpisodicSeriesId = Annotated[MongoId, id_schema('a string representing a podcast episodic series id')]
-PodcastEpisodicSeriesCid = Annotated[ContentId, id_schema('a string representing a podcast episodic series content id')]
+PodcastEpisodicSeriesCid = Annotated[ContentIdType, id_schema('a string representing a podcast episodic series content id')]
 
 class PodcastEpisodicSeries(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_episodic_series'
@@ -498,7 +510,7 @@ class TextPublicationType(StrEnum):
 
 
 TextEntryId = Annotated[MongoId, id_schema('a string representing a text entry id')]
-TextEntryCid = Annotated[ContentId, id_schema('a string representing a text entry content id')]
+TextEntryCid = Annotated[ContentIdType, id_schema('a string representing a text entry content id')]
 
 class TextEntry(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'text_entries'
@@ -513,7 +525,7 @@ class TextEntry(ContentModel):
 
 
 TextSeriesId = Annotated[MongoId, id_schema('a string representing a text series id')]
-TextSeriesCid = Annotated[ContentId, id_schema('a string representing a text series content id')]
+TextSeriesCid = Annotated[ContentIdType, id_schema('a string representing a text series content id')]
 
 class TextSeries(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'text_series'
@@ -528,7 +540,7 @@ class TextSeries(ContentModel):
 
 
 TextPublicationId = Annotated[MongoId, id_schema('a string representing a text publication id')]
-TextPublicationCid = Annotated[ContentId, id_schema('a string representing a text publication content id')]
+TextPublicationCid = Annotated[ContentIdType, id_schema('a string representing a text publication content id')]
 
 class TextPublication(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'blogs'
@@ -548,7 +560,7 @@ if __name__ == '__main__':
     for key, value in inspect.get_annotations(VideoRelease).items():
         try:
             if issubclass(value.__args__[0].__class__, BaseModel.__class__):
-                if value.__args__[1].__args__[0] is ContentId:
+                if value.__args__[1].__args__[0] is ContentIdType:
                     print(key, value.__args__)
         except (AttributeError, IndexError):
             pass

@@ -81,11 +81,11 @@ def ingest_uploaded_file(uploader:FileUploader):
     logging.info(f'ingesting: {uploader.id}')
 
     if uploader.type == FileUploadTypes.image:
-        obj = ImageFile.from_filepath(uploader.local_storage_path())
+        obj = ImageFile.from_filepath(uploader.local_storage_path(), uploader.user_cid)
     elif uploader.type == FileUploadTypes.audio:
-        obj = AudioFile.from_filepath(uploader.local_storage_path())
+        obj = AudioFile.from_filepath(uploader.local_storage_path(), uploader.user_cid)
     elif uploader.type == FileUploadTypes.video:
-        obj = VideoFile.from_filepath(uploader.local_storage_path())
+        obj = VideoFile.from_filepath(uploader.local_storage_path(), uploader.user_cid)
     else:
         raise ValueError(f'unknown file upload type: {uploader.type}')
     
