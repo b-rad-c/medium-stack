@@ -40,17 +40,14 @@ __all__ = [
     'FileUploaderCreator',
 
     'ImageFile',
-    #'ImageFileCreator',
     'ImageFileId',
     'ImageFileCid',
 
     'AudioFile',
-    #'AudioFileCreator',
     'AudioFileId',
     'AudioFileCid',
 
     'VideoFile',
-    #'VideoFileCreator',
     'VideoFileId',
     'VideoFileCid',
     

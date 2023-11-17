@@ -1,11 +1,12 @@
 from typing import Annotated, ClassVar, Union, Optional, Type
 from enum import StrEnum
-from pydantic import BaseModel, Field, conlist, conset
+from pydantic import BaseModel, Field, conset, PlainSerializer
 
 from mcore.models import (
     MongoId, 
     ContentModel, 
     ContentId, 
+    ModelCreator,
     UserCid,
 
     ImageFile,
@@ -20,7 +21,6 @@ from mcore.models import (
     db_id_kwargs, 
     cid_kwargs,
     id_schema, 
-    
 )
 
 
@@ -40,6 +40,10 @@ class ArtType(StrEnum):
 ArtistId = Annotated[MongoId, id_schema('a string representing an artist id')]
 ArtistCid = Annotated[ContentId, id_schema('a string representing an artist content id')]
 
+
+set_serializer = PlainSerializer(lambda value: list(value), return_type=list)
+
+
 class Artist(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'artists'
 
@@ -53,14 +57,15 @@ class Artist(ContentModel):
 
     summary: str = Field(min_length=1, max_length=300)
     description: str = Field(min_length=1, max_length=1500)
-    types: conset(ArtType)
+    types: Annotated[conset(ArtType, min_length=1, max_length=5), set_serializer]
 
     model_config = {
         'json_schema_extra': {
             'examples': [
                 {
-                    'id': '',
+                    'id': '6546a5cd1a209851b7136441',
                     'cid': '',
+                    'user_cid': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
                     'name': 'Frida Kahlo',
                     'short_name': 'Kahlo',
                     'abreviated_name': 'FK',
@@ -73,7 +78,7 @@ class Artist(ContentModel):
     }
 
 
-class ArtistCreator(BaseModel):
+class ArtistCreator(ModelCreator):
 
     MODEL: ClassVar[Type[Artist]] = Artist
 
@@ -82,16 +87,16 @@ class ArtistCreator(BaseModel):
     name: str = Field(min_length=1, max_length=300)
     short_name: str = Field(min_length=1, max_length=50)
     abreviated_name: str = Field(max_length=10)
+
     summary: str = Field(min_length=1, max_length=300)
     description: str = Field(min_length=1, max_length=1500)
-    types: conset(ArtType)
-
-    MODEL = Artist  # This references the model that this Creator is for
+    types: Annotated[conset(ArtType, min_length=1, max_length=5), set_serializer]
 
     model_config = {
         'json_schema_extra': {
             'examples': [
                 {
+                    'user_cid': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
                     'name': 'Frida Kahlo',
                     'short_name': 'Kahlo',
                     'abreviated_name': 'FK',
@@ -121,7 +126,7 @@ class ArtistGroup(ContentModel):
     description: str = Field(min_length=1, max_length=1500)
     types: conset(ArtType)
 
-    artists: conlist(Union[ArtistCid, ArtistGroupCid], min_length=1, max_length=50)
+    artists: conset(Union[ArtistCid, ArtistGroupCid], min_length=1, max_length=50)
 
 
 CreditId = Annotated[MongoId, id_schema('a string representing a credit id')]
@@ -181,7 +186,7 @@ class ImageRelease(ContentModel):
     alt_text: Optional[str]
 
     master: Union[ImageFile, ImageFileCid]
-    alt_formats: conlist(Union[ImageFile, ImageFileCid], min_length=1, max_length=10)
+    alt_formats: conset(Union[ImageFile, ImageFileCid], min_length=1, max_length=10)
 
 
 # audio #
@@ -202,7 +207,7 @@ class AudioRelease(ContentModel):
     tags: conset(str, max_length=10)
 
     master: Union[AudioFile, AudioFileCid]
-    alt_formats: conlist(Union[AudioFile, AudioFileCid], min_length=1, max_length=10)
+    alt_formats: conset(Union[AudioFile, AudioFileCid], min_length=1, max_length=10)
 
 
 # video #
@@ -223,7 +228,7 @@ class VideoRelease(ContentModel):
     tags: conset(str, max_length=10)
 
     master: Union[VideoFile, VideoFileCid]
-    alt_formats: conlist(Union[VideoFile, VideoFileCid], min_length=1, max_length=25)
+    alt_formats: conset(Union[VideoFile, VideoFileCid], min_length=1, max_length=25)
 
 
 # text document #
@@ -282,7 +287,7 @@ class StillArtworkAlbum(ContentModel):
     cid: StillArtworkAlbumCid = Field(**cid_kwargs)
 
     title: TitleData
-    images: conlist(StillArtwork, min_length=1, max_length=1000)
+    images: conset(StillArtwork, min_length=1, max_length=1000)
     tags: conset(str, max_length=10)
 
 
@@ -303,7 +308,7 @@ class Song(ContentModel):
     tags: conset(str, max_length=10)
     music_video: Optional[AnyVideoRelease]
     cover_artwork: Optional[AnyImageRelease]
-    other_artwork: Optional[conlist(AnyRelease, min_length=0, max_length=25)]
+    other_artwork: Optional[conset(AnyRelease, min_length=0, max_length=25)]
     lyrics: Optional[AnyTextDocumentRelease]
 
     
@@ -324,9 +329,9 @@ class Album(ContentModel):
     title: TitleData
     type: AlbumType
     tags: conset(str, max_length=10)
-    songs: conlist(Song, min_length=2, max_length=50)
+    songs: conset(Song, min_length=2, max_length=50)
     cover_artwork: Optional[AnyImageRelease]
-    other_artwork: Optional[conlist(AnyRelease, min_length=0, max_length=25)]
+    other_artwork: Optional[conset(AnyRelease, min_length=0, max_length=25)]
 
 
 # video #
@@ -350,9 +355,9 @@ class VideoProgram(ContentModel):
     program: AnyVideoRelease
     type: VideoProgramType
     tags: conset(str, max_length=10)
-    trailers: conlist(Union[AnyAudioRelease, AnyVideoRelease], min_length=0, max_length=10)
+    trailers: conset(Union[AnyAudioRelease, AnyVideoRelease], min_length=0, max_length=10)
     cover_artwork: Optional[AnyImageRelease]
-    other_artwork: Optional[conlist(AnyRelease, min_length=0, max_length=25)]
+    other_artwork: Optional[conset(AnyRelease, min_length=0, max_length=25)]
 
 
 VideoMiniSeriesId = Annotated[MongoId, id_schema('a string representing a video mini series id')]
@@ -365,11 +370,11 @@ class VideoMiniSeries(ContentModel):
     cid: VideoMiniSeriesCid = Field(**cid_kwargs)
 
     title: TitleData
-    episodes: conlist(VideoProgram, min_length=2, max_length=42)
-    trailers: conlist(Union[AnyAudioRelease, AnyVideoRelease], min_length=0, max_length=10)
+    episodes: conset(VideoProgram, min_length=2, max_length=42)
+    trailers: conset(Union[AnyAudioRelease, AnyVideoRelease], min_length=0, max_length=10)
     tags: conset(str, max_length=10)
     cover_artwork: Optional[AnyImageRelease]
-    other_artwork: Optional[conlist(AnyRelease, min_length=0, max_length=25)]
+    other_artwork: Optional[conset(AnyRelease, min_length=0, max_length=25)]
 
 
 VideoSeasonId = Annotated[MongoId, id_schema('a string representing a video season id')]
@@ -382,11 +387,11 @@ class VideoSeason(ContentModel):
     cid: VideoSeasonCid = Field(**cid_kwargs)
 
     title: TitleData
-    episodes: conlist(VideoProgram, min_length=2, max_length=42)
-    trailers: conlist(Union[AnyAudioRelease, AnyVideoRelease], min_length=0, max_length=10)
+    episodes: conset(VideoProgram, min_length=2, max_length=42)
+    trailers: conset(Union[AnyAudioRelease, AnyVideoRelease], min_length=0, max_length=10)
     tags: conset(str, max_length=10)
     cover_artwork: Optional[AnyImageRelease]
-    other_artwork: Optional[conlist(AnyReleaseCid, min_length=0, max_length=25)]
+    other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
 
 
 VideoEpisodicSeriesId = Annotated[MongoId, id_schema('a string representing a video episodic series id')]
@@ -399,11 +404,11 @@ class VideoEpisodicSeries(ContentModel):
     cid: VideoEpisodicSeriesCid = Field(**cid_kwargs)
 
     title: TitleData
-    seasons: conlist(VideoSeason, min_length=1, max_length=50)
-    trailers: conlist(Union[AnyAudioRelease, AnyVideoRelease], min_length=0, max_length=10)
+    seasons: conset(VideoSeason, min_length=1, max_length=50)
+    trailers: conset(Union[AnyAudioRelease, AnyVideoRelease], min_length=0, max_length=10)
     tags: conset(str, max_length=10)
     cover_artwork: Optional[AnyImageRelease]
-    other_artwork: Optional[conlist(AnyReleaseCid, min_length=0, max_length=25)]
+    other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
 
 
 # podcast #
@@ -420,10 +425,10 @@ class PodcastProgram(ContentModel):
 
     title: TitleData
     program: AnyAudioRelease
-    trailers: conlist(AnyAudioRelease, min_length=0, max_length=10)
+    trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
     tags: conset(str, max_length=10)
     cover_artwork: Optional[AnyImageRelease]
-    other_artwork: Optional[conlist(AnyReleaseCid, min_length=0, max_length=25)]
+    other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
 
 
 PodcastSeriesId = Annotated[MongoId, id_schema('a string representing a podcast series id')]
@@ -436,11 +441,11 @@ class PodcastSeries(ContentModel):
     cid: PodcastSeriesCid = Field(**cid_kwargs)
 
     title: TitleData
-    episodes: conlist(PodcastProgram, min_length=2, max_length=42)
-    trailers: conlist(AnyAudioRelease, min_length=0, max_length=10)
+    episodes: conset(PodcastProgram, min_length=2, max_length=42)
+    trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
     tags: conset(str, max_length=10)
     cover_artwork: Optional[AnyImageRelease]
-    other_artwork: Optional[conlist(AnyReleaseCid, min_length=0, max_length=25)]
+    other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
 
 
 PodcastSeasonId = Annotated[MongoId, id_schema('a string representing a podcast season id')]
@@ -453,11 +458,11 @@ class PodcastSeason(ContentModel):
     cid: PodcastSeasonCid = Field(**cid_kwargs)
 
     title: TitleData
-    episodes: conlist(PodcastProgram, min_length=2, max_length=42)
-    trailers: conlist(AnyAudioRelease, min_length=0, max_length=10)
+    episodes: conset(PodcastProgram, min_length=2, max_length=42)
+    trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
     tags: conset(str, max_length=10)
     cover_artwork: Optional[AnyImageRelease]
-    other_artwork: Optional[conlist(AnyReleaseCid, min_length=0, max_length=25)]
+    other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
 
 
 PodcastEpisodicSeriesId = Annotated[MongoId, id_schema('a string representing a podcast episodic series id')]
@@ -470,11 +475,11 @@ class PodcastEpisodicSeries(ContentModel):
     cid: PodcastEpisodicSeriesCid = Field(**cid_kwargs)
 
     title: TitleData
-    seasons: conlist(PodcastProgram, min_length=1, max_length=50)
-    trailers: conlist(AnyAudioRelease, min_length=0, max_length=10)
+    seasons: conset(PodcastProgram, min_length=1, max_length=50)
+    trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
     tags: conset(str, max_length=10)
     cover_artwork: Optional[AnyImageRelease]
-    other_artwork: Optional[conlist(AnyReleaseCid, min_length=0, max_length=25)]
+    other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
 
 
 # text publication #
@@ -518,7 +523,7 @@ class TextSeries(ContentModel):
 
     title: TitleData
     type: TextPublicationType
-    documents: conlist(TextEntry, min_length=2, max_length=42)
+    documents: conset(TextEntry, min_length=2, max_length=42)
     tags: conset(str, max_length=10)
 
 
@@ -533,7 +538,7 @@ class TextPublication(ContentModel):
 
     title: TitleData
     type: TextPublicationType
-    series: conlist(TextSeries, min_length=1)
+    series: conset(TextSeries, min_length=1)
     tags: conset(str, max_length=10)
 
 

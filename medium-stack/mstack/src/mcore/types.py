@@ -13,6 +13,7 @@ from bson.errors import InvalidId
 from hashlib import sha3_256
 
 from pydantic import (
+    BaseModel,
     PlainValidator,
     WithJsonSchema,
     PlainSerializer,
@@ -99,13 +100,16 @@ class ContentId:
 
         return cls(hash=hash, size=size, ext=ext)
     
+    @staticmethod
+    def _hash_from_digest(digest:bytes) -> str:
+        return base64.urlsafe_b64encode(digest).decode('utf-8')[0:-1]   # remove final padding (=)
+
     @classmethod
     def from_dict(cls:'ContentId', data:Dict) -> 'ContentId':
         json_string = json.dumps(data, sort_keys=True)
-
+        
         hash_obj = sha3_256(json_string.encode('utf-8'))
-        digest = hash_obj.digest()
-        hash = base64.urlsafe_b64encode(digest).decode('utf-8')[0:-1]   # remove final padding (=)
+        hash = cls._hash_from_digest(hash_obj.digest())
 
         return cls(hash=hash, size=len(json_string), ext='json')
 
@@ -118,8 +122,7 @@ class ContentId:
                     break
                 hash_obj.update(buffer)
 
-        digest = hash_obj.digest()
-        hash = base64.urlsafe_b64encode(digest).decode('utf-8')[0:-1]   # remove final padding (=)
+        hash = cls._hash_from_digest(hash_obj.digest())
 
         return cls(hash=hash, size=size, ext=ext)
 
@@ -164,8 +167,7 @@ class ContentId:
             start += cls.read_buffer_len
             end += cls.read_buffer_len
         
-        digest = hash_obj.digest()
-        hash = base64.urlsafe_b64encode(digest).decode('utf-8')[0:-1]   # remove final padding (=)
+        hash = cls._hash_from_digest(hash_obj.digest())
 
         return cls(hash=hash, size=size, ext=ext)
 
