@@ -146,7 +146,8 @@ def test_user():
 
 def test_file_uploader():
     creator:FileUploaderCreator = example_model(FileUploaderCreator)
-    file_uploader = creator.create_model()
+    user_cid = example_cid(User)
+    file_uploader = creator.create_model(user_cid=user_cid)
     _test_model(file_uploader, None, FileUploader)
     _test_pagination(file_uploader, FileUploader)
 

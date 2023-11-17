@@ -6,6 +6,7 @@ from mcore.models import User, UserCreator, FileUploader, FileUploaderCreator, F
 from mcore.db import MongoDB
 from mcore.errors import NotFoundError
 from mcore.types import ModelIdType
+from mserve.dependencies import current_user
 
 from fastapi import APIRouter, HTTPException, Depends, UploadFile
 
@@ -44,8 +45,8 @@ def delete_user(id_type:ModelIdType, id:str, db:MongoDB = Depends(MongoDB.from_c
 #
 
 @core_router.post('/file-uploader', response_model=FileUploader, response_model_by_alias=False)
-async def create_file_uploader(creator: FileUploaderCreator, db:MongoDB = Depends(MongoDB.from_cache)):
-    uploader:FileUploader = creator.create_model()
+async def create_file_uploader(creator: FileUploaderCreator, db:MongoDB = Depends(MongoDB.from_cache), user:User = Depends(current_user)):
+    uploader:FileUploader = creator.create_model(user_cid=user.cid)
     db.create(uploader)
     return uploader
 

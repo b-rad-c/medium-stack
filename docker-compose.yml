@@ -27,7 +27,7 @@ services:
     volumes:
       - ./medium-stack:/app
       - ./lstack:/mstack/
-    command: python3 -m mserve.uploads
+    command: python3 -m mserve.uploads ingest
     depends_on:
       - db
     environment:

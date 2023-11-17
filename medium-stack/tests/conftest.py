@@ -69,6 +69,7 @@ def user_cid():
 def file_uploader():
     return example_model(FileUploader)
 
+# image #
 
 @pytest.fixture(scope='session')
 def image_file_path():
@@ -76,45 +77,56 @@ def image_file_path():
     return SAMPLE_BIN / name
 
 @pytest.fixture(scope='function')
-def image_file(image_file_path):
-    return ImageFile.from_filepath(image_file_path)
+def image_file(image_file_path, user_cid):
+    return ImageFile.from_filepath(image_file_path, user_cid)
 
 
 @pytest.fixture(scope='function')
 def image_file_cid():
-    return ContentId(hash='VcRfJsAIeMvHFxW2c1FFgk2PFc5S16zFEydoCtKhaSg', size=105, ext='json')
+    return ContentId(hash='tm9SzLy7lq1usQtHfGiJhznM95YSg9-NEF15WmnBobA', size=173, ext='json')
 
 
 @pytest.fixture(scope='function')
 def image_file_payload():
     return ContentId(hash='Wh2aaOSrURBH32Z_Dgg8BgHB_fQllwLo_0arWPH_PQo', size=7103671, ext='jpg')
 
+# audio #
+
+@pytest.fixture(scope='session')
+def audio_file_path():
+    name = 'Maarten Schellekens - The 4t of May.mp3'
+    return SAMPLE_BIN / name
 
 @pytest.fixture(scope='function')
-def audio_file():
-    path = SAMPLE_BIN / 'Maarten Schellekens - The 4t of May.mp3'
-    return AudioFile.from_filepath(path)
+def audio_file(audio_file_path, user_cid):
+    return AudioFile.from_filepath(audio_file_path, user_cid)
 
 
 @pytest.fixture(scope='function')
 def audio_file_cid():
-    return ContentId(hash='qB-A2d1Jt-DTBqAZZgBuTvH4tDbIFpxyfWmkxTZejXo', size=114, ext='json')
+    return ContentId(hash='7BD1o8gwFLTaqr0S_QKk93iYcuFG1ZzCOKafaaPYiI4', size=182, ext='json')
 
 
 @pytest.fixture(scope='function')
 def audio_file_payload():
     return ContentId(hash='SOT7ZsLeQYg6MbcabM049T_DKWbLXl6BR724v3xD9fo', size=2633142, ext='mp3')
 
+# video #
+
+@pytest.fixture(scope='session')
+def video_file_path():
+    name = 'big_buck_bunny_trailer_480p.mov'
+    return SAMPLE_BIN / name
+
 
 @pytest.fixture(scope='function')
-def video_file():
-    path = SAMPLE_BIN / 'big_buck_bunny_trailer_480p.mov'
-    return VideoFile.from_filepath(path)
+def video_file(video_file_path, user_cid):
+    return VideoFile.from_filepath(video_file_path, user_cid)
 
 
 @pytest.fixture(scope='function')
 def video_file_cid():
-    return ContentId(hash='r62C64HF6Qn5WqjilmNmSlsZjnK52ifR178pPyA8bgI', size=164, ext='json')
+    return ContentId(hash='ixiuws1Ouxe9Vw1-IarCNYwvWdUZBhZOaR_IlngkiEk', size=232, ext='json')
 
 
 @pytest.fixture(scope='function')

@@ -31,6 +31,11 @@ stream_handler = logging.StreamHandler(sys.stdout)
 logging.basicConfig(handlers=[stream_handler], level=logging.INFO)
 
 
+#
+# ingest
+#
+
+
 def obtain_lock(uploader:FileUploader) -> FileUploader | None:
     """atttempt to obtain a lock on the file uploader for processing,
     returns the updated file uploader if successful, None if not"""
@@ -120,6 +125,30 @@ def ingest_daemon():
     logging.info('exiting ingest daemon')
 
 
+#
+# clean up
+#
+
+def cleanup_upload(uploader:FileUploader):
+    try:
+        uploader.local_storage_path().unlink()
+    except FileNotFoundError:
+        pass
+    db.delete(uploader)
+
+
+def timeout_upload(uploader:FileUploader):
+    try:
+        uploader.local_storage_path().unlink()
+    except FileNotFoundError:
+        pass
+
+    uploader.error = 'upload timeout'
+    uploader.status = FileUploadStatus.error
+    uploader.update_timestamp()
+    db.update(uploader)
+
+
 def cleanup_process():
     """
     a scheduled process that:
@@ -128,6 +157,60 @@ def cleanup_process():
         * looks for uploads with status (uploading|processing|pending) and modifed data > TIMEOUT_THRESHOLD 
             -> sets status to error with timeout message and deletes file but keeps db entry
     """
+    
+    logging.info('begin cleanup process')
+
+    #
+    # clean up finished and errored uploads
+    #
+
+    try:
+        query = {
+            'status': {'$in': [FileUploadStatus.error, FileUploadStatus.complete]}, 
+            'modified': {'$lt': utc_now() - MSERVE_UPLOAD_CLEANUP_THRESHOLD}
+        }
+        for uploader in db.find(FileUploader, filter=query):
+            try:
+                cleanup_upload(uploader)
+            except Exception as e:
+                logging.error(f'error cleaning up file uploader: {uploader.id} - {e}', exc_info=True)
+    except Exception as e:
+        logging.error(f'error cleaning uploads: {e}', exc_info=True)
+
+    #
+    # mark stale uploads as timeout out
+    #
+        
+    try:
+        query = {
+            'status': {'$in': [FileUploadStatus.uploading, FileUploadStatus.processing, FileUploadStatus.process_queue]},
+            'modified': {'$lt': utc_now() - MSERVE_UPLOAD_TIMEOUT_THRESHOLD}
+        }
+        for uploader in db.find(FileUploader, filter=query):
+            uploader.error = 'upload timeout'
+            uploader.status = FileUploadStatus.error
+            try:
+                uploader.local_storage_path().unlink()
+            except FileNotFoundError:
+                pass
+            db.update(uploader)
+
+    except Exception as e:
+        logging.error(f'error timing out uploads: {e}', exc_info=True)
+        
+    logging.info('exiting cleanup process')
+
 
 if __name__ == '__main__':
-    ingest_daemon()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('command', choices=['ingest', 'cleanup'])
+    args = parser.parse_args()
+
+    match args.command:
+        case 'ingest':
+            ingest_daemon()
+        case 'cleanup':
+            cleanup_process()
+        case _:
+            raise ValueError(f'invalid command: {args.command}')

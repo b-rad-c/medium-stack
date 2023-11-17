@@ -40,17 +40,17 @@ __all__ = [
     'FileUploaderCreator',
 
     'ImageFile',
-    'ImageFileCreator',
+    #'ImageFileCreator',
     'ImageFileId',
     'ImageFileCid',
 
     'AudioFile',
-    'AudioFileCreator',
+    #'AudioFileCreator',
     'AudioFileId',
     'AudioFileCid',
 
     'VideoFile',
-    'VideoFileCreator',
+    #'VideoFileCreator',
     'VideoFileId',
     'VideoFileCid',
     
@@ -82,8 +82,10 @@ class ModelCreator(BaseModel):
 
     MODEL: ClassVar[str] = None
 
-    def create_model(self) -> 'ContentModel':
-        return self.MODEL(**self.model_dump())
+    def create_model(self, **kwargs) -> 'ContentModel':
+        params = self.model_dump()
+        params.update(kwargs)
+        return self.MODEL(**params)
 
 
 #
@@ -176,6 +178,7 @@ class FileUploader(BaseModel):
 
     id: FileUploaderId = Field(**db_id_kwargs)
     type: FileUploadTypes
+    user_cid: UserCid = Field(**cid_kwargs)
 
     total_size: int
 
@@ -193,6 +196,7 @@ class FileUploader(BaseModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
+                    'user_cid': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
                     'type': 'image',
                     'total_size': 100_000,
                     'created': '2023-11-04T22:21:02.185694Z',
@@ -220,7 +224,7 @@ class FileUploaderCreator(ModelCreator):
     MODEL: ClassVar[Type[FileUploader]] = FileUploader
 
     type: FileUploadTypes
-    total_size: int    
+    total_size: int
 
     model_config = {
         'json_schema_extra': {
@@ -249,6 +253,7 @@ class ImageFile(ContentModel):
 
     id: ImageFileId = Field(**db_id_kwargs)
     cid: ImageFileCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
 
     payload_cid: ImageFilePayloadCid = Field(**cid_kwargs)
 
@@ -270,7 +275,7 @@ class ImageFile(ContentModel):
     }
 
     @classmethod
-    def from_filepath(cls:'ImageFile', filepath:Union[str, Path]) -> 'ImageFile':
+    def from_filepath(cls:'ImageFile', filepath:Union[str, Path], user_cid: UserCid) -> 'ImageFile':
         payload_cid = ContentId.from_filepath(filepath)
         info = mediainfo(filepath)
         try:
@@ -281,25 +286,25 @@ class ImageFile(ContentModel):
         except AttributeError:
             raise MStackFilePayloadError(f'Unknown error getting media info: {filepath}')
 
-        return cls(payload_cid=payload_cid, height=height, width=width)
+        return cls(user_cid=user_cid, payload_cid=payload_cid, height=height, width=width)
 
 
-class ImageFileCreator(ModelCreator):
-    MODEL: ClassVar[Type[ImageFile]] = ImageFile
+# class ImageFileCreator(ModelCreator):
+#     MODEL: ClassVar[Type[ImageFile]] = ImageFile
 
-    height: int = Field(gt=0)
-    width: int = Field(gt=0)
+#     height: int = Field(gt=0)
+#     width: int = Field(gt=0)
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'height': 3584, 
-                    'width': 5376
-                }
-            ]
-        }
-    }
+#     model_config = {
+#         'json_schema_extra': {
+#             'examples': [
+#                 {
+#                     'height': 3584, 
+#                     'width': 5376
+#                 }
+#             ]
+#         }
+#     }
 
 
 AudioFileId = Annotated[MongoId, id_schema('a string representing an audio file id')]
@@ -312,6 +317,7 @@ class AudioFile(ContentModel):
 
     id: AudioFileId = Field(**db_id_kwargs)
     cid: AudioFileCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
     
     payload_cid: AudioFilePayloadCid = Field(**cid_kwargs)
 
@@ -333,7 +339,7 @@ class AudioFile(ContentModel):
     }
 
     @classmethod
-    def from_filepath(cls:'AudioFile', filepath:Union[str, Path]) -> 'AudioFile':
+    def from_filepath(cls:'AudioFile', filepath:Union[str, Path], user_cid: UserCid) -> 'AudioFile':
         payload_cid = ContentId.from_filepath(filepath)
         info = mediainfo(filepath)
         if len(info.audio_tracks) == 0:
@@ -347,25 +353,25 @@ class AudioFile(ContentModel):
         except (AttributeError, IndexError):
             raise MStackFilePayloadError(f'Unknown error getting media info: {filepath}')
 
-        return cls(payload_cid=payload_cid, duration=duration, bit_rate=bit_rate)
+        return cls(user_cid=user_cid, payload_cid=payload_cid, duration=duration, bit_rate=bit_rate)
 
 
-class AudioFileCreator(ModelCreator):
-    MODEL: ClassVar[Type[AudioFile]] = AudioFile
+# class AudioFileCreator(ModelCreator):
+#     MODEL: ClassVar[Type[AudioFile]] = AudioFile
 
-    duration: float = Field(gt=0)
-    bit_rate: int = Field(gt=0)
+#     duration: float = Field(gt=0)
+#     bit_rate: int = Field(gt=0)
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'duration': 65.828,
-                    'bit_rate': 320000
-                }
-            ]
-        }
-    }
+#     model_config = {
+#         'json_schema_extra': {
+#             'examples': [
+#                 {
+#                     'duration': 65.828,
+#                     'bit_rate': 320000
+#                 }
+#             ]
+#         }
+#     }
 
 
 VideoFileId = Annotated[MongoId, id_schema('a string representing a video file id')]
@@ -377,6 +383,7 @@ class VideoFile(ContentModel):
 
     id: VideoFileId = Field(**db_id_kwargs)
     cid: VideoFileCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
     
     payload_cid: VideoFilePayloadCid = Field(**cid_kwargs)
 
@@ -404,7 +411,7 @@ class VideoFile(ContentModel):
     }
 
     @classmethod
-    def from_filepath(cls:'VideoFile', filepath:Union[str, Path]) -> 'VideoFile':
+    def from_filepath(cls:'VideoFile', filepath:Union[str, Path], user_cid: UserCid) -> 'VideoFile':
         payload_cid = ContentId.from_filepath(filepath)
         info = mediainfo(filepath)
 
@@ -422,31 +429,31 @@ class VideoFile(ContentModel):
         
         has_audio = len(info.audio_tracks) > 0
 
-        return cls(payload_cid=payload_cid, height=height, width=width, duration=duration, bit_rate=bit_rate, has_audio=has_audio)
+        return cls(user_cid=user_cid, payload_cid=payload_cid, height=height, width=width, duration=duration, bit_rate=bit_rate, has_audio=has_audio)
 
 
-class VideoFileCreator(ModelCreator):
-    MODEL: ClassVar[Type[VideoFile]] = VideoFile
+# class VideoFileCreator(ModelCreator):
+#     MODEL: ClassVar[Type[VideoFile]] = VideoFile
 
-    height: int = Field(gt=0)
-    width: int = Field(gt=0)
-    duration: float = Field(gt=0) 
-    bit_rate: int = Field(gt=0)
-    has_audio: bool
+#     height: int = Field(gt=0)
+#     width: int = Field(gt=0)
+#     duration: float = Field(gt=0) 
+#     bit_rate: int = Field(gt=0)
+#     has_audio: bool
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'height': 480,
-                    'width': 853,
-                    'duration': 32.995,
-                    'bit_rate': 2681864,
-                    'has_audio': True
-                }
-            ]
-        }
-    }
+#     model_config = {
+#         'json_schema_extra': {
+#             'examples': [
+#                 {
+#                     'height': 480,
+#                     'width': 853,
+#                     'duration': 32.995,
+#                     'bit_rate': 2681864,
+#                     'has_audio': True
+#                 }
+#             ]
+#         }
+#     }
 
 
 TextFileId = Annotated[MongoId, id_schema('a string representing a text file id')]
@@ -458,5 +465,6 @@ class TextFile(ContentModel):
 
     id: TextFileId = Field(**db_id_kwargs)
     cid: TextFileCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
     
     payload_cid: TextFilePayloadCid = Field(**cid_kwargs)

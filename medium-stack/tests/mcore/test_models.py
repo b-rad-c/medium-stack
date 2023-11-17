@@ -111,10 +111,8 @@ def test_file_uploader(file_uploader):
 
 
 def test_image_file(image_file, image_file_cid, image_file_payload):
+    assert image_file.payload_cid == image_file_payload
     _test_model_examples(ImageFile)
-    _test_model_creator_and_examples(ImageFile, ImageFileCreator)
-
-    image_file.payload_cid == image_file_payload
 
     assert image_file.height == 3584
     assert isinstance(image_file.height, int)
@@ -130,10 +128,8 @@ def test_image_file(image_file, image_file_cid, image_file_payload):
 
 
 def test_audio_file(audio_file, audio_file_cid, audio_file_payload):
+    assert audio_file.payload_cid == audio_file_payload
     _test_model_examples(AudioFile)
-    _test_model_creator_and_examples(AudioFile, AudioFileCreator)
-
-    audio_file.payload_cid == audio_file_payload
 
     assert audio_file.duration == 65.828
     assert audio_file.bit_rate == 320000
@@ -149,7 +145,6 @@ def test_audio_file(audio_file, audio_file_cid, audio_file_payload):
 
 def test_video_file(video_file, video_file_cid, video_file_payload):
     _test_model_examples(VideoFile)
-    _test_model_creator_and_examples(VideoFile, VideoFileCreator)
 
     assert video_file.payload_cid == video_file_payload
     assert video_file.height == 480

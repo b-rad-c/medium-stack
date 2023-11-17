@@ -6,6 +6,7 @@ from mcore.models import (
     MongoId, 
     ContentModel, 
     ContentId, 
+    UserCid,
 
     ImageFile,
     ImageFileCid,
@@ -44,6 +45,7 @@ class Artist(ContentModel):
 
     id: ArtistId = Field(**db_id_kwargs)
     cid: ArtistCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
 
     name: str = Field(min_length=1, max_length=300)
     short_name: str = Field(min_length=1, max_length=50)
@@ -74,6 +76,8 @@ class Artist(ContentModel):
 class ArtistCreator(BaseModel):
 
     MODEL: ClassVar[Type[Artist]] = Artist
+
+    user_cid: UserCid = Field(**cid_kwargs)
 
     name: str = Field(min_length=1, max_length=300)
     short_name: str = Field(min_length=1, max_length=50)
