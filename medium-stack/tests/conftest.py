@@ -1,7 +1,6 @@
 from mcore.types import ContentId
+from mcore.models import User, FileUploader, ImageFile, AudioFile, VideoFile
 from mcore.db import MongoDB
-from mcore.models import User, FileUploader, FileUploadTypes, FileUploadStatus, ImageFile, AudioFile, VideoFile
-
 from pathlib import Path
 
 import pytest
@@ -10,23 +9,11 @@ from pydantic import BaseModel
 
 SAMPLE_BIN = Path(__file__).parent / 'samples'
 
-#
-# db fixtures
-#
 
-@pytest.fixture(scope='function')
-def db():
-    return MongoDB.from_cache()
+def reset_collection(model_type):
+    db = MongoDB.from_cache()
+    db.get_collection(model_type).drop()
 
-
-@pytest.fixture(scope='function')
-def reset_collection(db):
-    return lambda model_type: db.get_collection(model_type).drop()
-
-
-#
-# model fixtures
-#
 
 def example_model(model_type:BaseModel, index=0):
     try:
@@ -53,6 +40,12 @@ def example_cid(model_type:BaseModel, index=0):
         raise AssertionError(f'model {model_type.__class__.__name__} does not define a cid in the example at index: {index}')
     
     return ContentId.parse(cid)
+
+
+#
+# model fixtures
+#
+
 
 
 @pytest.fixture(scope='function')

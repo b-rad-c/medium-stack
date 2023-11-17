@@ -1,4 +1,4 @@
-from ..conftest import example_model, example_cid
+from ..conftest import example_model, example_cid, reset_collection
 
 from typing import Type
 
@@ -13,11 +13,6 @@ from pydantic import BaseModel
 
 
 db = MongoDB.from_cache()
-
-
-def _drop_collection(model_type):
-    collection = db.get_collection(model_type)
-    collection.drop()
 
 
 def _verify_does_not_exist(obj):
@@ -35,10 +30,11 @@ def _verify_does_not_exist(obj):
 
 
 def _test_model(obj, obj_cid, model_type):
+    reset_collection(model_type)
+
     if obj_cid is not None:
         assert obj.cid == obj_cid
-        _drop_collection(model_type)
-    
+        
     # insert into db and verify id #
     assert obj.id is None
     db.create(obj)
@@ -86,13 +82,12 @@ def _test_model(obj, obj_cid, model_type):
     with pytest.raises(MStackDBError):
         db.delete(model_type)
 
-    if obj_cid is not None:
-        _drop_collection(model_type)
+    reset_collection(model_type)
 
 
 def _test_pagination(model:BaseModel, model_type:Type):
 
-    _drop_collection(model_type)
+    reset_collection(model_type)
 
     # create multiple entries
 
@@ -133,7 +128,7 @@ def _test_pagination(model:BaseModel, model_type:Type):
 
     assert total == 10
 
-    _drop_collection(model_type)
+    reset_collection(model_type)
 
 
 def test_user():

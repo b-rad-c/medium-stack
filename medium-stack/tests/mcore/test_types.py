@@ -2,6 +2,7 @@ import pytest
 from bson import ObjectId
 from mcore.types import DataHierarchy, _validate_object_id
 
+
 def test_mongo_id():
     obj_id_string = '653456b4375e9bbe89939316'
     obj_id = ObjectId('653456b4375e9bbe89939316')

@@ -1,11 +1,8 @@
 # TO DO
-+ integrate uploads with mart
-+ unittests for each mart model
-+ add mock user auth
-+ add user_id to models as required attr
-+ add actual auth
-
++ unittests for artist/artist group/credits/title/image release
 + UI
++ add mock user auth
++ add actual auth
 + test upload cleanup process
 + text editing
     + find text editing libray

@@ -1,3 +1,5 @@
+from ..conftest import reset_collection
+
 import time
 
 from string import ascii_uppercase
@@ -32,7 +34,7 @@ def test_main():
     assert isinstance(data, IndexResponse)
 
 
-def test_core_users(reset_collection):
+def test_core_users():
 
     # init #
 
@@ -127,7 +129,7 @@ def test_core_users(reset_collection):
     reset_collection(User)
 
 
-def test_core_file_uploader(reset_collection):
+def test_core_file_uploader():
 
     # init #
 
