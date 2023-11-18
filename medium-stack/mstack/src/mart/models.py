@@ -1,8 +1,8 @@
-from typing import Annotated, ClassVar, Union, Optional, Type
+from typing import Annotated, ClassVar, Union, Optional, Type, List
 from enum import StrEnum
-from pydantic import BaseModel, Field, conset
+from pydantic import BaseModel, Field, conset, PlainValidator
 
-from mcore.types import TagList, set_serializer
+from mcore.types import TagList, set_serializer, unique_list_serializer
 
 from mcore.models import (
     MongoId, 
@@ -22,7 +22,7 @@ from mcore.models import (
 
     db_id_kwargs, 
     cid_kwargs,
-    id_schema, 
+    id_schema
 )
 
 
@@ -76,7 +76,9 @@ class Artist(ContentModel):
                     'short_name': 'Kahlo',
                     'abreviated_name': 'FK',
                     'summary': 'Mexican painter known for her many portraits, self-portraits, and works inspired by the nature and artifacts of Mexico.',
-                    'description': 'Frida Kahlo de Rivera was a Mexican artist who painted many portraits, self-portraits, and works inspired by the nature and artifacts of Mexico. Her work has been celebrated internationally as emblematic of Mexican national and indigenous traditions, and by feminists for its uncompromising depiction of the female experience and form.',
+                    'description': 'Frida Kahlo de Rivera was a Mexican artist who painted many portraits, self-portraits, '
+                        'and works inspired by the nature and artifacts of Mexico. Her work has been celebrated internationally as emblematic of '
+                        'Mexican national and indigenous traditions, and by feminists for its uncompromising depiction of the female experience and form.',
                     'mediums': ['still'],
                     'tags': ['painting', 'mexico', 'feminist', 'surrealism']
                 }
@@ -109,7 +111,9 @@ class ArtistCreator(ModelCreator):
                     'short_name': 'Kahlo',
                     'abreviated_name': 'FK',
                     'summary': 'Mexican painter known for her many portraits, self-portraits, and works inspired by the nature and artifacts of Mexico.',
-                    'description': 'Frida Kahlo de Rivera was a Mexican artist who painted many portraits, self-portraits, and works inspired by the nature and artifacts of Mexico. Her work has been celebrated internationally as emblematic of Mexican national and indigenous traditions, and by feminists for its uncompromising depiction of the female experience and form.',
+                    'description': 'Frida Kahlo de Rivera was a Mexican artist who painted many portraits, self-portraits, '
+                        'and works inspired by the nature and artifacts of Mexico. Her work has been celebrated internationally as emblematic of '
+                        'Mexican national and indigenous traditions, and by feminists for its uncompromising depiction of the female experience and form.',
                     'mediums': ['still'],
                     'tags': ['painting', 'mexico', 'feminist', 'surrealism']
                 }
@@ -134,8 +138,73 @@ class ArtistGroup(ContentModel):
     summary: str = Field(min_length=1, max_length=300)
     description: str = Field(min_length=1, max_length=1500)
     mediums: ArtMediumList
+    tags: TagList = None
 
-    artists: conset(Union[ArtistCid, ArtistGroupCid], min_length=1, max_length=50)
+    artists: Annotated[List[ArtistCid], Field(min_length=1, max_length=50), unique_list_serializer, id_schema('a unique list of artist cids')]
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0GD2wISb74WjxrGjU6qFPoHQpsliGPqYI6FPllJkDBP8800.json',
+                    'name': 'The Beatles',
+                    'short_name': 'The Beatles',
+                    'abreviated_name': 'TB',
+                    'summary': 'English rock band formed in Liverpool in 1960.',
+                    'description': 'The Beatles were an English rock band formed in Liverpool in 1960. With a line-up comprising John Lennon, '
+                                   'Paul McCartney, George Harrison and Ringo Starr, they are regarded as the most influential band of all time.',
+                    'mediums': ['audio', 'video'],
+                    'tags': ['rock', 'pop', 'british invasion'],
+                    'artists': [
+                        '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json', 
+                        '0Ve5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                        '0We5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                        '0Xe5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
+                    ]
+                }
+            ]
+        }
+    }
+
+
+class ArtistGroupCreator(ModelCreator):
+
+    MODEL: ClassVar[Type[ArtistGroup]] = ArtistGroup
+
+    name: str = Field(min_length=1, max_length=300)
+    short_name: str = Field(min_length=1, max_length=50)
+    abreviated_name: str = Field(max_length=10)
+
+    summary: str = Field(min_length=1, max_length=300)
+    description: str = Field(min_length=1, max_length=1500)
+    mediums: ArtMediumList
+    tags: TagList = None
+
+    artists: Annotated[List[ArtistCid], Field(min_length=1, max_length=50, default_factory=list), unique_list_serializer, id_schema('a unique list of artist cids')]
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'name': 'The Beatles',
+                    'short_name': 'The Beatles',
+                    'abreviated_name': 'TB',
+                    'summary': 'English rock band formed in Liverpool in 1960.',
+                    'description': 'The Beatles were an English rock band formed in Liverpool in 1960. With a line-up comprising John Lennon, '
+                                   'Paul McCartney, George Harrison and Ringo Starr, they are regarded as the most influential band of all time.',
+                    'mediums': ['audio', 'video'],
+                    'tags': ['rock', 'pop', 'british invasion'],
+                    'artists': [
+                        '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json', 
+                        '0Ve5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                        '0We5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                        '0Xe5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
+                    ]
+                }
+            ]
+        }
+    }
 
 
 CreditId = Annotated[MongoId, id_schema('a string representing a credit id')]

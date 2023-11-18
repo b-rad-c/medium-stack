@@ -78,6 +78,8 @@ class ContentId:
     def validate(cls, content_id:Union[str, 'ContentId']) -> 'ContentId':
         if isinstance(content_id, str):
             return cls.parse(content_id)
+        elif isinstance(content_id, dict):
+            return cls(**content_id)
         elif isinstance(content_id, cls):
             return content_id
         else:
@@ -263,7 +265,28 @@ Hierarchy = Annotated[
 # misc 
 #
 
+
+"""
+sets needs to be converted to a list when serialized for json, sets don't have order so the serializer sorts them for
+consistency when genereating CIDs. This means we lose the user's order, it could be changed from set to list
+to preserve user order but then we could have potential duplicates in the list, unless dupes are removed during validation.
+
+Alphabetical tag lists may be slightly easer to read, however sorted tag lists could be used to give higher weight
+to tags earlier in the list (e.g. for search results).
+"""
 set_serializer = PlainSerializer(lambda value: sorted(list(value)), return_type=list)
+
+def _unique_list(input_list:list) -> list:
+    new_list = []
+    for item in input_list:
+        if item in new_list:
+            raise ValueError(f'List contains duplicates')
+        else:
+            new_list.append(item)
+
+    return new_list
+
+unique_list_serializer = PlainSerializer(lambda value: _unique_list(value), return_type=list)
 
 TagList = Annotated[
     Optional[conset(str, min_length=0, max_length=15)], 
