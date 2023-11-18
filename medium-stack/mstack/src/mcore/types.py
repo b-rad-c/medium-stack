@@ -18,7 +18,7 @@ from pydantic import (
     WithJsonSchema,
     PlainSerializer,
     AliasChoices,
-    conset
+    conlist
 )
 
 import boto3
@@ -37,7 +37,7 @@ __all__ = [
     'DataHierarchy',
     'Hierarchy',
 
-    'set_serializer',
+    'unique_list_serializer',
     'TagList'
 ]
 
@@ -267,16 +267,11 @@ Hierarchy = Annotated[
 
 
 """
-sets needs to be converted to a list when serialized for json, sets don't have order so the serializer sorts them for
-consistency when genereating CIDs. This means we lose the user's order, it could be changed from set to list
-to preserve user order but then we could have potential duplicates in the list, unless dupes are removed during validation.
-
-Alphabetical tag lists may be slightly easer to read, however sorted tag lists could be used to give higher weight
-to tags earlier in the list (e.g. for search results).
+Custom logic for keeping a list unique, Set is not used because it does not support unhashable objects such as ContentId,
+not does it preserve order of elements. Additionally Pydantic's conlist has deprecated the unique item constraint.
 """
-set_serializer = PlainSerializer(lambda value: sorted(list(value)), return_type=list)
 
-def _unique_list(input_list:list) -> list:
+def _list_is_unique(input_list:list) -> list:
     new_list = []
     for item in input_list:
         if item in new_list:
@@ -286,10 +281,10 @@ def _unique_list(input_list:list) -> list:
 
     return new_list
 
-unique_list_serializer = PlainSerializer(lambda value: _unique_list(value), return_type=list)
+unique_list_serializer = PlainSerializer(lambda value: _list_is_unique(value), return_type=list)
 
 TagList = Annotated[
-    Optional[conset(str, min_length=0, max_length=15)], 
-    set_serializer, 
+    Optional[conlist(str, min_length=0, max_length=15)], 
+    unique_list_serializer, 
     id_schema('a set (list) of strings')
 ]

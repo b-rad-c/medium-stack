@@ -1,8 +1,8 @@
 from typing import Annotated, ClassVar, Union, Optional, Type, List
 from enum import StrEnum
-from pydantic import BaseModel, Field, conset, PlainValidator
+from pydantic import BaseModel, Field, conset, conlist
 
-from mcore.types import TagList, set_serializer, unique_list_serializer
+from mcore.types import TagList, unique_list_serializer
 
 from mcore.models import (
     MongoId, 
@@ -39,9 +39,9 @@ class ArtMedium(StrEnum):
     video = 'video'
 
 ArtMediumList = Annotated[
-    conset(ArtMedium, min_length=1, max_length=5), 
-    set_serializer, 
-    id_schema('a set (list) of art mediums')
+    conlist(ArtMedium, min_length=1, max_length=5), 
+    unique_list_serializer, 
+    id_schema('a unique list of art mediums')
 ]
 
 
@@ -70,7 +70,7 @@ class Artist(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
-                    'cid': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                    'cid': '0SXvy_2EV0Pm6YAmfznDb5nwT4l7RfIXN9RNe9v279vk707.json',
                     'user_cid': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
                     'name': 'Frida Kahlo',
                     'short_name': 'Kahlo',
@@ -147,7 +147,7 @@ class ArtistGroup(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
-                    'cid': '0GD2wISb74WjxrGjU6qFPoHQpsliGPqYI6FPllJkDBP8800.json',
+                    'cid': '0bdvsrerBf-X8hgrqeObsyd-zWmDatVd0VhnFLm7jfio800.json',
                     'name': 'The Beatles',
                     'short_name': 'The Beatles',
                     'abreviated_name': 'TB',
@@ -220,7 +220,7 @@ class Credit(ContentModel):
     artist: ArtistCid
 
 
-CreditList = Annotated[conset(Credit, max_length=15), set_serializer]
+CreditList = Annotated[conlist(Credit, min_length=1, max_length=15), unique_list_serializer, id_schema('a unique list of credits')]
 
 
 TitleDataId = Annotated[MongoId, id_schema('a string representing a title data id')]
