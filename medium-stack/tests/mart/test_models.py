@@ -38,3 +38,18 @@ def test_credit():
 
 def test_title_data():
     _test_model_examples(TitleData)
+
+
+def test_digital_image():
+    digital_image = example_model(DigitalImage)
+    digital_image_cid = example_cid(DigitalImage)
+
+    _test_model_examples(DigitalImage)
+    _test_model_creator_and_examples(DigitalImage, DigitalImageCreator)
+
+    _test_dumped_model(digital_image, digital_image_cid, DigitalImage)
+    _test_model_json_str(digital_image, digital_image_cid, DigitalImage)
+    
+    digital_image.id = ObjectId()
+    _test_dumped_model(digital_image, digital_image_cid, DigitalImage)
+    _test_model_json_str(digital_image, digital_image_cid, DigitalImage)
