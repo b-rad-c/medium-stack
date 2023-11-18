@@ -30,3 +30,11 @@ def test_artist_group():
     artist_group.id = ObjectId()
     _test_dumped_model(artist_group, artist_group_cid, ArtistGroup)
     _test_model_json_str(artist_group, artist_group_cid, ArtistGroup)
+
+
+def test_credit():
+    _test_model_examples(Credit)
+
+
+def test_title_data():
+    _test_model_examples(TitleData)

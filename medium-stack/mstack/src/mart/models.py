@@ -207,39 +207,70 @@ class ArtistGroupCreator(ModelCreator):
     }
 
 
-CreditId = Annotated[MongoId, id_schema('a string representing a credit id')]
-CreditCid = Annotated[ContentIdType, id_schema('a string representing a credit content id')]
+# CreditId = Annotated[MongoId, id_schema('a string representing a credit id')]
+# CreditCid = Annotated[ContentIdType, id_schema('a string representing a credit content id')]
 
-class Credit(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'credits'
+class Credit(BaseModel):
+    # MONGO_COLLECTION_NAME: ClassVar[str] = 'credits'
 
-    id: CreditId = Field(**db_id_kwargs)
-    cid: CreditCid = Field(**cid_kwargs)
+    # id: CreditId = Field(**db_id_kwargs)
+    # cid: CreditCid = Field(**cid_kwargs)
 
-    job: str
+    role: str = Field(max_length=50)
     artist: ArtistCid
 
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'role': 'vocals',
+                    'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
+                }
+            ]
+        }
+    }
 
-CreditList = Annotated[conlist(Credit, min_length=1, max_length=15), unique_list_serializer, id_schema('a unique list of credits')]
+
+CreditList = Annotated[conlist(Credit, min_length=1, max_length=100), unique_list_serializer, id_schema('a unique list of credits')]
 
 
-TitleDataId = Annotated[MongoId, id_schema('a string representing a title data id')]
-TitleDataCid = Annotated[ContentIdType, id_schema('a string representing a title data content id')]
+# TitleDataId = Annotated[MongoId, id_schema('a string representing a title data id')]
+# TitleDataCid = Annotated[ContentIdType, id_schema('a string representing a title data content id')]
 
-class TitleData(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'title_data'
+class TitleData(BaseModel):
+    # MONGO_COLLECTION_NAME: ClassVar[str] = 'title_data'
 
-    id: TitleDataId = Field(**db_id_kwargs)
-    cid: TitleDataCid = Field(**cid_kwargs)
+    # id: TitleDataId = Field(**db_id_kwargs)
+    # cid: TitleDataCid = Field(**cid_kwargs)
 
     title: str = Field(min_length=1, max_length=300)
-    short_title: str = Field(max_length=50)
-    abreviated_title: str = Field(max_length=10)
+    short_title: str = Field(None, max_length=50)
+    abreviated_title: str = Field(None, max_length=10, validate_default=False)
 
-    subtitle: str = Field(str, max_length=500)
-    summary: str = Field(str, min_length=1, max_length=300)
-    description: str = Field(str, min_length=1, max_length=1500)
-    genres: conset(str, min_length=1, max_length=4)
+    subtitle: str = Field(None, max_length=500, validate_default=False)
+    summary: str = Field(None, min_length=1, max_length=300)
+    description: str = Field(None, min_length=1, max_length=1500)
+    genres: Annotated[List[str], Field(min_length=1, max_length=5), unique_list_serializer, id_schema('a unique list of genres')]
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': 'Rubber Soul',
+                    'genres': ['rock', 'pop', 'british invasion']
+                },
+                {
+                    'title': 'Rubber Soul',
+                    'short_title': 'Rubber Soul',
+                    'abreviated_title': 'RS',
+                    'subtitle': 'By The Beatles',
+                    'summary': 'Sixth studio album by the English rock band the Beatles.',
+                    'description': 'Rubber Soul is the sixth studio album by the English rock band the Beatles.',
+                    'genres': ['rock', 'pop', 'british invasion']
+                }
+            ]
+        }
+    }
 
 
 #
@@ -259,7 +290,7 @@ class ImageRelease(ContentModel):
     id: ImageReleaseId = Field(**db_id_kwargs)
     cid: ImageReleaseCid = Field(**cid_kwargs)
 
-    title: Optional[TitleData]
+    title: TitleData
     creator: Union[ArtistCid, ArtistGroupCid]
     credits: conset(Credit, max_length=15)
     tags: conset(str, max_length=10)
@@ -282,7 +313,7 @@ class AudioRelease(ContentModel):
     id: AudioReleaseId = Field(**db_id_kwargs)
     cid: AudioReleaseCid = Field(**cid_kwargs)
 
-    title: Optional[TitleData]
+    title: TitleData
     creator: Union[ArtistCid, ArtistGroupCid]
     credits: conset(Credit, max_length=15)
     tags: conset(str, max_length=10)
@@ -303,7 +334,7 @@ class VideoRelease(ContentModel):
     id: VideoReleaseId = Field(**db_id_kwargs)
     cid: VideoReleaseCid = Field(**cid_kwargs)
 
-    title: Optional[TitleData]
+    title: TitleData
     creator: Union[ArtistCid, ArtistGroupCid]
     credits: conset(Credit, max_length=15)
     tags: conset(str, max_length=10)
@@ -324,7 +355,7 @@ class TextDocumentRelease(ContentModel):
     id: TextDocumentReleaseId = Field(**db_id_kwargs)
     cid: TextDocumentReleaseCid = Field(**cid_kwargs)
 
-    title: Optional[TitleData]
+    title: TitleData
     creator: Union[ArtistCid, ArtistGroupCid]
     credits: conset(Credit, max_length=15)
     tags: conset(str, max_length=10)
