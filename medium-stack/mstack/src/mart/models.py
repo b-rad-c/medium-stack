@@ -43,16 +43,16 @@ __all__ = [
     'TitleData',
 
     'AnyImageFile',
-    'DigitalImageId',
-    'DigitalImageCid',
-    'DigitalImage',
-    'DigitalImageCreator',
+    'StillImageId',
+    'StillImageCid',
+    'StillImage',
+    'StillImageCreator',
 
-    'AnyDigitalImage',
-    'DigitalImageAlbumId',
-    'DigitalImageAlbumCid',
-    'DigitalImageAlbum',
-    'DigitalImageAlbumCreator'
+    'AnyStillImage',
+    'StillImageAlbumId',
+    'StillImageAlbumCid',
+    'StillImageAlbum',
+    'StillImageAlbumCreator'
 ]
 
 #
@@ -290,20 +290,20 @@ class TitleData(BaseModel):
 
 
 #
-# digital images
+# still image art
 #
 
 AnyImageFile = Union[ImageFile, ImageFileCid]
 
-DigitalImageId = Annotated[MongoId, id_schema('a string representing a digital image id')]
-DigitalImageCid = Annotated[ContentIdType, id_schema('a string representing a digital image id')]
+StillImageId = Annotated[MongoId, id_schema('a string representing a still image id')]
+StillImageCid = Annotated[ContentIdType, id_schema('a string representing a still image id')]
 
 
-class DigitalImage(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'digital_image'
+class StillImage(ContentModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'still_image'
 
-    id: DigitalImageId = Field(**db_id_kwargs)
-    cid: DigitalImageCid = Field(**cid_kwargs)
+    id: StillImageId = Field(**db_id_kwargs)
+    cid: StillImageCid = Field(**cid_kwargs)
 
     creator_id: Union[ArtistCid, ArtistGroupCid]
 
@@ -345,8 +345,8 @@ class DigitalImage(ContentModel):
     }
 
 
-class DigitalImageCreator(ModelCreator):
-    MODEL: ClassVar[Type[DigitalImage]] = DigitalImage
+class StillImageCreator(ModelCreator):
+    MODEL: ClassVar[Type[StillImage]] = StillImage
 
     creator_id: Union[ArtistCid, ArtistGroupCid]
 
@@ -386,21 +386,21 @@ class DigitalImageCreator(ModelCreator):
     }
 
 
-AnyDigitalImage = Union[DigitalImage, DigitalImageCid]
+AnyStillImage = Union[StillImage, StillImageCid]
 
-DigitalImageAlbumId = Annotated[MongoId, id_schema('a string representing a digital image album id')]
-DigitalImageAlbumCid = Annotated[ContentIdType, id_schema('a string representing a digital image album content id')]
+StillImageAlbumId = Annotated[MongoId, id_schema('a string representing a still image album id')]
+StillImageAlbumCid = Annotated[ContentIdType, id_schema('a string representing a still image album content id')]
 
 
-class DigitalImageAlbum(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'digital_image_album'
+class StillImageAlbum(ContentModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'still_image_album'
 
-    id: DigitalImageAlbumId = Field(**db_id_kwargs)
-    cid: DigitalImageAlbumCid = Field(**cid_kwargs)
+    id: StillImageAlbumId = Field(**db_id_kwargs)
+    cid: StillImageAlbumCid = Field(**cid_kwargs)
 
     creator_id: Union[ArtistCid, ArtistGroupCid]
 
-    images: Annotated[List[AnyDigitalImage], Field(min_length=1, max_length=500), unique_list_validator, id_schema('a unique list of digital image cids')]
+    images: Annotated[List[AnyStillImage], Field(min_length=1, max_length=500), unique_list_validator, id_schema('a unique list of still image cids')]
 
     title: TitleData
     credits: Credit
@@ -433,12 +433,12 @@ class DigitalImageAlbum(ContentModel):
     }
 
 
-class DigitalImageAlbumCreator(ModelCreator):
-    MODEL: ClassVar[Type[DigitalImageAlbum]] = DigitalImageAlbum
+class StillImageAlbumCreator(ModelCreator):
+    MODEL: ClassVar[Type[StillImageAlbum]] = StillImageAlbum
 
     creator_id: Union[ArtistCid, ArtistGroupCid]
 
-    images: Annotated[List[AnyDigitalImage], Field(min_length=1, max_length=500), unique_list_validator, id_schema('a unique list of digital image cids')]
+    images: Annotated[List[AnyStillImage], Field(min_length=1, max_length=500), unique_list_validator, id_schema('a unique list of still image cids')]
 
     title: TitleData
     credits: Credit
@@ -467,6 +467,55 @@ class DigitalImageAlbumCreator(ModelCreator):
             ]
         }
     }
+
+
+#
+# music
+#
+
+# SongId = Annotated[MongoId, id_schema('a string representing a song id')]
+# SongCid = Annotated[ContentIdType, id_schema('a string representing a song content id')]
+
+# class Song(ContentModel):
+#     MONGO_COLLECTION_NAME: ClassVar[str] = 'songs'
+
+#     id: SongId = Field(**db_id_kwargs)
+#     cid: SongCid = Field(**cid_kwargs)
+
+#     title: TitleData
+#     audio: AnyAudioRelease
+#     tags: conset(str, max_length=10)
+#     music_video: Optional[AnyVideoRelease]
+#     cover_artwork: Optional[AnyImageRelease]
+#     other_artwork: Optional[conset(AnyRelease, min_length=0, max_length=25)]
+#     lyrics: Optional[AnyTextDocumentRelease]
+
+    
+# class AlbumType(StrEnum):
+#     album = 'album'
+#     ep = 'ep'
+
+
+# AlbumId = Annotated[MongoId, id_schema('a string representing an album id')]
+# AlbumCid = Annotated[ContentIdType, id_schema('a string representing an album content id')]
+
+# class Album(ContentModel):
+#     MONGO_COLLECTION_NAME: ClassVar[str] = 'albums'
+
+#     id: AlbumId = Field(**db_id_kwargs)
+#     cid: AlbumCid = Field(**cid_kwargs)
+
+#     title: TitleData
+#     type: AlbumType
+#     tags: conset(str, max_length=10)
+#     songs: conset(Song, min_length=2, max_length=50)
+#     cover_artwork: Optional[AnyImageRelease]
+#     other_artwork: Optional[conset(AnyRelease, min_length=0, max_length=25)]
+
+
+
+
+
 
 
 
@@ -549,44 +598,6 @@ class DigitalImageAlbumCreator(ModelCreator):
 # music #
 
 
-# SongId = Annotated[MongoId, id_schema('a string representing a song id')]
-# SongCid = Annotated[ContentIdType, id_schema('a string representing a song content id')]
-
-# class Song(ContentModel):
-#     MONGO_COLLECTION_NAME: ClassVar[str] = 'songs'
-
-#     id: SongId = Field(**db_id_kwargs)
-#     cid: SongCid = Field(**cid_kwargs)
-
-#     title: TitleData
-#     audio: AnyAudioRelease
-#     tags: conset(str, max_length=10)
-#     music_video: Optional[AnyVideoRelease]
-#     cover_artwork: Optional[AnyImageRelease]
-#     other_artwork: Optional[conset(AnyRelease, min_length=0, max_length=25)]
-#     lyrics: Optional[AnyTextDocumentRelease]
-
-    
-# class AlbumType(StrEnum):
-#     album = 'album'
-#     ep = 'ep'
-
-
-# AlbumId = Annotated[MongoId, id_schema('a string representing an album id')]
-# AlbumCid = Annotated[ContentIdType, id_schema('a string representing an album content id')]
-
-# class Album(ContentModel):
-#     MONGO_COLLECTION_NAME: ClassVar[str] = 'albums'
-
-#     id: AlbumId = Field(**db_id_kwargs)
-#     cid: AlbumCid = Field(**cid_kwargs)
-
-#     title: TitleData
-#     type: AlbumType
-#     tags: conset(str, max_length=10)
-#     songs: conset(Song, min_length=2, max_length=50)
-#     cover_artwork: Optional[AnyImageRelease]
-#     other_artwork: Optional[conset(AnyRelease, min_length=0, max_length=25)]
 
 
 # # video #

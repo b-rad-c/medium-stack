@@ -16,16 +16,16 @@ def test_artist_group():
     _test_db_crud(artist_group, artist_group_cid, ArtistGroup)
     _test_db_pagination(artist_group, ArtistGroup)
 
-def test_digital_image():
-    digital_image_creator = example_model(DigitalImageCreator)
-    digital_image = digital_image_creator.create_model()
-    digital_image_cid = example_cid(DigitalImage)
-    _test_db_crud(digital_image, digital_image_cid, DigitalImage)
-    _test_db_pagination(digital_image, DigitalImage)
+def test_still_image():
+    still_image_creator = example_model(StillImageCreator)
+    still_image = still_image_creator.create_model()
+    still_image_cid = example_cid(StillImage)
+    _test_db_crud(still_image, still_image_cid, StillImage)
+    _test_db_pagination(still_image, StillImage)
 
-def test_digital_image_album():
-    digital_image_album_creator = example_model(DigitalImageAlbumCreator)
-    digital_image_album = digital_image_album_creator.create_model()
-    digital_image_album_cid = example_cid(DigitalImageAlbum)
-    _test_db_crud(digital_image_album, digital_image_album_cid, DigitalImageAlbum)
-    _test_db_pagination(digital_image_album, DigitalImageAlbum)
+def test_still_image_album():
+    still_image_album_creator = example_model(StillImageAlbumCreator)
+    still_image_album = still_image_album_creator.create_model()
+    still_image_album_cid = example_cid(StillImageAlbum)
+    _test_db_crud(still_image_album, still_image_album_cid, StillImageAlbum)
+    _test_db_pagination(still_image_album, StillImageAlbum)

@@ -36,30 +36,30 @@ def test_credit():
 def test_title_data():
     _test_model_examples(TitleData)
 
-def test_digital_image():
-    digital_image = example_model(DigitalImage)
-    digital_image_cid = example_cid(DigitalImage)
+def test_still_image():
+    still_image = example_model(StillImage)
+    still_image_cid = example_cid(StillImage)
 
-    _test_model_examples(DigitalImage)
-    _test_model_creator_and_examples(DigitalImage, DigitalImageCreator)
+    _test_model_examples(StillImage)
+    _test_model_creator_and_examples(StillImage, StillImageCreator)
 
-    _test_model_dump(digital_image, digital_image_cid, DigitalImage)
-    _test_model_json_str(digital_image, digital_image_cid, DigitalImage)
+    _test_model_dump(still_image, still_image_cid, StillImage)
+    _test_model_json_str(still_image, still_image_cid, StillImage)
     
-    digital_image.id = ObjectId()
-    _test_model_dump(digital_image, digital_image_cid, DigitalImage)
-    _test_model_json_str(digital_image, digital_image_cid, DigitalImage)
+    still_image.id = ObjectId()
+    _test_model_dump(still_image, still_image_cid, StillImage)
+    _test_model_json_str(still_image, still_image_cid, StillImage)
 
-def test_digital_image_album():
-    digital_image_album = example_model(DigitalImageAlbum)
-    digital_image_album_cid = example_cid(DigitalImageAlbum)
+def test_still_image_album():
+    still_image_album = example_model(StillImageAlbum)
+    still_image_album_cid = example_cid(StillImageAlbum)
 
-    _test_model_examples(DigitalImageAlbum)
-    _test_model_creator_and_examples(DigitalImageAlbum, DigitalImageAlbumCreator)
+    _test_model_examples(StillImageAlbum)
+    _test_model_creator_and_examples(StillImageAlbum, StillImageAlbumCreator)
 
-    _test_model_dump(digital_image_album, digital_image_album_cid, DigitalImageAlbum)
-    _test_model_json_str(digital_image_album, digital_image_album_cid, DigitalImageAlbum)
+    _test_model_dump(still_image_album, still_image_album_cid, StillImageAlbum)
+    _test_model_json_str(still_image_album, still_image_album_cid, StillImageAlbum)
     
-    digital_image_album.id = ObjectId()
-    _test_model_dump(digital_image_album, digital_image_album_cid, DigitalImageAlbum)
-    _test_model_json_str(digital_image_album, digital_image_album_cid, DigitalImageAlbum)
+    still_image_album.id = ObjectId()
+    _test_model_dump(still_image_album, still_image_album_cid, StillImageAlbum)
+    _test_model_json_str(still_image_album, still_image_album_cid, StillImageAlbum)
