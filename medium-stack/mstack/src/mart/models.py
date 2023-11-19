@@ -154,6 +154,11 @@ class ArtistCreator(ModelCreator):
 ArtistGroupId = Annotated[MongoId, id_schema('a string representing an artist group id')]
 ArtistGroupCid = Annotated[ContentIdType, id_schema('a string representing an artist content id')]
 
+ArtistList = Annotated[
+    conlist(ArtistCid, min_length=1, max_length=50),
+    unique_list_validator, 
+    id_schema('a unique list of artist cids')
+]
 
 class ArtistGroup(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'artist_groups'
@@ -170,7 +175,7 @@ class ArtistGroup(ContentModel):
     mediums: ArtMediumList
     tags: TagList = None
 
-    artists: Annotated[List[ArtistCid], Field(min_length=1, max_length=50), unique_list_validator, id_schema('a unique list of artist cids')]
+    artists: ArtistList
 
     model_config = {
         'json_schema_extra': {
@@ -211,7 +216,7 @@ class ArtistGroupCreator(ModelCreator):
     mediums: ArtMediumList
     tags: TagList = None
 
-    artists: Annotated[List[ArtistCid], Field(min_length=1, max_length=50, default_factory=list), unique_list_validator, id_schema('a unique list of artist cids')]
+    artists: ArtistList
 
     model_config = {
         'json_schema_extra': {
@@ -254,7 +259,17 @@ class Credit(BaseModel):
     }
 
 
-CreditList = Annotated[conlist(Credit, min_length=1, max_length=100), unique_list_validator, id_schema('a unique list of credits')]
+CreditList = Annotated[
+    conlist(Credit, min_length=1, max_length=100), 
+    unique_list_validator, 
+    id_schema('a unique list of credits')
+]
+
+GenreList = Annotated[
+    conlist(str, min_length=1, max_length=5),
+    unique_list_validator, 
+    id_schema('a unique list of genres')
+]
 
 
 class TitleData(BaseModel):
@@ -266,7 +281,7 @@ class TitleData(BaseModel):
     subtitle: Optional[str] = Field(None, max_length=500)
     summary: Optional[str] = Field(None, min_length=1, max_length=300)
     description: Optional[str] = Field(None, min_length=1, max_length=1500)
-    genres: Annotated[List[str], Field(min_length=1, max_length=5), unique_list_validator, id_schema('a unique list of genres')]
+    genres: GenreList
 
     model_config = {
         'json_schema_extra': {
@@ -298,6 +313,12 @@ AnyImageFile = Union[ImageFile, ImageFileCid]
 StillImageId = Annotated[MongoId, id_schema('a string representing a still image id')]
 StillImageCid = Annotated[ContentIdType, id_schema('a string representing a still image id')]
 
+AltImageFormats = Annotated[
+    None | conlist(AnyImageFile, min_length=1, max_length=10),
+    unique_list_validator, 
+    id_schema('a unique list of image file cids')
+]
+
 
 class StillImage(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'still_image'
@@ -308,7 +329,7 @@ class StillImage(ContentModel):
     creator_id: Union[ArtistCid, ArtistGroupCid]
 
     master: AnyImageFile
-    alt_formats: Annotated[List[AnyImageFile], Field(min_length=1, max_length=10), unique_list_validator, id_schema('a unique list of image file cids')]
+    alt_formats: AltImageFormats = None
 
     title: Optional[TitleData]
     credits: Optional[Credit]
@@ -351,7 +372,7 @@ class StillImageCreator(ModelCreator):
     creator_id: Union[ArtistCid, ArtistGroupCid]
 
     master: AnyImageFile
-    alt_formats: Annotated[List[AnyImageFile], Field(min_length=1, max_length=10), unique_list_validator, id_schema('a unique list of image file cids')]
+    alt_formats: AltImageFormats = None
 
     title: Optional[TitleData]
     credits: Optional[Credit]
@@ -391,6 +412,11 @@ AnyStillImage = Union[StillImage, StillImageCid]
 StillImageAlbumId = Annotated[MongoId, id_schema('a string representing a still image album id')]
 StillImageAlbumCid = Annotated[ContentIdType, id_schema('a string representing a still image album content id')]
 
+ImageList = Annotated[
+    conlist(AnyStillImage, min_length=1, max_length=500), 
+    unique_list_validator, 
+    id_schema('a unique list of still image cids')
+]
 
 class StillImageAlbum(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'still_image_album'
@@ -400,7 +426,7 @@ class StillImageAlbum(ContentModel):
 
     creator_id: Union[ArtistCid, ArtistGroupCid]
 
-    images: Annotated[List[AnyStillImage], Field(min_length=1, max_length=500), unique_list_validator, id_schema('a unique list of still image cids')]
+    images: ImageList
 
     title: TitleData
     credits: Credit
@@ -438,7 +464,7 @@ class StillImageAlbumCreator(ModelCreator):
 
     creator_id: Union[ArtistCid, ArtistGroupCid]
 
-    images: Annotated[List[AnyStillImage], Field(min_length=1, max_length=500), unique_list_validator, id_schema('a unique list of still image cids')]
+    images: ImageList
 
     title: TitleData
     credits: Credit
@@ -473,6 +499,8 @@ class StillImageAlbumCreator(ModelCreator):
 # music
 #
 
+# AnyAudioFile = Union[AudioFile, AudioFileCid]
+
 # SongId = Annotated[MongoId, id_schema('a string representing a song id')]
 # SongCid = Annotated[ContentIdType, id_schema('a string representing a song content id')]
 
@@ -483,34 +511,35 @@ class StillImageAlbumCreator(ModelCreator):
 #     cid: SongCid = Field(**cid_kwargs)
 
 #     title: TitleData
-#     audio: AnyAudioRelease
-#     tags: conset(str, max_length=10)
-#     music_video: Optional[AnyVideoRelease]
-#     cover_artwork: Optional[AnyImageRelease]
-#     other_artwork: Optional[conset(AnyRelease, min_length=0, max_length=25)]
-#     lyrics: Optional[AnyTextDocumentRelease]
+#     audio: AnyAudioFile
+#     tags: TagList
+#     music_video: Optional['AnyVideoProgram']
+#     cover_artwork: Optional[AnyStillImage]
+#     other_artwork: Annotated[Optional[List['AnyStillImage']], Field(min_length=1, max_length=10), unique_list_validator, id_schema('a unique list of artist cids')]
+#     lyrics: Optional['AnyTextDocument']
 
-    
-# class AlbumType(StrEnum):
+
+# class MusicAlbumType(StrEnum):
 #     album = 'album'
 #     ep = 'ep'
 
+# AnySong = Union[Song, SongCid]
 
-# AlbumId = Annotated[MongoId, id_schema('a string representing an album id')]
-# AlbumCid = Annotated[ContentIdType, id_schema('a string representing an album content id')]
+# MusicAlbumId = Annotated[MongoId, id_schema('a string representing a music album id')]
+# MusicAlbumCid = Annotated[ContentIdType, id_schema('a string representing a music album content id')]
 
-# class Album(ContentModel):
-#     MONGO_COLLECTION_NAME: ClassVar[str] = 'albums'
+# class MusicAlbum(ContentModel):
+#     MONGO_COLLECTION_NAME: ClassVar[str] = 'music_albums'
 
-#     id: AlbumId = Field(**db_id_kwargs)
-#     cid: AlbumCid = Field(**cid_kwargs)
+#     id: MusicAlbumId = Field(**db_id_kwargs)
+#     cid: MusicAlbumCid = Field(**cid_kwargs)
 
 #     title: TitleData
-#     type: AlbumType
-#     tags: conset(str, max_length=10)
-#     songs: conset(Song, min_length=2, max_length=50)
-#     cover_artwork: Optional[AnyImageRelease]
-#     other_artwork: Optional[conset(AnyRelease, min_length=0, max_length=25)]
+#     type: MusicAlbumType
+#     tags: TagList
+#     songs: Annotated[Optional[List[AnySong]], Field(min_length=1, max_length=50), unique_list_validator, id_schema('a unique list of artist cids')]
+#     cover_artwork: Optional[AnyStillImage]
+#     other_artwork: Annotated[Optional[List['AnyStillImage']], Field(min_length=1, max_length=10), unique_list_validator, id_schema('a unique list of artist cids')]
 
 
 
@@ -606,6 +635,8 @@ class StillImageAlbumCreator(ModelCreator):
 #     feature = 'feature'
 #     episode = 'episode'
 #     short = 'short'
+#     trailer = 'trailer'
+#     music_Video = 'music_video'
 
 
 # VideoProgramId = Annotated[MongoId, id_schema('a string representing a video program id')]
