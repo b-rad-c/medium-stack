@@ -1,6 +1,8 @@
 import pytest
 from bson import ObjectId
-from mcore.types import DataHierarchy, _validate_object_id
+from typing import Annotated, List
+from pydantic import BaseModel, ValidationError
+from mcore.types import DataHierarchy, _validate_object_id, unique_list_validator, _list_is_unique, TagList
 
 
 def test_mongo_id():
@@ -14,7 +16,6 @@ def test_mongo_id():
 
     assert isinstance(_validate_object_id(obj_id_string), ObjectId)
     assert isinstance(_validate_object_id(obj_id), ObjectId)
-
 
 def test_data_hierarchy():
     hierarchy = 'root/sub/topic'
@@ -50,3 +51,47 @@ def test_data_hierarchy():
 
     with pytest.raises(ValueError):
         DataHierarchy.validate(['root', 'sub', 'topic'])
+
+def test_unique_list():
+    _list_is_unique([1, 2, 3])
+    _list_is_unique(['a', 'b', 'c'])
+    _list_is_unique([True, False])
+
+    with pytest.raises(ValueError):
+        _list_is_unique([1, 2, 3, 1])
+
+    with pytest.raises(ValueError):
+        _list_is_unique(['a', 'b', 'c', 'a'])
+
+    with pytest.raises(ValueError):
+        _list_is_unique([True, False, True])
+
+    class TestModel(BaseModel):
+        names: Annotated[List[str], unique_list_validator]
+
+    TestModel(names=['alice', 'bob', 'charlie'])
+
+    with pytest.raises(ValidationError):
+        TestModel(names=['alice', 'bob', 'alice'])
+
+
+def test_tag_list():
+
+    class TestModel(BaseModel):
+        tags: TagList
+
+    TestModel(tags=['red', 'green', 'blue'])
+    TestModel(tags=None)
+
+    with pytest.raises(ValidationError):
+        TestModel(tags=['red', 'green', 'red'])
+
+    with pytest.raises(ValidationError):
+        TestModel(tags=[1, 2, 3])
+
+    long_tag_list = []
+    for n in range(0, 20):
+        long_tag_list.append(f'tag{n}')
+    
+    with pytest.raises(ValidationError):
+        TestModel(tags=long_tag_list)

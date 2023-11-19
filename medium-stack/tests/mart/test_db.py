@@ -9,14 +9,12 @@ def test_artist():
     _test_db_crud(artist, artist_cid, Artist)
     _test_db_pagination(artist, Artist)
 
-
 def test_artist_group():
     artist_group_creator = example_model(ArtistGroupCreator)
     artist_group = artist_group_creator.create_model()
     artist_group_cid = example_cid(ArtistGroup)
     _test_db_crud(artist_group, artist_group_cid, ArtistGroup)
     _test_db_pagination(artist_group, ArtistGroup)
-
 
 def test_digital_image():
     digital_image_creator = example_model(DigitalImageCreator)
@@ -25,6 +23,9 @@ def test_digital_image():
     _test_db_crud(digital_image, digital_image_cid, DigitalImage)
     _test_db_pagination(digital_image, DigitalImage)
 
-
-# def test_digital_image_album():
-#     raise NotImplementedError()
+def test_digital_image_album():
+    digital_image_album_creator = example_model(DigitalImageAlbumCreator)
+    digital_image_album = digital_image_album_creator.create_model()
+    digital_image_album_cid = example_cid(DigitalImageAlbum)
+    _test_db_crud(digital_image_album, digital_image_album_cid, DigitalImageAlbum)
+    _test_db_pagination(digital_image_album, DigitalImageAlbum)

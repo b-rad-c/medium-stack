@@ -1,8 +1,8 @@
 from typing import Annotated, ClassVar, Union, Optional, Type, List
 from enum import StrEnum
-from pydantic import BaseModel, Field, conset, conlist
+from pydantic import BaseModel, Field, conlist
 
-from mcore.types import TagList, unique_list_serializer
+from mcore.types import TagList, unique_list_validator
 
 from mcore.models import (
     MongoId, 
@@ -51,7 +51,8 @@ __all__ = [
     'AnyDigitalImage',
     'DigitalImageAlbumId',
     'DigitalImageAlbumCid',
-    'DigitalImageAlbum'
+    'DigitalImageAlbum',
+    'DigitalImageAlbumCreator'
 ]
 
 #
@@ -68,7 +69,7 @@ class ArtMedium(StrEnum):
 
 ArtMediumList = Annotated[
     conlist(ArtMedium, min_length=1, max_length=5), 
-    unique_list_serializer, 
+    unique_list_validator, 
     id_schema('a unique list of art mediums')
 ]
 
@@ -169,14 +170,14 @@ class ArtistGroup(ContentModel):
     mediums: ArtMediumList
     tags: TagList = None
 
-    artists: Annotated[List[ArtistCid], Field(min_length=1, max_length=50), unique_list_serializer, id_schema('a unique list of artist cids')]
+    artists: Annotated[List[ArtistCid], Field(min_length=1, max_length=50), unique_list_validator, id_schema('a unique list of artist cids')]
 
     model_config = {
         'json_schema_extra': {
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
-                    'cid': '0bdvsrerBf-X8hgrqeObsyd-zWmDatVd0VhnFLm7jfio800.json',
+                    'cid': '0YWW27Y2VyeUhF0wWV3Ym-hiYsMkXEK2uKeVD7XWQBgg684.json',
                     'name': 'The Beatles',
                     'short_name': 'The Beatles',
                     'abreviated_name': 'TB',
@@ -210,7 +211,7 @@ class ArtistGroupCreator(ModelCreator):
     mediums: ArtMediumList
     tags: TagList = None
 
-    artists: Annotated[List[ArtistCid], Field(min_length=1, max_length=50, default_factory=list), unique_list_serializer, id_schema('a unique list of artist cids')]
+    artists: Annotated[List[ArtistCid], Field(min_length=1, max_length=50, default_factory=list), unique_list_validator, id_schema('a unique list of artist cids')]
 
     model_config = {
         'json_schema_extra': {
@@ -253,7 +254,7 @@ class Credit(BaseModel):
     }
 
 
-CreditList = Annotated[conlist(Credit, min_length=1, max_length=100), unique_list_serializer, id_schema('a unique list of credits')]
+CreditList = Annotated[conlist(Credit, min_length=1, max_length=100), unique_list_validator, id_schema('a unique list of credits')]
 
 
 class TitleData(BaseModel):
@@ -265,7 +266,7 @@ class TitleData(BaseModel):
     subtitle: Optional[str] = Field(None, max_length=500)
     summary: Optional[str] = Field(None, min_length=1, max_length=300)
     description: Optional[str] = Field(None, min_length=1, max_length=1500)
-    genres: Annotated[List[str], Field(min_length=1, max_length=5), unique_list_serializer, id_schema('a unique list of genres')]
+    genres: Annotated[List[str], Field(min_length=1, max_length=5), unique_list_validator, id_schema('a unique list of genres')]
 
     model_config = {
         'json_schema_extra': {
@@ -297,6 +298,7 @@ AnyImageFile = Union[ImageFile, ImageFileCid]
 DigitalImageId = Annotated[MongoId, id_schema('a string representing a digital image id')]
 DigitalImageCid = Annotated[ContentIdType, id_schema('a string representing a digital image id')]
 
+
 class DigitalImage(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'digital_image'
 
@@ -306,7 +308,7 @@ class DigitalImage(ContentModel):
     creator_id: Union[ArtistCid, ArtistGroupCid]
 
     master: AnyImageFile
-    alt_formats: Annotated[List[AnyImageFile], Field(min_length=1, max_length=10), unique_list_serializer, id_schema('a unique list of image file cids')]
+    alt_formats: Annotated[List[AnyImageFile], Field(min_length=1, max_length=10), unique_list_validator, id_schema('a unique list of image file cids')]
 
     title: Optional[TitleData]
     credits: Optional[Credit]
@@ -319,7 +321,7 @@ class DigitalImage(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
-                    'cid': '0SLssRK1xnbYVviyCTMoNVPFh53oTuqvSy7R9GLI9iHk782.json',
+                    'cid': '08Ph2mGKw3mFfvQ9liUNEG-E4ea4Eh1aB8gOJgjmy48o695.json',
                     'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'master': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'alt_formats': [
@@ -349,7 +351,7 @@ class DigitalImageCreator(ModelCreator):
     creator_id: Union[ArtistCid, ArtistGroupCid]
 
     master: AnyImageFile
-    alt_formats: Annotated[List[AnyImageFile], Field(min_length=1, max_length=10), unique_list_serializer, id_schema('a unique list of image file cids')]
+    alt_formats: Annotated[List[AnyImageFile], Field(min_length=1, max_length=10), unique_list_validator, id_schema('a unique list of image file cids')]
 
     title: Optional[TitleData]
     credits: Optional[Credit]
@@ -389,6 +391,7 @@ AnyDigitalImage = Union[DigitalImage, DigitalImageCid]
 DigitalImageAlbumId = Annotated[MongoId, id_schema('a string representing a digital image album id')]
 DigitalImageAlbumCid = Annotated[ContentIdType, id_schema('a string representing a digital image album content id')]
 
+
 class DigitalImageAlbum(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'digital_image_album'
 
@@ -397,11 +400,75 @@ class DigitalImageAlbum(ContentModel):
 
     creator_id: Union[ArtistCid, ArtistGroupCid]
 
-    images: Annotated[List[AnyDigitalImage], Field(min_length=1, max_length=500), unique_list_serializer, id_schema('a unique list of digital image cids')]
+    images: Annotated[List[AnyDigitalImage], Field(min_length=1, max_length=500), unique_list_validator, id_schema('a unique list of digital image cids')]
 
     title: TitleData
     credits: Credit
     tags: TagList
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '09BtGzrV-fF3goDdVBL8lHth0kUHpSdIPvazNkkzow74605.json',
+                    'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                    'images': [
+                        '0SLssRK1xnbYVviyCTMoNVPFh53oTuqvSy7R9GLI9iHk782.json',
+                        '0TLssRK1xnbYVviyCTMoNVPFh53oTuqvSy7R9GLI9iHk782.json',
+                        '0ULssRK1xnbYVviyCTMoNVPFh53oTuqvSy7R9GLI9iHk782.json'
+                    ],
+                    'title': {
+                        'title': 'Old west photography',
+                        'genres': ['photography', 'long exposure']
+                    },
+                    'credits': {
+                        'role': 'photographer',
+                        'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
+                    },
+                    'tags': ['black and white', 'long exposure', 'star trails']
+                }
+            ]
+        }
+    }
+
+
+class DigitalImageAlbumCreator(ModelCreator):
+    MODEL: ClassVar[Type[DigitalImageAlbum]] = DigitalImageAlbum
+
+    creator_id: Union[ArtistCid, ArtistGroupCid]
+
+    images: Annotated[List[AnyDigitalImage], Field(min_length=1, max_length=500), unique_list_validator, id_schema('a unique list of digital image cids')]
+
+    title: TitleData
+    credits: Credit
+    tags: TagList
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                    'images': [
+                        '0SLssRK1xnbYVviyCTMoNVPFh53oTuqvSy7R9GLI9iHk782.json',
+                        '0TLssRK1xnbYVviyCTMoNVPFh53oTuqvSy7R9GLI9iHk782.json',
+                        '0ULssRK1xnbYVviyCTMoNVPFh53oTuqvSy7R9GLI9iHk782.json'
+                    ],
+                    'title': {
+                        'title': 'Old west photography',
+                        'genres': ['photography', 'long exposure']
+                    },
+                    'credits': {
+                        'role': 'photographer',
+                        'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
+                    },
+                    'tags': ['black and white', 'long exposure', 'star trails']
+                }
+            ]
+        }
+    }
+
+
 
 
 ###########################################

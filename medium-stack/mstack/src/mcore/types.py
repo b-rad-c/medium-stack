@@ -37,7 +37,7 @@ __all__ = [
     'DataHierarchy',
     'Hierarchy',
 
-    'unique_list_serializer',
+    'unique_list_validator',
     'TagList'
 ]
 
@@ -281,10 +281,10 @@ def _list_is_unique(input_list:list) -> list:
 
     return new_list
 
-unique_list_serializer = PlainSerializer(lambda value: _list_is_unique(value), return_type=list)
+unique_list_validator = BeforeValidator(lambda value: _list_is_unique(value) if value is not None else None)
 
 TagList = Annotated[
     Optional[conlist(str, min_length=0, max_length=15)], 
-    unique_list_serializer, 
+    unique_list_validator, 
     id_schema('a set (list) of strings')
 ]

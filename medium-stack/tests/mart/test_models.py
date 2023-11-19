@@ -16,7 +16,6 @@ def test_artist():
     _test_model_dump(artist, artist_cid, Artist)
     _test_model_json_str(artist, artist_cid, Artist)
 
-
 def test_artist_group():
     artist_group = example_model(ArtistGroup)
     artist_group_cid = example_cid(ArtistGroup)
@@ -31,14 +30,11 @@ def test_artist_group():
     _test_model_dump(artist_group, artist_group_cid, ArtistGroup)
     _test_model_json_str(artist_group, artist_group_cid, ArtistGroup)
 
-
 def test_credit():
     _test_model_examples(Credit)
 
-
 def test_title_data():
     _test_model_examples(TitleData)
-
 
 def test_digital_image():
     digital_image = example_model(DigitalImage)
@@ -54,6 +50,16 @@ def test_digital_image():
     _test_model_dump(digital_image, digital_image_cid, DigitalImage)
     _test_model_json_str(digital_image, digital_image_cid, DigitalImage)
 
+def test_digital_image_album():
+    digital_image_album = example_model(DigitalImageAlbum)
+    digital_image_album_cid = example_cid(DigitalImageAlbum)
 
-# def test_digital_image_album():
-#     raise NotImplementedError()
+    _test_model_examples(DigitalImageAlbum)
+    _test_model_creator_and_examples(DigitalImageAlbum, DigitalImageAlbumCreator)
+
+    _test_model_dump(digital_image_album, digital_image_album_cid, DigitalImageAlbum)
+    _test_model_json_str(digital_image_album, digital_image_album_cid, DigitalImageAlbum)
+    
+    digital_image_album.id = ObjectId()
+    _test_model_dump(digital_image_album, digital_image_album_cid, DigitalImageAlbum)
+    _test_model_json_str(digital_image_album, digital_image_album_cid, DigitalImageAlbum)
