@@ -91,3 +91,59 @@ def test_music_album():
     music_album.id = ObjectId()
     _test_model_dump(music_album, music_album_cid, MusicAlbum)
     _test_model_json_str(music_album, music_album_cid, MusicAlbum)
+
+def test_video_program():
+    video_program = example_model(VideoProgram)
+    video_program_cid = example_cid(VideoProgram)
+
+    _test_model_examples(VideoProgram)
+    _test_model_creator_and_examples(VideoProgram, VideoProgramCreator)
+
+    _test_model_dump(video_program, video_program_cid, VideoProgram)
+    _test_model_json_str(video_program, video_program_cid, VideoProgram)
+    
+    video_program.id = ObjectId()
+    _test_model_dump(video_program, video_program_cid, VideoProgram)
+    _test_model_json_str(video_program, video_program_cid, VideoProgram)
+
+def test_video_season():
+    video_season = example_model(VideoSeason)
+    video_season_cid = example_cid(VideoSeason)
+
+    _test_model_examples(VideoSeason)
+    _test_model_creator_and_examples(VideoSeason, VideoSeasonCreator)
+
+    _test_model_dump(video_season, video_season_cid, VideoSeason)
+    _test_model_json_str(video_season, video_season_cid, VideoSeason)
+    
+    video_season.id = ObjectId()
+    _test_model_dump(video_season, video_season_cid, VideoSeason)
+    _test_model_json_str(video_season, video_season_cid, VideoSeason)
+
+def test_video_mini_series():
+    video_mini_series = example_model(VideoMiniSeries)
+    video_mini_series_cid = example_cid(VideoMiniSeries)
+
+    _test_model_examples(VideoMiniSeries)
+    _test_model_creator_and_examples(VideoMiniSeries, VideoMiniSeriesCreator)
+
+    _test_model_dump(video_mini_series, video_mini_series_cid, VideoMiniSeries)
+    _test_model_json_str(video_mini_series, video_mini_series_cid, VideoMiniSeries)
+    
+    video_mini_series.id = ObjectId()
+    _test_model_dump(video_mini_series, video_mini_series_cid, VideoMiniSeries)
+    _test_model_json_str(video_mini_series, video_mini_series_cid, VideoMiniSeries)
+
+def test_video_series():
+    video_series = example_model(VideoSeries)
+    video_series_cid = example_cid(VideoSeries)
+
+    _test_model_examples(VideoSeries)
+    _test_model_creator_and_examples(VideoSeries, VideoSeriesCreator)
+
+    _test_model_dump(video_series, video_series_cid, VideoSeries)
+    _test_model_json_str(video_series, video_series_cid, VideoSeries)
+    
+    video_series.id = ObjectId()
+    _test_model_dump(video_series, video_series_cid, VideoSeries)
+    _test_model_json_str(video_series, video_series_cid, VideoSeries)

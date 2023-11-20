@@ -23,26 +23,6 @@ from mcore.models import (
     id_schema
 )
 
-
-
-
-
-"""
-
-TO DO:
-+ bring back ImageRelease, AudioRelease, etc
-    - but they should only have the master + alt formats
-
-+ the podcast models should support audio and video
-    + podcast episodes and series need to be independent from the main podcast models to support querying
-    + support podcasts with or without seasons
-        + because seasons/episodes are indepent of the main podcast model, a podcast can easily
-            transition no seasons to seasons, simply by adding a season model and adding the episodes to it
-
-"""
-
-# raise Exception('^ read note ^')
-
 __all__ = [
     'ArtMedium',
     'ArtMediumList',
@@ -89,6 +69,32 @@ __all__ = [
     'MusicAlbumSongList',
     'MusicAlbum',
     'MusicAlbumCreator',
+
+    'VideoProgramType',
+    'VideoProgramId',
+    'VideoProgramCid',
+    'VideoProgram',
+    'TrailerList',
+    'VideoProgramCreator',
+    'AnyVideoProgram',
+
+    'VideoSeasonId',
+    'VideoSeasonCid',
+    'VideoEpisodeList',
+    'VideoSeason',
+    'VideoSeasonCreator',
+    'AnyVideoSeason',
+
+    'VideoMiniSeriesId',
+    'VideoMiniSeriesCid',
+    'VideoMiniSeries',
+    'VideoMiniSeriesCreator',
+
+    'VideoSeriesId',
+    'VideoSeriesCid',
+    'VideoSeasonList',
+    'VideoSeries',
+    'VideoSeriesCreator',
 ]
 
 #
@@ -697,6 +703,16 @@ class MusicAlbumCreator(ModelCreator):
 # podcast
 #
 
+"""
+
++ the podcast models should support audio and video
+    + podcast episodes and series need to be independent from the main podcast models to support querying
+    + support podcasts with or without seasons
+        + because seasons/episodes are indepent of the main podcast model, a podcast can easily
+            transition no seasons to seasons, simply by adding a season model and adding the episodes to it
+
+"""
+
 # PodcastProgramId = Annotated[MongoId, id_schema('a string representing a podcast program id')]
 # PodcastProgramCid = Annotated[ContentIdType, id_schema('a string representing a podcast program content id')]
 
@@ -805,6 +821,73 @@ class VideoProgram(ContentModel):
     genres: GenreList
     tags: TagList
 
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '03aVCqkWiBKUrvhELCXDYPaZmsptLZ8uGxDGbWDK4SiM639.json',
+                    'title': {
+                        'title': 'My cool Movie'
+                    },
+                    'type': 'feature',
+                    'release': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                    'trailers': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ],
+                    'cover_artwork': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                    'other_artwork': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ],
+                    'genres': ['drama', 'thriller'],
+                    'tags': ['best actress', 'academy award winner']
+                }
+            ]
+        }
+    }
+
+
+class VideoProgramCreator(ModelCreator):
+    MODEL: ClassVar[Type[VideoProgram]] = VideoProgram
+
+    title: TitleData
+    type: VideoProgramType
+
+    release: AnyVideoRelease
+    
+    trailers: TrailerList = None
+    cover_artwork: Optional[AnyStillImage]
+    other_artwork: OtherArtworkImageList
+    genres: GenreList
+    tags: TagList
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': {
+                        'title': 'My cool Movie'
+                    },
+                    'type': 'feature',
+                    'release': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                    'trailers': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ],
+                    'cover_artwork': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                    'other_artwork': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ],
+                    'genres': ['drama', 'thriller'],
+                    'tags': ['best actress', 'academy award winner']
+                }
+            ]
+        }
+    }
+
 
 AnyVideoProgram = Union[VideoProgram, VideoProgramCid]
 
@@ -814,7 +897,7 @@ VideoSeasonId = Annotated[MongoId, id_schema('a string representing a video seas
 VideoSeasonCid = Annotated[ContentIdType, id_schema('a string representing a video season content id')]
 
 VideoEpisodeList = Annotated[
-    conlist(AnyVideoProgram, min_length=1, max_length=100),
+    conlist(AnyVideoProgram, min_length=1, max_length=50),
     unique_list_validator, 
     id_schema('a unique list of video program cids')
 ]
@@ -833,6 +916,75 @@ class VideoSeason(ContentModel):
     cover_artwork: Optional[AnyStillImage]
     other_artwork: OtherArtworkImageList
 
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0x7m9XjJQ_xlvhBmmwu2ylYr_3SZTBW4taBsBumhHb6U670.json',
+                    'title': {
+                        'title': 'My cool Season'
+                    },
+                    'episodes': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ],
+                    'trailers': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ],
+                    'genres': ['drama', 'thriller'],
+                    'tags': ['award winner', 'best actor'],
+                    'cover_artwork': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                    'other_artwork': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ]
+                }
+            ]
+        }
+    }
+
+
+class VideoSeasonCreator(ModelCreator):
+    MODEL: ClassVar[Type[VideoSeason]] = VideoSeason
+
+    title: TitleData
+    episodes: VideoEpisodeList
+    trailers: TrailerList = None
+    genres: GenreList
+    tags: TagList
+    cover_artwork: Optional[AnyStillImage]
+    other_artwork: OtherArtworkImageList
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': {
+                        'title': 'My cool Season'
+                    },
+                    'episodes': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ],
+                    'trailers': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ],
+                    'genres': ['drama', 'thriller'],
+                    'tags': ['award winner', 'best actor'],
+                    'cover_artwork': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                    'other_artwork': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ]
+                }
+            ]
+        }
+    }
+
+
 AnyVideoSeason = Union[VideoSeason, VideoSeasonCid]
 
 # single season series #
@@ -842,6 +994,66 @@ VideoMiniSeriesCid = Annotated[ContentIdType, id_schema('a string representing a
 
 class VideoMiniSeries(VideoSeason):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_mini_series'
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0-UqowlTPqw00LvKaoeFT7kwJiiyzH_0SBZ-FMAqkN1k687.json',
+                    'title': {
+                        'title': 'My Docuseries'
+                    },
+                    'episodes': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ],
+                    'trailers': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ],
+                    'genres': ['documentary', 'investigative'],
+                    'tags': ['crowd funded', 'indy award winner'],
+                    'cover_artwork': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                    'other_artwork': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ]
+                }
+            ]
+        }
+    }
+
+
+class VideoMiniSeriesCreator(VideoSeasonCreator):
+    MODEL: ClassVar[Type[VideoMiniSeries]] = VideoMiniSeries
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': {
+                        'title': 'My Docuseries'
+                    },
+                    'episodes': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ],
+                    'trailers': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ],
+                    'genres': ['documentary', 'investigative'],
+                    'tags': ['crowd funded', 'indy award winner'],
+                    'cover_artwork': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                    'other_artwork': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
+                    ]
+                }
+            ]
+        }
+    }
 
 # video episodic series #
 
@@ -868,9 +1080,68 @@ class VideoSeries(ContentModel):
     cover_artwork: Optional[AnyStillImage]
     other_artwork: OtherArtworkImageList
 
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0jJ1CqRH89rLHILbeG_W8GvZ3l4GB7gzEkfnZYHuo97Y546.json',
+                    'title': {
+                        'title': 'My Sitcom'
+                    },
+                    'seasons': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json'
+                    ],
+                    'trailers': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json',
+                    ],
+                    'genres': ['comedy', 'sitcom'],
+                    'tags': ['award winner', 'best actor'],
+                    'cover_artwork': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json',
+                    'other_artwork': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json',
+                    ]
+                }
+            ]
+        }
+    }
 
+class VideoSeriesCreator(ModelCreator):
+    MODEL: ClassVar[Type[VideoSeries]] = VideoSeries
 
+    title: TitleData
+    seasons: VideoSeasonList
+    trailers: TrailerList = None
+    genres: GenreList
+    tags: TagList
+    cover_artwork: Optional[AnyStillImage]
+    other_artwork: OtherArtworkImageList
 
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': {
+                        'title': 'My Sitcom'
+                    },
+                    'seasons': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json',
+                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json'
+                    ],
+                    'trailers': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json',
+                    ],
+                    'genres': ['comedy', 'sitcom'],
+                    'tags': ['award winner', 'best actor'],
+                    'cover_artwork': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json',
+                    'other_artwork': [
+                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json',
+                    ]
+                }
+            ]
+        }
+    }
 
 
 
