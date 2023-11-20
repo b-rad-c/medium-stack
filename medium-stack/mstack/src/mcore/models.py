@@ -49,6 +49,7 @@ __all__ = [
     'ImageReleaseId',
     'ImageReleaseCid',
     'ImageRelease',
+    'AnyImageRelease',
     
     'AudioFileId',
     'AudioFileCid',
@@ -60,6 +61,7 @@ __all__ = [
     'AudioReleaseId',
     'AudioReleaseCid',
     'AudioRelease',
+    'AnyAudioRelease',
 
     'VideoFileId',
     'VideoFileCid',
@@ -71,6 +73,7 @@ __all__ = [
     'VideoReleaseId',
     'VideoReleaseCid',
     'VideoRelease',
+    'AnyVideoRelease',
     
     'TextFileId',
     'TextFileCid',
@@ -334,6 +337,7 @@ class ImageRelease(ContentModel):
     master: AnyImageFile
     alt_formats: AltImageFormatList = None
 
+AnyImageRelease = Union[ImageRelease, ImageReleaseCid]
 
 #
 # audio files
@@ -409,6 +413,7 @@ class AudioRelease(ContentModel):
     master: AnyAudioFile
     alt_formats: AltAudioFormatList = None
 
+AnyAudioRelease = Union[AudioRelease, AudioReleaseCid]
 
 VideoFileId = Annotated[MongoId, id_schema('a string representing a video file id')]
 VideoFileCid = Annotated[ContentIdType, id_schema('a string representing a video file cid')]
@@ -487,6 +492,8 @@ class VideoRelease(ContentModel):
 
     master: AnyVideoFile
     alt_formats: AltVideoFormatList = None
+
+AnyVideoRelease = Union[VideoRelease, VideoReleaseCid]
 
 #
 # text files

@@ -11,9 +11,11 @@ from mcore.models import (
     ModelCreator,
     UserCid,
 
-    AnyImageFile,
+    AnyImageRelease,
     AnyAudioFile,
+    AnyAudioRelease,
     AnyVideoFile,
+    AnyVideoRelease,
     AnyTextFile,
 
     db_id_kwargs, 
@@ -65,7 +67,6 @@ __all__ = [
 
     'StillImageId',
     'StillImageCid',
-    'AltImageFormats',
     'StillImage',
     'StillImageCreator',
 
@@ -73,7 +74,21 @@ __all__ = [
     'StillImageAlbumId',
     'StillImageAlbumCid',
     'StillImageAlbum',
-    'StillImageAlbumCreator'
+    'StillImageAlbumCreator',
+
+    'SongId',
+    'SongCid',
+    'OtherArtworkImageList',
+    'Song',
+    'SongCreator',
+
+    'MusicAlbumType',
+    'AnySong',
+    'MusicAlbumId',
+    'MusicAlbumCid',
+    'MusicAlbumSongList',
+    'MusicAlbum',
+    'MusicAlbumCreator',
 ]
 
 #
@@ -308,14 +323,12 @@ class TitleData(BaseModel):
     subtitle: Optional[str] = Field(None, max_length=500)
     summary: Optional[str] = Field(None, min_length=1, max_length=300)
     description: Optional[str] = Field(None, min_length=1, max_length=1500)
-    genres: GenreList
 
     model_config = {
         'json_schema_extra': {
             'examples': [
                 {
-                    'title': 'Rubber Soul',
-                    'genres': ['rock', 'pop', 'british invasion']
+                    'title': 'Rubber Soul'
                 },
                 {
                     'title': 'Rubber Soul',
@@ -323,8 +336,7 @@ class TitleData(BaseModel):
                     'abreviated_title': 'RS',
                     'subtitle': 'By The Beatles',
                     'summary': 'Sixth studio album by the English rock band the Beatles.',
-                    'description': 'Rubber Soul is the sixth studio album by the English rock band the Beatles.',
-                    'genres': ['rock', 'pop', 'british invasion']
+                    'description': 'Rubber Soul is the sixth studio album by the English rock band the Beatles.'
                 }
             ]
         }
@@ -338,12 +350,6 @@ class TitleData(BaseModel):
 StillImageId = Annotated[MongoId, id_schema('a string representing a still image id')]
 StillImageCid = Annotated[ContentIdType, id_schema('a string representing a still image id')]
 
-AltImageFormats = Annotated[
-    None | conlist(AnyImageFile, min_length=1, max_length=10),
-    unique_list_validator, 
-    id_schema('a unique list of image file cids')
-]
-
 
 class StillImage(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'still_image'
@@ -353,11 +359,11 @@ class StillImage(ContentModel):
 
     creator_id: AnyArtist
 
-    master: AnyImageFile
-    alt_formats: AltImageFormats = None
+    release: AnyImageRelease
 
     title: Optional[TitleData]
     credits: Optional[Credit]
+    genres: GenreList
     tags: TagList
     album: Optional['AnyStillImageAlbum']
 
@@ -368,22 +374,17 @@ class StillImage(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
-                    'cid': '0a_PSgosIB4DLiifa_Z6Ip93C_qhAtoMJO6N-1VS4m7s760.json',
+                    'cid': '0ajFSQpuyKrubp4oGAhuAVS9LQtJ-TYuTdPkE-vnoaQA576.json',
                     'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                    'master': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                    'alt_formats': [
-                        '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                        '0Ve5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                        '0We5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
-                    ],
+                    'release': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'title': {
-                        'title': 'My cool Painting',
-                        'genres': ['surrealism', 'painting']
+                        'title': 'My cool Painting'
                     },
                     'credits': {
                         'role': 'painter',
                         'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
                     },
+                    'genres': ['surrealism', 'painting'],
                     'tags': ['surrealism', 'painting', 'oil painting'],
                     'album': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'alt_text': 'a surrealistic oil painting'
@@ -398,11 +399,11 @@ class StillImageCreator(ModelCreator):
 
     creator_id: AnyArtist
 
-    master: AnyImageFile
-    alt_formats: AltImageFormats = None
+    release: AnyImageRelease
 
     title: Optional[TitleData]
     credits: Optional[Credit]
+    genres: GenreList
     tags: TagList
     album: Optional['AnyStillImageAlbum']
 
@@ -413,20 +414,15 @@ class StillImageCreator(ModelCreator):
             'examples': [
                 {
                     'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                    'master': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                    'alt_formats': [
-                        '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                        '0Ve5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                        '0We5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
-                    ],
+                    'release': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'title': {
-                        'title': 'My cool Painting',
-                        'genres': ['surrealism', 'painting']
+                        'title': 'My cool Painting'
                     },
                     'credits': {
                         'role': 'painter',
                         'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
                     },
+                    'genres': ['surrealism', 'painting'],
                     'tags': ['surrealism', 'painting', 'oil painting'],
                     'album': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'alt_text': 'a surrealistic oil painting'
@@ -458,6 +454,7 @@ class StillImageAlbum(ContentModel):
 
     title: TitleData
     credits: Credit
+    genres: GenreList
     tags: TagList
 
     model_config = {
@@ -465,16 +462,16 @@ class StillImageAlbum(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
-                    'cid': '0PQPG0X3Q6NPtib2I6OMB8p5_xMwzj_MKyZvsdWmUr-U425.json',
+                    'cid': '0FmUG7qtOMsnXZmePvg0SeI9ybzHgY2FUhxUFTRBmhw4425.json',
                     'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'title': {
-                        'title': 'Old west photography',
-                        'genres': ['photography', 'long exposure']
+                        'title': 'Old west photography'
                     },
                     'credits': {
                         'role': 'photographer',
                         'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
                     },
+                    'genres': ['photography', 'long exposure'],
                     'tags': ['black and white', 'long exposure', 'star trails']
                 }
             ]
@@ -492,6 +489,7 @@ class StillImageAlbumCreator(ModelCreator):
 
     title: TitleData
     credits: Credit
+    genres: GenreList
     tags: TagList
 
     model_config = {
@@ -500,13 +498,13 @@ class StillImageAlbumCreator(ModelCreator):
                 {
                     'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'title': {
-                        'title': 'Old west photography',
-                        'genres': ['photography', 'long exposure']
+                        'title': 'Old west photography'
                     },
                     'credits': {
                         'role': 'photographer',
                         'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
                     },
+                    'genres': ['photography', 'long exposure'],
                     'tags': ['black and white', 'long exposure', 'star trails']
                 }
             ]
@@ -525,7 +523,7 @@ SongCid = Annotated[ContentIdType, id_schema('a string representing a song conte
 OtherArtworkImageList = Annotated[
     None | conlist(AnyStillImage, min_length=1, max_length=10),
     unique_list_validator, 
-    id_schema('a unique list of artist cids')
+    id_schema('a unique list of still image cids')
 ]
 
 class Song(ContentModel):
@@ -535,12 +533,72 @@ class Song(ContentModel):
     cid: SongCid = Field(**cid_kwargs)
 
     title: TitleData
-    master: AnyAudioFile
+    release: AnyAudioRelease
+    genres: GenreList
     tags: TagList
     music_video: Optional['AnyVideoProgram']
     cover_artwork: Optional[AnyStillImage]
     other_artwork: OtherArtworkImageList
     lyrics: Optional[AnyTextFile]
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '01iEnTt6YHwLaaKTVu3zTWCvn54gXkWfpuSyDoVn68Nw613.json',
+                    'title': {
+                        'title': 'My cool Song'
+                    },
+                    'release': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'genres': ['rock', 'blues'],
+                    'tags': ['rock', 'blues', 'guitar'],
+                    'music_video': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'cover_artwork': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'other_artwork': [
+                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                    ],
+                    'lyrics': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                }
+            ]
+        }
+    }
+
+
+class SongCreator(ModelCreator):
+    MODEL: ClassVar[Type[Song]] = Song
+
+    title: TitleData
+    release: AnyAudioRelease
+    genres: GenreList
+    tags: TagList
+    music_video: Optional['AnyVideoProgram']
+    cover_artwork: Optional[AnyStillImage]
+    other_artwork: OtherArtworkImageList
+    lyrics: Optional[AnyTextFile]
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': {
+                        'title': 'My cool Song'
+                    },
+                    'release': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'genres': ['rock', 'blues'],
+                    'tags': ['rock', 'blues', 'guitar'],
+                    'music_video': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'cover_artwork': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'other_artwork': [
+                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                    ],
+                    'lyrics': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                }
+            ]
+        }
+    }
 
 
 class MusicAlbumType(StrEnum):
@@ -566,10 +624,73 @@ class MusicAlbum(ContentModel):
 
     title: TitleData
     type: MusicAlbumType
+    genres: GenreList
     tags: TagList
     songs: MusicAlbumSongList
     cover_artwork: Optional[AnyStillImage]
-    other_artwork: Annotated[Optional[List['AnyStillImage']], Field(min_length=1, max_length=10), unique_list_validator, id_schema('a unique list of artist cids')]
+    other_artwork: OtherArtworkImageList
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'title': {
+                        'title': 'My cool Album'
+                    },
+                    'type': 'ep',
+                    'genres': ['rock', 'blues'],
+                    'tags': ['rock', 'blues', 'guitar'],
+                    'songs': [
+                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                    ],
+                    'cover_artwork': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'other_artwork': [
+                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                    ]
+                }
+            ]
+        }
+    }
+
+
+class MusicAlbumCreator(ModelCreator):
+    MODEL: ClassVar[Type[MusicAlbum]] = MusicAlbum
+
+    title: TitleData
+    type: MusicAlbumType
+    genres: GenreList
+    tags: TagList
+    songs: MusicAlbumSongList
+    cover_artwork: Optional[AnyStillImage]
+    other_artwork: OtherArtworkImageList
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': {
+                        'title': 'My cool Album'
+                    },
+                    'type': 'ep',
+                    'genres': ['rock', 'blues'],
+                    'tags': ['rock', 'blues', 'guitar'],
+                    'songs': [
+                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                    ],
+                    'cover_artwork': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'other_artwork': [
+                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                    ]
+                }
+            ]
+        }
+    }
 
 
 #
@@ -661,12 +782,6 @@ class VideoProgramType(StrEnum):
 VideoProgramId = Annotated[MongoId, id_schema('a string representing a video program id')]
 VideoProgramCid = Annotated[ContentIdType, id_schema('a string representing a video program content id')]
 
-AltVideoFormats = Annotated[
-    None | conlist(AnyVideoFile, min_length=1, max_length=10),
-    unique_list_validator, 
-    id_schema('a unique list of video file cids')
-]
-
 TrailerList = Annotated[
     None | conlist(AnyVideoFile | AnyAudioFile, min_length=1, max_length=10),
     unique_list_validator,
@@ -682,12 +797,12 @@ class VideoProgram(ContentModel):
     title: TitleData
     type: VideoProgramType
 
-    master: AnyVideoFile
-    alt_formats: AltVideoFormats = None
+    release: AnyVideoRelease
     
     trailers: TrailerList = None
     cover_artwork: Optional[AnyStillImage]
     other_artwork: OtherArtworkImageList
+    genres: GenreList
     tags: TagList
 
 
@@ -713,6 +828,7 @@ class VideoSeason(ContentModel):
     title: TitleData
     episodes: VideoEpisodeList
     trailers: TrailerList = None
+    genres: GenreList
     tags: TagList
     cover_artwork: Optional[AnyStillImage]
     other_artwork: OtherArtworkImageList
@@ -747,6 +863,7 @@ class VideoSeries(ContentModel):
     title: TitleData
     seasons: VideoSeasonList
     trailers: TrailerList = None
+    genres: GenreList
     tags: TagList
     cover_artwork: Optional[AnyStillImage]
     other_artwork: OtherArtworkImageList
