@@ -80,7 +80,11 @@ __all__ = [
     'TextFilePayloadCid',
     'TextFile',
 
-    'AnyTextFile'
+    'AnyTextFile',
+
+    'AnyAVRelease',
+    'AnyMediaRelease',
+    'AnyRelease'
 ]
 
 #
@@ -514,3 +518,11 @@ class TextFile(ContentModel):
 
 
 AnyTextFile = Union[TextFile, TextFileCid]
+
+#
+# misc
+#
+
+AnyAVRelease = Union[AnyAudioRelease, AnyVideoRelease]
+AnyMediaRelease = Union[AnyAVRelease, AnyImageRelease]
+AnyRelease = Union[AnyMediaRelease, AnyTextFile]

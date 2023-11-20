@@ -71,3 +71,24 @@ def test_video_series():
     video_series_cid = example_cid(VideoSeries)
     _test_db_crud(video_series, video_series_cid, VideoSeries)
     _test_db_pagination(video_series, VideoSeries)
+
+def test_podcast_episode():
+    podcast_episode_creator = example_model(PodcastEpisodeCreator)
+    podcast_episode = podcast_episode_creator.create_model()
+    podcast_episode_cid = example_cid(PodcastEpisode)
+    _test_db_crud(podcast_episode, podcast_episode_cid, PodcastEpisode)
+    _test_db_pagination(podcast_episode, PodcastEpisode)
+
+def test_podcast_season():
+    podcast_season_creator = example_model(PodcastSeasonCreator)
+    podcast_season = podcast_season_creator.create_model()
+    podcast_season_cid = example_cid(PodcastSeason)
+    _test_db_crud(podcast_season, podcast_season_cid, PodcastSeason)
+    _test_db_pagination(podcast_season, PodcastSeason)
+
+def test_podcast():
+    podcast_creator = example_model(PodcastCreator)
+    podcast = podcast_creator.create_model()
+    podcast_cid = example_cid(Podcast)
+    _test_db_crud(podcast, podcast_cid, Podcast)
+    _test_db_pagination(podcast, Podcast)

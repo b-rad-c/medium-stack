@@ -147,3 +147,45 @@ def test_video_series():
     video_series.id = ObjectId()
     _test_model_dump(video_series, video_series_cid, VideoSeries)
     _test_model_json_str(video_series, video_series_cid, VideoSeries)
+
+def test_podcast_episode():
+    podcast_episode = example_model(PodcastEpisode)
+    podcast_episode_cid = example_cid(PodcastEpisode)
+
+    _test_model_examples(PodcastEpisode)
+    _test_model_creator_and_examples(PodcastEpisode, PodcastEpisodeCreator)
+
+    _test_model_dump(podcast_episode, podcast_episode_cid, PodcastEpisode)
+    _test_model_json_str(podcast_episode, podcast_episode_cid, PodcastEpisode)
+    
+    podcast_episode.id = ObjectId()
+    _test_model_dump(podcast_episode, podcast_episode_cid, PodcastEpisode)
+    _test_model_json_str(podcast_episode, podcast_episode_cid, PodcastEpisode)
+
+def test_podcast_season():
+    podcast_season = example_model(PodcastSeason)
+    podcast_season_cid = example_cid(PodcastSeason)
+
+    _test_model_examples(PodcastSeason)
+    _test_model_creator_and_examples(PodcastSeason, PodcastSeasonCreator)
+
+    _test_model_dump(podcast_season, podcast_season_cid, PodcastSeason)
+    _test_model_json_str(podcast_season, podcast_season_cid, PodcastSeason)
+    
+    podcast_season.id = ObjectId()
+    _test_model_dump(podcast_season, podcast_season_cid, PodcastSeason)
+    _test_model_json_str(podcast_season, podcast_season_cid, PodcastSeason)
+
+def test_podcast():
+    podcast = example_model(Podcast)
+    podcast_cid = example_cid(Podcast)
+
+    _test_model_examples(Podcast)
+    _test_model_creator_and_examples(Podcast, PodcastCreator)
+
+    _test_model_dump(podcast, podcast_cid, Podcast)
+    _test_model_json_str(podcast, podcast_cid, Podcast)
+    
+    podcast.id = ObjectId()
+    _test_model_dump(podcast, podcast_cid, Podcast)
+    _test_model_json_str(podcast, podcast_cid, Podcast)

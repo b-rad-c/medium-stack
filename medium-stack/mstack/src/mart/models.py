@@ -1,6 +1,6 @@
 from typing import Annotated, ClassVar, Union, Optional, Type, List
 from enum import StrEnum
-from pydantic import BaseModel, Field, conlist
+from pydantic import BaseModel, Field, conlist, model_validator
 
 from mcore.types import TagList, unique_list_validator
 
@@ -16,7 +16,9 @@ from mcore.models import (
     AnyAudioRelease,
     AnyVideoFile,
     AnyVideoRelease,
+    AnyAVRelease,
     AnyTextFile,
+    AnyRelease,
 
     db_id_kwargs, 
     cid_kwargs,
@@ -58,7 +60,6 @@ __all__ = [
 
     'SongId',
     'SongCid',
-    'OtherArtworkImageList',
     'Song',
     'SongCreator',
 
@@ -69,6 +70,26 @@ __all__ = [
     'MusicAlbumSongList',
     'MusicAlbum',
     'MusicAlbumCreator',
+
+    'PodcastEpisodeId',
+    'PodcastEpisodeCid',
+    'PodcastEpisode',
+    'PodcastEpisodeCreator',
+    'AnyPodcastEpisode',
+
+    'PodcastSeasonId',
+    'PodcastSeasonCid',
+    'PodcastEpisodeList',
+    'PodcastSeason',
+    'PodcastSeasonCreator',
+    'AnyPodcastSeason',
+
+    'PodcastId',
+    'PodcastCid',
+    'PodcastSeasonList',
+    'Podcast',
+    'PodcastCreator',
+    'AnyPodcast',
 
     'VideoProgramType',
     'VideoProgramId',
@@ -307,6 +328,19 @@ class Credit(BaseModel):
     }
 
 
+AnyMedia = Union[
+    AnyRelease, 
+    'AnyStillImage', 
+    'AnyStillImageAlbum',
+    'AnySong',
+    'AnyMusicAlbum',
+    'AnyVideoProgram',
+    'AnyPodcastEpisode',
+    'AnyPodcastSeason',
+    'AnyPodcast',
+]
+
+
 CreditList = Annotated[
     conlist(Credit, min_length=1, max_length=100), 
     unique_list_validator, 
@@ -317,6 +351,19 @@ GenreList = Annotated[
     conlist(str, min_length=1, max_length=5),
     unique_list_validator, 
     id_schema('a unique list of genres')
+]
+
+TrailerList = Annotated[
+    None | conlist(AnyAVRelease, min_length=1, max_length=10),
+    unique_list_validator,
+    id_schema('a unique list of video or audio file cids')
+]
+
+
+OtherArtworkList = Annotated[
+    None | conlist(AnyMedia, min_length=1, max_length=25),
+    unique_list_validator, 
+    id_schema('a unique list of media cids')
 ]
 
 
@@ -526,12 +573,6 @@ class StillImageAlbumCreator(ModelCreator):
 SongId = Annotated[MongoId, id_schema('a string representing a song id')]
 SongCid = Annotated[ContentIdType, id_schema('a string representing a song content id')]
 
-OtherArtworkImageList = Annotated[
-    None | conlist(AnyStillImage, min_length=1, max_length=10),
-    unique_list_validator, 
-    id_schema('a unique list of still image cids')
-]
-
 class Song(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'songs'
 
@@ -544,7 +585,7 @@ class Song(ContentModel):
     tags: TagList
     music_video: Optional['AnyVideoProgram']
     cover_artwork: Optional[AnyStillImage]
-    other_artwork: OtherArtworkImageList
+    other_artwork: OtherArtworkList
     lyrics: Optional[AnyTextFile]
 
     model_config = {
@@ -581,7 +622,7 @@ class SongCreator(ModelCreator):
     tags: TagList
     music_video: Optional['AnyVideoProgram']
     cover_artwork: Optional[AnyStillImage]
-    other_artwork: OtherArtworkImageList
+    other_artwork: OtherArtworkList
     lyrics: Optional[AnyTextFile]
 
     model_config = {
@@ -634,7 +675,7 @@ class MusicAlbum(ContentModel):
     tags: TagList
     songs: MusicAlbumSongList
     cover_artwork: Optional[AnyStillImage]
-    other_artwork: OtherArtworkImageList
+    other_artwork: OtherArtworkList
 
     model_config = {
         'json_schema_extra': {
@@ -662,6 +703,8 @@ class MusicAlbum(ContentModel):
         }
     }
 
+AnyMusicAlbum = Union[MusicAlbum, MusicAlbumCid]
+
 
 class MusicAlbumCreator(ModelCreator):
     MODEL: ClassVar[Type[MusicAlbum]] = MusicAlbum
@@ -672,7 +715,7 @@ class MusicAlbumCreator(ModelCreator):
     tags: TagList
     songs: MusicAlbumSongList
     cover_artwork: Optional[AnyStillImage]
-    other_artwork: OtherArtworkImageList
+    other_artwork: OtherArtworkList
 
     model_config = {
         'json_schema_extra': {
@@ -703,83 +746,277 @@ class MusicAlbumCreator(ModelCreator):
 # podcast
 #
 
-"""
+# podcast episode #
 
-+ the podcast models should support audio and video
-    + podcast episodes and series need to be independent from the main podcast models to support querying
-    + support podcasts with or without seasons
-        + because seasons/episodes are indepent of the main podcast model, a podcast can easily
-            transition no seasons to seasons, simply by adding a season model and adding the episodes to it
+PodcastEpisodeId = Annotated[MongoId, id_schema('a string representing a podcast program id')]
+PodcastEpisodeCid = Annotated[ContentIdType, id_schema('a string representing a podcast program content id')]
 
-"""
+class PodcastEpisode(ContentModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_episode'
 
-# PodcastProgramId = Annotated[MongoId, id_schema('a string representing a podcast program id')]
-# PodcastProgramCid = Annotated[ContentIdType, id_schema('a string representing a podcast program content id')]
+    id: PodcastEpisodeId = Field(**db_id_kwargs)
+    cid: PodcastEpisodeCid = Field(**cid_kwargs)
 
-# class PodcastProgram(ContentModel):
-#     MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_program'
+    title: TitleData
+    podcast: 'AnyPodcast'
 
-#     id: PodcastProgramId = Field(**db_id_kwargs)
-#     cid: PodcastProgramCid = Field(**cid_kwargs)
+    program_audio: Optional[AnyAudioRelease] = None
+    program_video: Optional[AnyVideoRelease] = None
 
-#     title: TitleData
-#     program: AnyAudioRelease
-#     trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
-#     tags: conset(str, max_length=10)
-#     cover_artwork: Optional[AnyImageRelease]
-#     other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
+    genres: GenreList
+    trailers: TrailerList
+    tags: TagList
+    cover_artwork: Optional[AnyImageRelease] = None
+    other_artwork: OtherArtworkList = None
+
+    @model_validator(mode='after')
+    def has_an_episode(self) -> 'PodcastEpisode':
+        if self.program_audio is None and self.program_video is None:
+            raise ValueError('must provide either an audio or video program')
+        return self
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0hx6NJx4sZqTRra4aaOIvAacQHsHFXYWKd27F3CmXZ_c633.json',
+                    'title': {
+                        'title': 'My cool Episode'
+                    },
+                    'podcast': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'program_audio': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'program_video': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'genres': ['politics', 'news'],
+                    'trailers': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'tags': ['us', 'election'],
+                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'other_artwork': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ]
+                }
+            ]
+        }
+    }
+
+AnyPodcastEpisode = Union[PodcastEpisode, PodcastEpisodeCid]
+
+class PodcastEpisodeCreator(ModelCreator):
+    MODEL: ClassVar[Type[PodcastEpisode]] = PodcastEpisode
+
+    title: TitleData
+    podcast: 'AnyPodcast'
+
+    program_audio: Optional[AnyAudioRelease] = None
+    program_video: Optional[AnyVideoRelease] = None
+    
+    genres: GenreList
+    trailers: TrailerList = None
+    tags: TagList
+    cover_artwork: Optional[AnyImageRelease] = None
+    other_artwork: OtherArtworkList = None
+
+    @model_validator(mode='after')
+    def has_an_episode(self) -> 'PodcastEpisodeCreator':
+        if self.program_audio is None and self.program_video is None:
+            raise ValueError('must provide either an audio or video program')
+        return self
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': {
+                        'title': 'My cool Episode'
+                    },
+                    'podcast': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'program_audio': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'program_video': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'genres': ['politics', 'news'],
+                    'trailers': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'tags': ['us', 'election'],
+                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'other_artwork': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ]
+                }
+            ]
+        }
+    }
+
+PodcastEpisodeList = Annotated[
+    None | conlist(AnyPodcastEpisode, min_length=1, max_length=100),
+    unique_list_validator, 
+    id_schema('a unique list of podcast episode cids')
+]
+
+# podcast season #
+
+PodcastSeasonId = Annotated[MongoId, id_schema('a string representing a podcast season id')]
+PodcastSeasonCid = Annotated[ContentIdType, id_schema('a string representing a podcast season content id')]
+
+class PodcastSeason(ContentModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_season'
+
+    id: PodcastSeasonId = Field(**db_id_kwargs)
+    cid: PodcastSeasonCid = Field(**cid_kwargs)
+
+    title: TitleData
+    episodes: PodcastEpisodeList = None
+    trailers: TrailerList = None
+    tags: TagList
+    cover_artwork: Optional[AnyImageRelease] = None
+    other_artwork: OtherArtworkList = None
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0cLJq23m8Vpag8kWVW3CBYF1VfKqbu6Cr94lSEDDCGYw457.json',
+                    'title': {
+                        'title': 'My cool Season'
+                    },
+                    'episodes': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'trailers': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'tags': ['us', 'election'],
+                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'other_artwork': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ]
+                }
+            ]
+        }
+    }
+
+AnyPodcastSeason = Union[PodcastSeason, PodcastSeasonCid]
+
+class PodcastSeasonCreator(ModelCreator):
+    MODEL: ClassVar[Type[PodcastSeason]] = PodcastSeason
+
+    title: TitleData
+    episodes: PodcastEpisodeList = None
+    trailers: TrailerList = None
+    tags: TagList
+    cover_artwork: Optional[AnyImageRelease] = None
+    other_artwork: OtherArtworkList = None
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': {
+                        'title': 'My cool Season'
+                    },
+                    'episodes': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'trailers': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'tags': ['us', 'election'],
+                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'other_artwork': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ]
+                }
+            ]
+        }
+    }
 
 
-# PodcastSeriesId = Annotated[MongoId, id_schema('a string representing a podcast series id')]
-# PodcastSeriesCid = Annotated[ContentIdType, id_schema('a string representing a podcast series content id')]
+PodcastSeasonList = Annotated[
+    None | conlist(AnyPodcastSeason, min_length=1, max_length=100),
+    unique_list_validator, 
+    id_schema('a unique list of podcast season cids')
+]
 
-# class PodcastSeries(ContentModel):
-#     MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_series'
+# podcast #
 
-#     id: PodcastSeriesId = Field(**db_id_kwargs)
-#     cid: PodcastSeriesCid = Field(**cid_kwargs)
+PodcastId = Annotated[MongoId, id_schema('a string representing a podcast id')]
+PodcastCid = Annotated[ContentIdType, id_schema('a string representing a podcast content id')]
 
-#     title: TitleData
-#     episodes: conset(PodcastProgram, min_length=2, max_length=42)
-#     trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
-#     tags: conset(str, max_length=10)
-#     cover_artwork: Optional[AnyImageRelease]
-#     other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
+class Podcast(ContentModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast'
+
+    id: PodcastId = Field(**db_id_kwargs)
+    cid: PodcastCid = Field(**cid_kwargs)
+
+    title: TitleData
+    seasons: PodcastSeasonList = None
+    trailers: TrailerList = None
+    tags: TagList
+    cover_artwork: Optional[AnyImageRelease] = None
+    other_artwork: OtherArtworkList = None
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0AZzUOZfdK0gdYoOjfQ2l4EFJ1Q-lLlrCX68-xzD-n_8457.json',
+                    'title': {
+                        'title': 'My cool Podcast'
+                    },
+                    'seasons': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'trailers': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'tags': ['us', 'election'],
+                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'other_artwork': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ]
+                }
+            ]
+        }
+    }
+
+AnyPodcast = Union[Podcast, PodcastCid]
 
 
-# PodcastSeasonId = Annotated[MongoId, id_schema('a string representing a podcast season id')]
-# PodcastSeasonCid = Annotated[ContentIdType, id_schema('a string representing a podcast season content id')]
+class PodcastCreator(ModelCreator):
+    MODEL: ClassVar[Type[Podcast]] = Podcast
 
-# class PodcastSeason(ContentModel):
-#     MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_season'
+    title: TitleData
+    seasons: PodcastSeasonList = None
+    trailers: TrailerList = None
+    tags: TagList
+    cover_artwork: Optional[AnyImageRelease] = None
+    other_artwork: OtherArtworkList = None
 
-#     id: PodcastSeasonId = Field(**db_id_kwargs)
-#     cid: PodcastSeasonCid = Field(**cid_kwargs)
-
-#     title: TitleData
-#     episodes: conset(PodcastProgram, min_length=2, max_length=42)
-#     trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
-#     tags: conset(str, max_length=10)
-#     cover_artwork: Optional[AnyImageRelease]
-#     other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
-
-
-# PodcastEpisodicSeriesId = Annotated[MongoId, id_schema('a string representing a podcast episodic series id')]
-# PodcastEpisodicSeriesCid = Annotated[ContentIdType, id_schema('a string representing a podcast episodic series content id')]
-
-# class PodcastEpisodicSeries(ContentModel):
-#     MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_episodic_series'
-
-#     id: PodcastEpisodicSeriesId = Field(**db_id_kwargs)
-#     cid: PodcastEpisodicSeriesCid = Field(**cid_kwargs)
-
-#     title: TitleData
-#     seasons: conset(PodcastProgram, min_length=1, max_length=50)
-#     trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
-#     tags: conset(str, max_length=10)
-#     cover_artwork: Optional[AnyImageRelease]
-#     other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
-
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': {
+                        'title': 'My cool Podcast'
+                    },
+                    'seasons': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'trailers': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'tags': ['us', 'election'],
+                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'other_artwork': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ]
+                }
+            ]
+        }
+    }
 
 
 #
@@ -798,12 +1035,6 @@ class VideoProgramType(StrEnum):
 VideoProgramId = Annotated[MongoId, id_schema('a string representing a video program id')]
 VideoProgramCid = Annotated[ContentIdType, id_schema('a string representing a video program content id')]
 
-TrailerList = Annotated[
-    None | conlist(AnyVideoFile | AnyAudioFile, min_length=1, max_length=10),
-    unique_list_validator,
-    id_schema('a unique list of video or audio file cids')
-]
-
 class VideoProgram(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_programs'
 
@@ -817,7 +1048,7 @@ class VideoProgram(ContentModel):
     
     trailers: TrailerList = None
     cover_artwork: Optional[AnyStillImage]
-    other_artwork: OtherArtworkImageList
+    other_artwork: OtherArtworkList
     genres: GenreList
     tags: TagList
 
@@ -859,7 +1090,7 @@ class VideoProgramCreator(ModelCreator):
     
     trailers: TrailerList = None
     cover_artwork: Optional[AnyStillImage]
-    other_artwork: OtherArtworkImageList
+    other_artwork: OtherArtworkList
     genres: GenreList
     tags: TagList
 
@@ -914,7 +1145,7 @@ class VideoSeason(ContentModel):
     genres: GenreList
     tags: TagList
     cover_artwork: Optional[AnyStillImage]
-    other_artwork: OtherArtworkImageList
+    other_artwork: OtherArtworkList
 
     model_config = {
         'json_schema_extra': {
@@ -955,7 +1186,7 @@ class VideoSeasonCreator(ModelCreator):
     genres: GenreList
     tags: TagList
     cover_artwork: Optional[AnyStillImage]
-    other_artwork: OtherArtworkImageList
+    other_artwork: OtherArtworkList
 
     model_config = {
         'json_schema_extra': {
@@ -1078,7 +1309,7 @@ class VideoSeries(ContentModel):
     genres: GenreList
     tags: TagList
     cover_artwork: Optional[AnyStillImage]
-    other_artwork: OtherArtworkImageList
+    other_artwork: OtherArtworkList
 
     model_config = {
         'json_schema_extra': {
@@ -1107,6 +1338,7 @@ class VideoSeries(ContentModel):
         }
     }
 
+
 class VideoSeriesCreator(ModelCreator):
     MODEL: ClassVar[Type[VideoSeries]] = VideoSeries
 
@@ -1116,7 +1348,7 @@ class VideoSeriesCreator(ModelCreator):
     genres: GenreList
     tags: TagList
     cover_artwork: Optional[AnyStillImage]
-    other_artwork: OtherArtworkImageList
+    other_artwork: OtherArtworkList
 
     model_config = {
         'json_schema_extra': {
@@ -1144,42 +1376,6 @@ class VideoSeriesCreator(ModelCreator):
     }
 
 
-
-###########################################
-
-
-
-#
-# art primatives
-#
-
-
-
-# # audio #
-
-    
-
-
-
-# # video #
-
-
-# VideoReleaseId = Annotated[MongoId, id_schema('a string representing a video release id')]
-# VideoReleaseCid = Annotated[ContentIdType, id_schema('a string representing a video release id')]
-
-# class VideoRelease(ContentModel):
-#     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_releases'
-
-#     id: VideoReleaseId = Field(**db_id_kwargs)
-#     cid: VideoReleaseCid = Field(**cid_kwargs)
-
-#     title: TitleData
-#     creator: Union[ArtistCid, ArtistGroupCid]
-#     credits: conset(Credit, max_length=15)
-#     tags: conset(str, max_length=10)
-
-#     master: Union[VideoFile, VideoFileCid]
-#     alt_formats: conset(Union[VideoFile, VideoFileCid], min_length=1, max_length=25)
 
 
 # # text document #
