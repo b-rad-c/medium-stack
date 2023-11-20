@@ -2,11 +2,12 @@ import os
 
 from enum import Enum
 
-from typing import Annotated, ClassVar, Union, Optional, Type
+from typing import Annotated, ClassVar, Union, Optional, Type, List
 from pathlib import Path
 from datetime import datetime
 
 from mcore.errors import MStackFilePayloadError
+from mcore.types import unique_list_validator
 from mcore.util import utc_now
 
 from pymediainfo import MediaInfo
@@ -15,16 +16,14 @@ from pydantic import (
     BaseModel,
     Field,
     EmailStr,
-    model_validator
+    model_validator,
+    conlist
 )
 
 from .types import ContentId, MongoId, id_schema, db_id_kwargs, cid_kwargs, ContentIdType
 
 __all__ = [
-    'id_schema',
-    'MongoId',
-    'db_id_kwargs',
-    'cid_kwargs',
+    'mediainfo',
 
     'ContentModel',
     'ModelCreator',
@@ -34,37 +33,68 @@ __all__ = [
     'User',
     'UserCreator',
 
+    'FileUploaderId',
     'FileUploadStatus',
     'FileUploadTypes',
     'FileUploader',
     'FileUploaderCreator',
 
-    'ImageFile',
     'ImageFileId',
     'ImageFileCid',
+    'ImageFilePayloadCid',
+    'ImageFile',
 
-    'AudioFile',
+    'AnyImageFile',
+    'AltImageFormatList',
+    'ImageReleaseId',
+    'ImageReleaseCid',
+    'ImageRelease',
+    
     'AudioFileId',
     'AudioFileCid',
+    'AudioFilePayloadCid',
+    'AudioFile',
 
-    'VideoFile',
+    'AnyAudioFile',
+    'AltAudioFormatList',
+    'AudioReleaseId',
+    'AudioReleaseCid',
+    'AudioRelease',
+
     'VideoFileId',
     'VideoFileCid',
+    'VideoFilePayloadCid',
+    'VideoFile',
+
+    'AnyVideoFile',
+    'AltVideoFormatList',
+    'VideoReleaseId',
+    'VideoReleaseCid',
+    'VideoRelease',
     
-    'TextFile',
     'TextFileId',
-    'TextFileCid'
+    'TextFileCid',
+    'TextFilePayloadCid',
+    'TextFile',
+
+    'AnyTextFile'
 ]
 
-# MEDIAINFO_LIB_PATH = environ.get('MEDIAINFO_LIB_PATH', '/opt/homebrew/Cellar/libmediainfo/23.09/lib/libmediainfo.dylib')
-MEDIAINFO_LIB_PATH = os.environ.get('MEDIAINFO_LIB_PATH', '')
+#
+# media info
+#
+
+
+MEDIAINFO_LIB_PATH = os.environ.get('MEDIAINFO_LIB_PATH', '')   # '/opt/homebrew/Cellar/libmediainfo/23.09/lib/libmediainfo.dylib'
 MSERVE_LOCAL_STORAGE_DIRECTORY = os.environ.get('MSERVE_LOCAL_STORAGE_DIRECTORY', '/mstack/files')
 
+def mediainfo(path: Union[str, Path]) -> MediaInfo:
+    library_file = None if MEDIAINFO_LIB_PATH == '' else MEDIAINFO_LIB_PATH
+    return MediaInfo.parse(path, library_file=library_file)
 
 #
 # base models
 #
-
 
 class ContentModel(BaseModel):
 
@@ -88,7 +118,6 @@ class ModelCreator(BaseModel):
 #
 # user
 #
-
 
 UserId = Annotated[MongoId, id_schema('a string representing a user id')]
 UserCid = Annotated[ContentIdType, id_schema('a string representing a user content id')]
@@ -148,12 +177,11 @@ class UserCreator(ModelCreator):
 
 
 #
-# media / file primatives
+# file uploads
 #
 
-
-
 FileUploaderId = Annotated[MongoId, id_schema('a string representing a file uploader id')]
+
 
 class FileUploadStatus(str, Enum):
     uploading = 'uploading'
@@ -235,9 +263,9 @@ class FileUploaderCreator(ModelCreator):
     }
 
 
-def mediainfo(path: Union[str, Path]) -> MediaInfo:
-    library_file = None if MEDIAINFO_LIB_PATH == '' else MEDIAINFO_LIB_PATH
-    return MediaInfo.parse(path, library_file=library_file)
+#
+#  image files
+#
 
 
 ImageFileId = Annotated[MongoId, id_schema('a string representing an image file id')]
@@ -286,22 +314,30 @@ class ImageFile(ContentModel):
         return cls(user_cid=user_cid, payload_cid=payload_cid, height=height, width=width)
 
 
-# class ImageFileCreator(ModelCreator):
-#     MODEL: ClassVar[Type[ImageFile]] = ImageFile
+AnyImageFile = Union[ImageFile, ImageFileCid]
 
-#     height: int = Field(gt=0)
-#     width: int = Field(gt=0)
+AltImageFormatList = Annotated[
+    None | conlist(AnyImageFile, min_length=1, max_length=10),
+    unique_list_validator,
+    id_schema('a unique list of image files or image file cids')
+]
 
-#     model_config = {
-#         'json_schema_extra': {
-#             'examples': [
-#                 {
-#                     'height': 3584, 
-#                     'width': 5376
-#                 }
-#             ]
-#         }
-#     }
+ImageReleaseId = Annotated[MongoId, id_schema('a string representing an image release id')]
+ImageReleaseCid = Annotated[ContentIdType, id_schema('a string representing an image release cid')]
+
+class ImageRelease(ContentModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'image_release'
+
+    id: ImageReleaseId = Field(**db_id_kwargs)
+    cid: ImageReleaseCid = Field(**cid_kwargs)
+
+    master: AnyImageFile
+    alt_formats: AltImageFormatList = None
+
+
+#
+# audio files
+#
 
 
 AudioFileId = Annotated[MongoId, id_schema('a string representing an audio file id')]
@@ -353,22 +389,25 @@ class AudioFile(ContentModel):
         return cls(user_cid=user_cid, payload_cid=payload_cid, duration=duration, bit_rate=bit_rate)
 
 
-# class AudioFileCreator(ModelCreator):
-#     MODEL: ClassVar[Type[AudioFile]] = AudioFile
+AnyAudioFile = Union[AudioFile, AudioFileCid]
 
-#     duration: float = Field(gt=0)
-#     bit_rate: int = Field(gt=0)
+AltAudioFormatList = Annotated[
+    None | conlist(AnyAudioFile, min_length=1, max_length=10),
+    unique_list_validator,
+    id_schema('a unique list of audio files or audio file cids')
+]
 
-#     model_config = {
-#         'json_schema_extra': {
-#             'examples': [
-#                 {
-#                     'duration': 65.828,
-#                     'bit_rate': 320000
-#                 }
-#             ]
-#         }
-#     }
+AudioReleaseId = Annotated[MongoId, id_schema('a string representing an audio release id')]
+AudioReleaseCid = Annotated[ContentIdType, id_schema('a string representing an audio release id')]
+
+class AudioRelease(ContentModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'audio_release'
+
+    id: AudioReleaseId = Field(**db_id_kwargs)
+    cid: AudioReleaseCid = Field(**cid_kwargs)
+
+    master: AnyAudioFile
+    alt_formats: AltAudioFormatList = None
 
 
 VideoFileId = Annotated[MongoId, id_schema('a string representing a video file id')]
@@ -429,29 +468,29 @@ class VideoFile(ContentModel):
         return cls(user_cid=user_cid, payload_cid=payload_cid, height=height, width=width, duration=duration, bit_rate=bit_rate, has_audio=has_audio)
 
 
-# class VideoFileCreator(ModelCreator):
-#     MODEL: ClassVar[Type[VideoFile]] = VideoFile
+AnyVideoFile = Union[VideoFile, VideoFileCid]
 
-#     height: int = Field(gt=0)
-#     width: int = Field(gt=0)
-#     duration: float = Field(gt=0) 
-#     bit_rate: int = Field(gt=0)
-#     has_audio: bool
+AltVideoFormatList = Annotated[
+    None | conlist(AnyVideoFile, min_length=1, max_length=10),
+    unique_list_validator,
+    id_schema('a unique list of video files or video file cids')
+]
 
-#     model_config = {
-#         'json_schema_extra': {
-#             'examples': [
-#                 {
-#                     'height': 480,
-#                     'width': 853,
-#                     'duration': 32.995,
-#                     'bit_rate': 2681864,
-#                     'has_audio': True
-#                 }
-#             ]
-#         }
-#     }
+VideoReleaseId = Annotated[MongoId, id_schema('a string representing a video release id')]
+VideoReleaseCid = Annotated[ContentIdType, id_schema('a string representing a video release cid')]
 
+class VideoRelease(ContentModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'video_release'
+
+    id: VideoReleaseId = Field(**db_id_kwargs)
+    cid: VideoReleaseCid = Field(**cid_kwargs)
+
+    master: AnyVideoFile
+    alt_formats: AltVideoFormatList = None
+
+#
+# text files
+#
 
 TextFileId = Annotated[MongoId, id_schema('a string representing a text file id')]
 TextFileCid = Annotated[ContentIdType, id_schema('a string representing a text file cid')]
@@ -465,3 +504,6 @@ class TextFile(ContentModel):
     user_cid: UserCid = Field(**cid_kwargs)
     
     payload_cid: TextFilePayloadCid = Field(**cid_kwargs)
+
+
+AnyTextFile = Union[TextFile, TextFileCid]

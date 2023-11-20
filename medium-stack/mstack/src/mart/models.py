@@ -11,14 +11,10 @@ from mcore.models import (
     ModelCreator,
     UserCid,
 
-    ImageFile,
-    ImageFileCid,
-    AudioFile,
-    AudioFileCid,
-    VideoFile,
-    VideoFileCid,
-    TextFile,
-    TextFileCid,
+    AnyImageFile,
+    AnyAudioFile,
+    AnyVideoFile,
+    AnyTextFile,
 
     db_id_kwargs, 
     cid_kwargs,
@@ -31,7 +27,6 @@ from mcore.models import (
 
 """
 
-
 TO DO:
 + bring back ImageRelease, AudioRelease, etc
     - but they should only have the master + alt formats
@@ -42,30 +37,35 @@ TO DO:
         + because seasons/episodes are indepent of the main podcast model, a podcast can easily
             transition no seasons to seasons, simply by adding a season model and adding the episodes to it
 
-
 """
 
-raise Exception('^ read note ^')
+# raise Exception('^ read note ^')
 
 __all__ = [
     'ArtMedium',
     'ArtMediumList',
+
     'ArtistId',
     'ArtistCid',
     'Artist',
+    'AnyArtist',
     'ArtistCreator',
+
     'ArtistGroupId',
     'ArtistGroupCid',
+    'ArtistList',
     'ArtistGroup',
+    'AnyArtistGroup',
     'ArtistGroupCreator',
 
     'Credit',
     'CreditList',
+    'GenreList',
     'TitleData',
 
-    'AnyImageFile',
     'StillImageId',
     'StillImageCid',
+    'AltImageFormats',
     'StillImage',
     'StillImageCreator',
 
@@ -137,6 +137,9 @@ class Artist(ContentModel):
     }
 
 
+AnyArtist = Union[Artist, ArtistCid]
+
+
 class ArtistCreator(ModelCreator):
 
     MODEL: ClassVar[Type[Artist]] = Artist
@@ -176,7 +179,7 @@ ArtistGroupId = Annotated[MongoId, id_schema('a string representing an artist gr
 ArtistGroupCid = Annotated[ContentIdType, id_schema('a string representing an artist content id')]
 
 ArtistList = Annotated[
-    conlist(ArtistCid, min_length=1, max_length=50),
+    conlist(AnyArtist, min_length=1, max_length=50),
     unique_list_validator, 
     id_schema('a unique list of artist cids')
 ]
@@ -224,6 +227,9 @@ class ArtistGroup(ContentModel):
     }
 
 
+AnyArtistGroup = Union[ArtistGroup, ArtistGroupCid]
+
+
 class ArtistGroupCreator(ModelCreator):
 
     MODEL: ClassVar[Type[ArtistGroup]] = ArtistGroup
@@ -266,7 +272,7 @@ class ArtistGroupCreator(ModelCreator):
 class Credit(BaseModel):
 
     role: str = Field(max_length=50)
-    artist: ArtistCid
+    artist: AnyArtist
 
     model_config = {
         'json_schema_extra': {
@@ -329,8 +335,6 @@ class TitleData(BaseModel):
 # still image art
 #
 
-AnyImageFile = Union[ImageFile, ImageFileCid]
-
 StillImageId = Annotated[MongoId, id_schema('a string representing a still image id')]
 StillImageCid = Annotated[ContentIdType, id_schema('a string representing a still image id')]
 
@@ -347,7 +351,7 @@ class StillImage(ContentModel):
     id: StillImageId = Field(**db_id_kwargs)
     cid: StillImageCid = Field(**cid_kwargs)
 
-    creator_id: Union[ArtistCid, ArtistGroupCid]
+    creator_id: AnyArtist
 
     master: AnyImageFile
     alt_formats: AltImageFormats = None
@@ -355,6 +359,7 @@ class StillImage(ContentModel):
     title: Optional[TitleData]
     credits: Optional[Credit]
     tags: TagList
+    album: Optional['AnyStillImageAlbum']
 
     alt_text: Optional[str]
 
@@ -363,7 +368,7 @@ class StillImage(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
-                    'cid': '08Ph2mGKw3mFfvQ9liUNEG-E4ea4Eh1aB8gOJgjmy48o695.json',
+                    'cid': '0a_PSgosIB4DLiifa_Z6Ip93C_qhAtoMJO6N-1VS4m7s760.json',
                     'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'master': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'alt_formats': [
@@ -380,6 +385,7 @@ class StillImage(ContentModel):
                         'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
                     },
                     'tags': ['surrealism', 'painting', 'oil painting'],
+                    'album': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'alt_text': 'a surrealistic oil painting'
                 }
             ]
@@ -390,7 +396,7 @@ class StillImage(ContentModel):
 class StillImageCreator(ModelCreator):
     MODEL: ClassVar[Type[StillImage]] = StillImage
 
-    creator_id: Union[ArtistCid, ArtistGroupCid]
+    creator_id: AnyArtist
 
     master: AnyImageFile
     alt_formats: AltImageFormats = None
@@ -398,6 +404,7 @@ class StillImageCreator(ModelCreator):
     title: Optional[TitleData]
     credits: Optional[Credit]
     tags: TagList
+    album: Optional['AnyStillImageAlbum']
 
     alt_text: Optional[str]
 
@@ -421,6 +428,7 @@ class StillImageCreator(ModelCreator):
                         'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
                     },
                     'tags': ['surrealism', 'painting', 'oil painting'],
+                    'album': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'alt_text': 'a surrealistic oil painting'
                 }
             ]
@@ -433,11 +441,12 @@ AnyStillImage = Union[StillImage, StillImageCid]
 StillImageAlbumId = Annotated[MongoId, id_schema('a string representing a still image album id')]
 StillImageAlbumCid = Annotated[ContentIdType, id_schema('a string representing a still image album content id')]
 
-StillImageAlbumList = Annotated[
-    conlist(AnyStillImage, min_length=1, max_length=500), 
-    unique_list_validator, 
-    id_schema('a unique list of still image cids')
-]
+
+"""
+the StillImage model references the StillImageAlbum model rather than the other way around so that
+albums can be arbitrarily large without bloating the StillImage model. This allows for paginating queries.
+"""
+
 
 class StillImageAlbum(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'still_image_album'
@@ -445,9 +454,7 @@ class StillImageAlbum(ContentModel):
     id: StillImageAlbumId = Field(**db_id_kwargs)
     cid: StillImageAlbumCid = Field(**cid_kwargs)
 
-    creator_id: Union[ArtistCid, ArtistGroupCid]
-
-    images: StillImageAlbumList
+    creator_id: AnyArtist
 
     title: TitleData
     credits: Credit
@@ -458,13 +465,8 @@ class StillImageAlbum(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
-                    'cid': '09BtGzrV-fF3goDdVBL8lHth0kUHpSdIPvazNkkzow74605.json',
+                    'cid': '0PQPG0X3Q6NPtib2I6OMB8p5_xMwzj_MKyZvsdWmUr-U425.json',
                     'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                    'images': [
-                        '0SLssRK1xnbYVviyCTMoNVPFh53oTuqvSy7R9GLI9iHk782.json',
-                        '0TLssRK1xnbYVviyCTMoNVPFh53oTuqvSy7R9GLI9iHk782.json',
-                        '0ULssRK1xnbYVviyCTMoNVPFh53oTuqvSy7R9GLI9iHk782.json'
-                    ],
                     'title': {
                         'title': 'Old west photography',
                         'genres': ['photography', 'long exposure']
@@ -480,12 +482,13 @@ class StillImageAlbum(ContentModel):
     }
 
 
+AnyStillImageAlbum = Union[StillImageAlbum, StillImageAlbumCid]
+
+
 class StillImageAlbumCreator(ModelCreator):
     MODEL: ClassVar[Type[StillImageAlbum]] = StillImageAlbum
 
-    creator_id: Union[ArtistCid, ArtistGroupCid]
-
-    images: StillImageAlbumList
+    creator_id: AnyArtist
 
     title: TitleData
     credits: Credit
@@ -496,11 +499,6 @@ class StillImageAlbumCreator(ModelCreator):
             'examples': [
                 {
                     'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                    'images': [
-                        '0SLssRK1xnbYVviyCTMoNVPFh53oTuqvSy7R9GLI9iHk782.json',
-                        '0TLssRK1xnbYVviyCTMoNVPFh53oTuqvSy7R9GLI9iHk782.json',
-                        '0ULssRK1xnbYVviyCTMoNVPFh53oTuqvSy7R9GLI9iHk782.json'
-                    ],
                     'title': {
                         'title': 'Old west photography',
                         'genres': ['photography', 'long exposure']
@@ -520,7 +518,6 @@ class StillImageAlbumCreator(ModelCreator):
 # music
 #
 
-AnyAudioFile = Union[AudioFile, AudioFileCid]
 
 SongId = Annotated[MongoId, id_schema('a string representing a song id')]
 SongCid = Annotated[ContentIdType, id_schema('a string representing a song content id')]
@@ -543,7 +540,7 @@ class Song(ContentModel):
     music_video: Optional['AnyVideoProgram']
     cover_artwork: Optional[AnyStillImage]
     other_artwork: OtherArtworkImageList
-    lyrics: Optional['AnyTextDocument']
+    lyrics: Optional[AnyTextFile]
 
 
 class MusicAlbumType(StrEnum):
@@ -579,72 +576,72 @@ class MusicAlbum(ContentModel):
 # podcast
 #
 
-PodcastProgramId = Annotated[MongoId, id_schema('a string representing a podcast program id')]
-PodcastProgramCid = Annotated[ContentIdType, id_schema('a string representing a podcast program content id')]
+# PodcastProgramId = Annotated[MongoId, id_schema('a string representing a podcast program id')]
+# PodcastProgramCid = Annotated[ContentIdType, id_schema('a string representing a podcast program content id')]
 
-class PodcastProgram(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_program'
+# class PodcastProgram(ContentModel):
+#     MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_program'
 
-    id: PodcastProgramId = Field(**db_id_kwargs)
-    cid: PodcastProgramCid = Field(**cid_kwargs)
+#     id: PodcastProgramId = Field(**db_id_kwargs)
+#     cid: PodcastProgramCid = Field(**cid_kwargs)
 
-    title: TitleData
-    program: AnyAudioRelease
-    trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
-    tags: conset(str, max_length=10)
-    cover_artwork: Optional[AnyImageRelease]
-    other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
-
-
-PodcastSeriesId = Annotated[MongoId, id_schema('a string representing a podcast series id')]
-PodcastSeriesCid = Annotated[ContentIdType, id_schema('a string representing a podcast series content id')]
-
-class PodcastSeries(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_series'
-
-    id: PodcastSeriesId = Field(**db_id_kwargs)
-    cid: PodcastSeriesCid = Field(**cid_kwargs)
-
-    title: TitleData
-    episodes: conset(PodcastProgram, min_length=2, max_length=42)
-    trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
-    tags: conset(str, max_length=10)
-    cover_artwork: Optional[AnyImageRelease]
-    other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
+#     title: TitleData
+#     program: AnyAudioRelease
+#     trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
+#     tags: conset(str, max_length=10)
+#     cover_artwork: Optional[AnyImageRelease]
+#     other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
 
 
-PodcastSeasonId = Annotated[MongoId, id_schema('a string representing a podcast season id')]
-PodcastSeasonCid = Annotated[ContentIdType, id_schema('a string representing a podcast season content id')]
+# PodcastSeriesId = Annotated[MongoId, id_schema('a string representing a podcast series id')]
+# PodcastSeriesCid = Annotated[ContentIdType, id_schema('a string representing a podcast series content id')]
 
-class PodcastSeason(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_season'
+# class PodcastSeries(ContentModel):
+#     MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_series'
 
-    id: PodcastSeasonId = Field(**db_id_kwargs)
-    cid: PodcastSeasonCid = Field(**cid_kwargs)
+#     id: PodcastSeriesId = Field(**db_id_kwargs)
+#     cid: PodcastSeriesCid = Field(**cid_kwargs)
 
-    title: TitleData
-    episodes: conset(PodcastProgram, min_length=2, max_length=42)
-    trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
-    tags: conset(str, max_length=10)
-    cover_artwork: Optional[AnyImageRelease]
-    other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
+#     title: TitleData
+#     episodes: conset(PodcastProgram, min_length=2, max_length=42)
+#     trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
+#     tags: conset(str, max_length=10)
+#     cover_artwork: Optional[AnyImageRelease]
+#     other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
 
 
-PodcastEpisodicSeriesId = Annotated[MongoId, id_schema('a string representing a podcast episodic series id')]
-PodcastEpisodicSeriesCid = Annotated[ContentIdType, id_schema('a string representing a podcast episodic series content id')]
+# PodcastSeasonId = Annotated[MongoId, id_schema('a string representing a podcast season id')]
+# PodcastSeasonCid = Annotated[ContentIdType, id_schema('a string representing a podcast season content id')]
 
-class PodcastEpisodicSeries(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_episodic_series'
+# class PodcastSeason(ContentModel):
+#     MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_season'
 
-    id: PodcastEpisodicSeriesId = Field(**db_id_kwargs)
-    cid: PodcastEpisodicSeriesCid = Field(**cid_kwargs)
+#     id: PodcastSeasonId = Field(**db_id_kwargs)
+#     cid: PodcastSeasonCid = Field(**cid_kwargs)
 
-    title: TitleData
-    seasons: conset(PodcastProgram, min_length=1, max_length=50)
-    trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
-    tags: conset(str, max_length=10)
-    cover_artwork: Optional[AnyImageRelease]
-    other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
+#     title: TitleData
+#     episodes: conset(PodcastProgram, min_length=2, max_length=42)
+#     trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
+#     tags: conset(str, max_length=10)
+#     cover_artwork: Optional[AnyImageRelease]
+#     other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
+
+
+# PodcastEpisodicSeriesId = Annotated[MongoId, id_schema('a string representing a podcast episodic series id')]
+# PodcastEpisodicSeriesCid = Annotated[ContentIdType, id_schema('a string representing a podcast episodic series content id')]
+
+# class PodcastEpisodicSeries(ContentModel):
+#     MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_episodic_series'
+
+#     id: PodcastEpisodicSeriesId = Field(**db_id_kwargs)
+#     cid: PodcastEpisodicSeriesCid = Field(**cid_kwargs)
+
+#     title: TitleData
+#     seasons: conset(PodcastProgram, min_length=1, max_length=50)
+#     trailers: conset(AnyAudioRelease, min_length=0, max_length=10)
+#     tags: conset(str, max_length=10)
+#     cover_artwork: Optional[AnyImageRelease]
+#     other_artwork: Optional[conset(AnyReleaseCid, min_length=0, max_length=25)]
 
 
 
@@ -660,8 +657,6 @@ class VideoProgramType(StrEnum):
     short = 'short'
     trailer = 'trailer'
     music_Video = 'music_video'
-
-AnyVideoFile = Union[VideoFile, VideoFileCid]
 
 VideoProgramId = Annotated[MongoId, id_schema('a string representing a video program id')]
 VideoProgramCid = Annotated[ContentIdType, id_schema('a string representing a video program content id')]
@@ -732,13 +727,6 @@ VideoMiniSeriesCid = Annotated[ContentIdType, id_schema('a string representing a
 class VideoMiniSeries(VideoSeason):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_mini_series'
 
-
-# VideoPodcastSeriesId = Annotated[MongoId, id_schema('a string representing a video podcast series id')]
-# VideoPodcastSeriesCid = Annotated[ContentIdType, id_schema('a string representing a video podcast series content id')]
-
-# class VideoPodcastSeries(VideoSeason):
-#     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_podcast_series'
-
 # video episodic series #
 
 VideoSeriesId = Annotated[MongoId, id_schema('a string representing a video series id')]
@@ -782,22 +770,7 @@ class VideoSeries(ContentModel):
 # # audio #
 
     
-# AudioReleaseId = Annotated[MongoId, id_schema('a string representing an audio release id')]
-# AudioReleaseCid = Annotated[ContentIdType, id_schema('a string representing an audio release id')]
 
-# class AudioRelease(ContentModel):
-#     MONGO_COLLECTION_NAME: ClassVar[str] = 'audio_release'
-
-#     id: AudioReleaseId = Field(**db_id_kwargs)
-#     cid: AudioReleaseCid = Field(**cid_kwargs)
-
-#     title: TitleData
-#     creator: Union[ArtistCid, ArtistGroupCid]
-#     credits: conset(Credit, max_length=15)
-#     tags: conset(str, max_length=10)
-
-#     master: Union[AudioFile, AudioFileCid]
-#     alt_formats: conset(Union[AudioFile, AudioFileCid], min_length=1, max_length=10)
 
 
 # # video #
