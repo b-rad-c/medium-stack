@@ -15,6 +15,8 @@ from mcore.models import (
     FileUploadTypes
 )
 
+from mart.models import *
+
 import requests
 from requests.exceptions import RequestException
 
@@ -148,3 +150,37 @@ class MStackClient:
                     on_update(uploader)
 
         return uploader
+
+    # mart - artists #
+
+    def create_artist(self, artist_creator: ArtistCreator) -> Artist:
+        data = self._post('mart/artists', json=artist_creator.model_dump())
+        return Artist(**data)
+    
+    def read_artist(self, id:str = None, cid:str = None) -> Artist:
+        url = self._model_id_type_url('mart/artists', id, cid)
+        data = self._get(url)
+        return Artist(**data)
+
+    def delete_artist(self, id:str = None, cid:str = None) -> None:
+        self._delete(self._model_id_type_url('mart/artists', id, cid))
+    
+    def list_artists(self, offset:int=0, size:int=50) -> List[Artist]:
+        data = self._get('mart/artists', params={'offset': offset, 'size': size})
+        return [Artist(**artist) for artist in data]
+
+    def create_artist_group(self, artist_group_creator: ArtistGroupCreator) -> ArtistGroup:
+        data = self._post('mart/artist-groups', json=artist_group_creator.model_dump())
+        return ArtistGroup(**data)
+    
+    def read_artist_group(self, id:str = None, cid:str = None) -> ArtistGroup:
+        url = self._model_id_type_url('mart/artist-groups', id, cid)
+        data = self._get(url)
+        return ArtistGroup(**data)
+    
+    def delete_artist_group(self, id:str = None, cid:str = None) -> None:
+        self._delete(self._model_id_type_url('mart/artist-groups', id, cid))
+    
+    def list_artist_groups(self, offset:int=0, size:int=50) -> List[ArtistGroup]:
+        data = self._get('mart/artist-groups', params={'offset': offset, 'size': size})
+        return [ArtistGroup(**artist_group) for artist_group in data]

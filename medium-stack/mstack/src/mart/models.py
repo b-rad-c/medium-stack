@@ -3,12 +3,14 @@ from enum import StrEnum
 from pydantic import BaseModel, Field, conlist, model_validator
 
 from mcore.types import TagList, unique_list_validator
+from mcore.util import example_cid
 
 from mcore.models import (
     MongoId, 
     ContentModel, 
     ContentIdType, 
     ModelCreator,
+    User,
     UserCid,
 
     AnyImageRelease,
@@ -143,6 +145,7 @@ ArtistCid = Annotated[ContentIdType, id_schema('a string representing an artist 
 
 class Artist(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'artists'
+    API_PREFIX: ClassVar[str] = '/artists'
 
     id: ArtistId = Field(**db_id_kwargs)
     cid: ArtistCid = Field(**cid_kwargs)
@@ -163,7 +166,7 @@ class Artist(ContentModel):
                 {
                     'id': '6546a5cd1a209851b7136441',
                     'cid': '0SXvy_2EV0Pm6YAmfznDb5nwT4l7RfIXN9RNe9v279vk707.json',
-                    'user_cid': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
+                    'user_cid': str(example_cid(User)),
                     'name': 'Frida Kahlo',
                     'short_name': 'Kahlo',
                     'abreviated_name': 'FK',
@@ -186,8 +189,6 @@ class ArtistCreator(ModelCreator):
 
     MODEL: ClassVar[Type[Artist]] = Artist
 
-    user_cid: UserCid = Field(**cid_kwargs)
-
     name: str = Field(min_length=1, max_length=300)
     short_name: str = Field(min_length=1, max_length=50)
     abreviated_name: str = Field(max_length=10)
@@ -201,7 +202,6 @@ class ArtistCreator(ModelCreator):
         'json_schema_extra': {
             'examples': [
                 {
-                    'user_cid': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
                     'name': 'Frida Kahlo',
                     'short_name': 'Kahlo',
                     'abreviated_name': 'FK',
@@ -228,9 +228,11 @@ ArtistList = Annotated[
 
 class ArtistGroup(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'artist_groups'
+    API_PREFIX: ClassVar[str] = '/artist-groups'
 
     id: ArtistGroupId = Field(**db_id_kwargs)
     cid: ArtistGroupCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
 
     name: str = Field(min_length=1, max_length=300)
     short_name: str = Field(min_length=1, max_length=50)
@@ -248,7 +250,8 @@ class ArtistGroup(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
-                    'cid': '0YWW27Y2VyeUhF0wWV3Ym-hiYsMkXEK2uKeVD7XWQBgg684.json',
+                    'cid': '0DuHIdrOYrCcHt2WMuBQP7-9xI6mp8sdeWRu8RnBjdTI752.json',
+                    'user_cid': str(example_cid(User)),
                     'name': 'The Beatles',
                     'short_name': 'The Beatles',
                     'abreviated_name': 'TB',
@@ -340,7 +343,6 @@ AnyMedia = Union[
     'AnyPodcast',
 ]
 
-
 CreditList = Annotated[
     conlist(Credit, min_length=1, max_length=100), 
     unique_list_validator, 
@@ -358,7 +360,6 @@ TrailerList = Annotated[
     unique_list_validator,
     id_schema('a unique list of video or audio file cids')
 ]
-
 
 OtherArtworkList = Annotated[
     None | conlist(AnyMedia, min_length=1, max_length=25),

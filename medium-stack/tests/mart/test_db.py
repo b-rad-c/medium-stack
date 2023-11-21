@@ -4,14 +4,14 @@ from mart.models import *
 
 def test_artist():
     artist_creator = example_model(ArtistCreator)
-    artist = artist_creator.create_model()
+    artist = artist_creator.create_model(user_cid=user_cid)
     artist_cid = example_cid(Artist)
     _test_db_crud(artist, artist_cid, Artist)
     _test_db_pagination(artist, Artist)
 
 def test_artist_group():
     artist_group_creator = example_model(ArtistGroupCreator)
-    artist_group = artist_group_creator.create_model()
+    artist_group = artist_group_creator.create_model(user_cid=user_cid)
     artist_group_cid = example_cid(ArtistGroup)
     _test_db_crud(artist_group, artist_group_cid, ArtistGroup)
     _test_db_pagination(artist_group, ArtistGroup)

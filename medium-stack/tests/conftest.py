@@ -1,5 +1,6 @@
-from typing import Type
+from typing import Type, Callable
 
+from mcore.client import *
 from mcore.types import ContentId
 from mcore.models import *
 from mcore.db import MongoDB
@@ -17,6 +18,7 @@ from bson import ObjectId
 __all__ = [
     'ObjectId',
     'SAMPLE_BIN',
+    'user_cid',
 
     'reset_collection',
     'example_model',
@@ -29,7 +31,9 @@ __all__ = [
 
     '_test_db_does_not_exist',
     '_test_db_crud',
-    '_test_db_pagination'
+    '_test_db_pagination',
+
+    '_test_client_crud_ops'
 ]
 
 
@@ -37,6 +41,9 @@ SAMPLE_BIN = Path(__file__).parent / 'samples'
 
 db = MongoDB.from_cache()
 
+user_cid = example_cid(User)
+
+mstack = MStackClient()
 
 #
 # helpers
@@ -119,7 +126,7 @@ def _test_model_creator_and_examples(model_type, model_creator_type:ModelCreator
     
     for example in examples:
         model_creator:ModelCreator = model_creator_type(**example)
-        model = model_creator.create_model()
+        model = model_creator.create_model(user_cid=example_cid(User))
         assert isinstance(model, model_type)
 
 
@@ -237,6 +244,123 @@ def _test_db_pagination(model:BaseModel, model_type:Type):
             total += 1
 
     assert total == 10
+
+    reset_collection(model_type)
+
+
+#
+# reusable client tests
+#
+
+def _check_client_response_id(mstack:MStackClient):
+    data = mstack.response.json()
+    if isinstance(data, list):
+        for item in data:
+            assert '_id' not in item
+            assert 'id' in item
+    elif isinstance(data, dict):
+        assert '_id' not in data
+        assert 'id' in data
+    else:
+        raise Exception('Invalid response type')
+
+def _test_client_crud_ops(
+        model_type:ContentModel, 
+        model_creator:ModelCreator, 
+        create_op:Callable, 
+        list_op:Callable,
+        read_op:Callable,
+        delete_op:Callable,
+    ):
+
+    # init #
+
+    reset_collection(model_type)
+
+    # create #
+
+    for _ in range(10):
+        created_model = create_op(example_model(model_creator))
+        assert isinstance(created_model, model_type)
+        _check_client_response_id(mstack)
+
+    # list #
+
+    model_list = list_op()
+    assert len(model_list) == 10
+    for model in model_list:
+        assert isinstance(model, model_type)
+    
+    _check_client_response_id(mstack)
+
+    # pagination by 10 #
+
+    assert len(list_op(offset=0, size=10)) == 10
+    _check_client_response_id(mstack)
+
+    # pagination by 5 #
+
+    total = 0
+    for offset in range(0, 10, 5):
+        for model in list_op(offset=offset, size=5):
+            assert isinstance(model, model_type)
+            total += 1
+
+    assert total == 10
+    _check_client_response_id(mstack)
+
+    # pagination by 3 #
+
+    total = 0
+    for offset in range(0, 10, 3):
+        for model in list_op(offset=offset, size=3):
+            assert isinstance(model, model_type)
+            total += 1
+
+    assert total == 10
+    _check_client_response_id(mstack)
+
+    # read #
+
+    reset_collection(model_type)
+
+    model = create_op(example_model(model_creator))
+
+    read_by_id = read_op(id=model.id)
+    assert read_by_id == model
+    _check_client_response_id(mstack)
+
+    read_by_cid = read_op(cid=model.cid)
+    assert read_by_cid == model
+    _check_client_response_id(mstack)
+
+    # delete by id #
+
+    result = delete_op(id=model.id)
+    assert result is None
+    assert mstack.response.status_code == 201
+
+    result = delete_op(id=model.id)    # run delete again because the endpoint is designed 
+    assert result is None                       # to return the same response if the item was already deleted
+    assert mstack.response.status_code == 201
+
+    with pytest.raises(NotFoundError):
+        read_op(id=model.id)
+
+    # delete by cid #
+
+    model = create_op(example_model(model_creator))
+
+    result = delete_op(cid=model.cid)
+    assert result is None
+    assert mstack.response.status_code == 201
+
+    result = delete_op(cid=model.cid)
+    assert result is None
+    assert mstack.response.status_code == 201
+
+    with pytest.raises(NotFoundError):
+        read_op(cid=model.cid)
 
     reset_collection(model_type)
 

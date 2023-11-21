@@ -1,15 +1,14 @@
 # TO DO
-+ unittests for artist/artist group/credits/title/image release
++ mart router
 + UI
-+ add mock user auth
-+ add actual auth
-+ test upload cleanup process
 + text editing
     + find text editing libray
     + update backend TextFile model for text editor serialilization format
     + implement front end editor for text file editing
     + incorporate TextFile with mart models
-
++ add mock user auth
++ add actual auth
++ test upload cleanup process
 + add update functions to models, create & modified timestamps, and integrate changes with versionable CID
 + add ACLs for CRUD operations
 
@@ -19,5 +18,3 @@
 ### links
 
 https://choosealicense.com
-
-https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#custom-discovery

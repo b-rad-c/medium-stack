@@ -5,6 +5,7 @@ from os import environ
 from os.path import join
 
 from mserve.core import core_router
+from mserve.mart import mart_router
 from mcore.util import utc_now
 
 from fastapi import FastAPI, APIRouter
@@ -32,6 +33,7 @@ def env_to_bool(variable_name:str, default_value:str) -> bool:
 MSERVE_VERSION = environ.get('MSERVE_VERSION', '-')
 MSERVE_INCLUDE_MAIN = env_to_bool('MSERVE_INCLUDE_MAIN', '1')
 MSERVE_INCLUDE_CORE = env_to_bool('MSERVE_INCLUDE_CORE', '1')
+MSERVE_INCLUDE_MART = env_to_bool('MSERVE_INCLUDE_MART', '1')
 
 API_PREFIX = '/api/v0'
 
@@ -61,3 +63,6 @@ if MSERVE_INCLUDE_MAIN:
 
 if MSERVE_INCLUDE_CORE:
     app.include_router(core_router, prefix=join(API_PREFIX, 'core'))
+
+if MSERVE_INCLUDE_MART:
+    app.include_router(mart_router, prefix=join(API_PREFIX, 'mart'))
