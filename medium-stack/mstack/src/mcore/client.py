@@ -184,3 +184,37 @@ class MStackClient:
     def list_artist_groups(self, offset:int=0, size:int=50) -> List[ArtistGroup]:
         data = self._get('mart/artist-groups', params={'offset': offset, 'size': size})
         return [ArtistGroup(**artist_group) for artist_group in data]
+
+    # mart - still images #
+
+    def create_still_image(self, still_image_creator: StillImageCreator) -> StillImage:
+        data = self._post('mart/still-images', json=still_image_creator.model_dump())
+        return StillImage(**data)
+    
+    def read_still_image(self, id:str = None, cid:str = None) -> StillImage:
+        url = self._model_id_type_url('mart/still-images', id, cid)
+        data = self._get(url)
+        return StillImage(**data)
+    
+    def delete_still_image(self, id:str = None, cid:str = None) -> None:
+        self._delete(self._model_id_type_url('mart/still-images', id, cid))
+    
+    def list_still_images(self, offset:int=0, size:int=50) -> List[StillImage]:
+        data = self._get('mart/still-images', params={'offset': offset, 'size': size})
+        return [StillImage(**still_image) for still_image in data]
+    
+    def create_still_image_album(self, still_image_album_creator: StillImageAlbumCreator) -> StillImageAlbum:
+        data = self._post('mart/still-image-albums', json=still_image_album_creator.model_dump())
+        return StillImageAlbum(**data)
+    
+    def read_still_image_album(self, id:str = None, cid:str = None) -> StillImageAlbum:
+        url = self._model_id_type_url('mart/still-image-albums', id, cid)
+        data = self._get(url)
+        return StillImageAlbum(**data)
+    
+    def delete_still_image_album(self, id:str = None, cid:str = None) -> None:
+        self._delete(self._model_id_type_url('mart/still-image-albums', id, cid))
+    
+    def list_still_image_albums(self, offset:int=0, size:int=50) -> List[StillImageAlbum]:
+        data = self._get('mart/still-image-albums', params={'offset': offset, 'size': size})
+        return [StillImageAlbum(**still_image_album) for still_image_album in data]

@@ -1,4 +1,4 @@
-from typing import Annotated, ClassVar, Union, Optional, Type, List
+from typing import Annotated, ClassVar, Union, Optional, Type
 from enum import StrEnum
 from pydantic import BaseModel, Field, conlist, model_validator
 
@@ -14,9 +14,7 @@ from mcore.models import (
     UserCid,
 
     AnyImageRelease,
-    AnyAudioFile,
     AnyAudioRelease,
-    AnyVideoFile,
     AnyVideoRelease,
     AnyAVRelease,
     AnyTextFile,
@@ -58,6 +56,7 @@ __all__ = [
     'StillImageAlbumId',
     'StillImageAlbumCid',
     'StillImageAlbum',
+    'AnyStillImageAlbum',
     'StillImageAlbumCreator',
 
     'SongId',
@@ -330,7 +329,6 @@ class Credit(BaseModel):
         }
     }
 
-
 AnyMedia = Union[
     AnyRelease, 
     'AnyStillImage', 
@@ -401,93 +399,6 @@ class TitleData(BaseModel):
 # still image art
 #
 
-StillImageId = Annotated[MongoId, id_schema('a string representing a still image id')]
-StillImageCid = Annotated[ContentIdType, id_schema('a string representing a still image id')]
-
-
-class StillImage(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'still_image'
-
-    id: StillImageId = Field(**db_id_kwargs)
-    cid: StillImageCid = Field(**cid_kwargs)
-
-    creator_id: AnyArtist
-
-    release: AnyImageRelease
-
-    title: Optional[TitleData]
-    credits: Optional[Credit]
-    genres: GenreList
-    tags: TagList
-    album: Optional['AnyStillImageAlbum']
-
-    alt_text: Optional[str]
-
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0ajFSQpuyKrubp4oGAhuAVS9LQtJ-TYuTdPkE-vnoaQA576.json',
-                    'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                    'release': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                    'title': {
-                        'title': 'My cool Painting'
-                    },
-                    'credits': {
-                        'role': 'painter',
-                        'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
-                    },
-                    'genres': ['surrealism', 'painting'],
-                    'tags': ['surrealism', 'painting', 'oil painting'],
-                    'album': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                    'alt_text': 'a surrealistic oil painting'
-                }
-            ]
-        }
-    }
-
-
-class StillImageCreator(ModelCreator):
-    MODEL: ClassVar[Type[StillImage]] = StillImage
-
-    creator_id: AnyArtist
-
-    release: AnyImageRelease
-
-    title: Optional[TitleData]
-    credits: Optional[Credit]
-    genres: GenreList
-    tags: TagList
-    album: Optional['AnyStillImageAlbum']
-
-    alt_text: Optional[str]
-
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                    'release': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                    'title': {
-                        'title': 'My cool Painting'
-                    },
-                    'credits': {
-                        'role': 'painter',
-                        'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
-                    },
-                    'genres': ['surrealism', 'painting'],
-                    'tags': ['surrealism', 'painting', 'oil painting'],
-                    'album': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                    'alt_text': 'a surrealistic oil painting'
-                }
-            ]
-        }
-    }
-
-
-AnyStillImage = Union[StillImage, StillImageCid]
-
 StillImageAlbumId = Annotated[MongoId, id_schema('a string representing a still image album id')]
 StillImageAlbumCid = Annotated[ContentIdType, id_schema('a string representing a still image album content id')]
 
@@ -500,6 +411,7 @@ albums can be arbitrarily large without bloating the StillImage model. This allo
 
 class StillImageAlbum(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'still_image_album'
+    API_PREFIX: ClassVar[str] = '/still-image-albums'
 
     id: StillImageAlbumId = Field(**db_id_kwargs)
     cid: StillImageAlbumCid = Field(**cid_kwargs)
@@ -564,6 +476,95 @@ class StillImageAlbumCreator(ModelCreator):
             ]
         }
     }
+
+
+StillImageId = Annotated[MongoId, id_schema('a string representing a still image id')]
+StillImageCid = Annotated[ContentIdType, id_schema('a string representing a still image id')]
+
+
+class StillImage(ContentModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'still_image'
+    API_PREFIX: ClassVar[str] = '/still-images'
+
+    id: StillImageId = Field(**db_id_kwargs)
+    cid: StillImageCid = Field(**cid_kwargs)
+
+    creator_id: AnyArtist
+
+    release: AnyImageRelease
+
+    title: Optional[TitleData]
+    credits: Optional[Credit]
+    genres: GenreList
+    tags: TagList
+    album: Optional['AnyStillImageAlbum']
+
+    alt_text: Optional[str]
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0ajFSQpuyKrubp4oGAhuAVS9LQtJ-TYuTdPkE-vnoaQA576.json',
+                    'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                    'release': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                    'title': {
+                        'title': 'My cool Painting'
+                    },
+                    'credits': {
+                        'role': 'painter',
+                        'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
+                    },
+                    'genres': ['surrealism', 'painting'],
+                    'tags': ['surrealism', 'painting', 'oil painting'],
+                    'album': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                    'alt_text': 'a surrealistic oil painting'
+                }
+            ]
+        }
+    }
+
+
+class StillImageCreator(ModelCreator):
+    MODEL: ClassVar[Type[StillImage]] = StillImage
+
+    creator_id: AnyArtist
+
+    release: AnyImageRelease
+
+    title: Optional[TitleData]
+    credits: Optional[Credit]
+    genres: GenreList
+    tags: TagList
+    album: Optional[AnyStillImageAlbum] = None
+
+    alt_text: Optional[str]
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                    'release': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                    'title': {
+                        'title': 'My cool Painting'
+                    },
+                    'credits': {
+                        'role': 'painter',
+                        'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
+                    },
+                    'genres': ['surrealism', 'painting'],
+                    'tags': ['surrealism', 'painting', 'oil painting'],
+                    'album': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                    'alt_text': 'a surrealistic oil painting'
+                }
+            ]
+        }
+    }
+
+
+AnyStillImage = Union[StillImage, StillImageCid]
 
 
 #

@@ -5,7 +5,7 @@ from os import environ
 from os.path import join
 
 from mserve.core import core_router
-from mserve.mart import mart_router
+from mserve.mart import *
 from mcore.util import utc_now
 
 from fastapi import FastAPI, APIRouter
@@ -65,4 +65,5 @@ if MSERVE_INCLUDE_CORE:
     app.include_router(core_router, prefix=join(API_PREFIX, 'core'))
 
 if MSERVE_INCLUDE_MART:
-    app.include_router(mart_router, prefix=join(API_PREFIX, 'mart'))
+    app.include_router(artist_router, prefix=join(API_PREFIX, 'mart'))
+    app.include_router(still_image_router, prefix=join(API_PREFIX, 'mart'))
