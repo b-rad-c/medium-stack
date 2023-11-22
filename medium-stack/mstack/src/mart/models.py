@@ -1,4 +1,4 @@
-from typing import Annotated, ClassVar, Union, Optional, Type, ForwardRef
+from typing import Annotated, ClassVar, Union, Optional, Type
 from enum import StrEnum
 from pydantic import BaseModel, Field, conlist, model_validator
 
@@ -920,8 +920,6 @@ class VideoSeriesCreator(ModelCreator):
 #
 
 
-
-
 class Song(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'songs'
     API_PREFIX: ClassVar[str] = '/songs'
@@ -1091,7 +1089,6 @@ class MusicAlbumCreator(ModelCreator):
 #
 
 # podcast episode #
-
 
 
 class PodcastEpisode(ContentModel):
@@ -1354,7 +1351,6 @@ class PodcastCreator(ModelCreator):
     }
 
 
-
 # # text document #
 
 
@@ -1433,15 +1429,3 @@ class PodcastCreator(ModelCreator):
 #     type: TextPublicationType
 #     series: conset(TextSeries, min_length=1)
 #     tags: conset(str, max_length=10)
-
-
-# if __name__ == '__main__':
-#     import inspect
-
-#     for key, value in inspect.get_annotations(VideoRelease).items():
-#         try:
-#             if issubclass(value.__args__[0].__class__, BaseModel.__class__):
-#                 if value.__args__[1].__args__[0] is ContentIdType:
-#                     print(key, value.__args__)
-#         except (AttributeError, IndexError):
-#             pass
