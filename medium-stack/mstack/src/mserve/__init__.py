@@ -67,3 +67,6 @@ if MSERVE_INCLUDE_CORE:
 if MSERVE_INCLUDE_MART:
     app.include_router(artist_router, prefix=join(API_PREFIX, 'mart'))
     app.include_router(still_image_router, prefix=join(API_PREFIX, 'mart'))
+    app.include_router(video_router, prefix=join(API_PREFIX, 'mart'))
+    app.include_router(music_router, prefix=join(API_PREFIX, 'mart'))
+    app.include_router(podcast_router, prefix=join(API_PREFIX, 'mart'))

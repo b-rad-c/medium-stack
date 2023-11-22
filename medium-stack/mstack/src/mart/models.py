@@ -1,4 +1,6 @@
-from typing import Annotated, ClassVar, Union, Optional, Type
+# from __future__ import annotations
+
+from typing import Annotated, ClassVar, Union, Optional, Type, ForwardRef
 from enum import StrEnum
 from pydantic import BaseModel, Field, conlist, model_validator
 
@@ -59,39 +61,6 @@ __all__ = [
     'AnyStillImageAlbum',
     'StillImageAlbumCreator',
 
-    'SongId',
-    'SongCid',
-    'Song',
-    'SongCreator',
-
-    'MusicAlbumType',
-    'AnySong',
-    'MusicAlbumId',
-    'MusicAlbumCid',
-    'MusicAlbumSongList',
-    'MusicAlbum',
-    'MusicAlbumCreator',
-
-    'PodcastEpisodeId',
-    'PodcastEpisodeCid',
-    'PodcastEpisode',
-    'PodcastEpisodeCreator',
-    'AnyPodcastEpisode',
-
-    'PodcastSeasonId',
-    'PodcastSeasonCid',
-    'PodcastEpisodeList',
-    'PodcastSeason',
-    'PodcastSeasonCreator',
-    'AnyPodcastSeason',
-
-    'PodcastId',
-    'PodcastCid',
-    'PodcastSeasonList',
-    'Podcast',
-    'PodcastCreator',
-    'AnyPodcast',
-
     'VideoProgramType',
     'VideoProgramId',
     'VideoProgramCid',
@@ -117,6 +86,36 @@ __all__ = [
     'VideoSeasonList',
     'VideoSeries',
     'VideoSeriesCreator',
+
+    'SongId',
+    'SongCid',
+    'Song',
+    'SongCreator',
+
+    'MusicAlbumType',
+    'AnySong',
+    'MusicAlbumId',
+    'MusicAlbumCid',
+    'MusicAlbumSongList',
+    'MusicAlbum',
+    'MusicAlbumCreator',
+
+    'PodcastEpisodeId',
+    'PodcastEpisodeCid',
+    'PodcastEpisode',
+    'PodcastEpisodeCreator',
+
+    'PodcastSeasonId',
+    'PodcastSeasonCid',
+    'PodcastEpisodeList',
+    'PodcastSeason',
+    'PodcastSeasonCreator',
+
+    'PodcastId',
+    'PodcastCid',
+    'PodcastSeasonList',
+    'Podcast',
+    'PodcastCreator'
 ]
 
 #
@@ -329,17 +328,32 @@ class Credit(BaseModel):
         }
     }
 
-AnyMedia = Union[
-    AnyRelease, 
-    'AnyStillImage', 
-    'AnyStillImageAlbum',
-    'AnySong',
-    'AnyMusicAlbum',
-    'AnyVideoProgram',
-    'AnyPodcastEpisode',
-    'AnyPodcastSeason',
-    'AnyPodcast',
-]
+# AnyMedia = ForwardRef('AnyMedia')
+# OtherArtworkList = ForwardRef('OtherArtworkList')
+
+# AnyMedia = Union[
+#     AnyRelease, 
+#     'AnyStillImage', 
+#     'AnyStillImageAlbum',
+#     'AnySong',
+#     'AnyMusicAlbum',
+#     'AnyVideoProgram',
+#     'AnyPodcastEpisode',
+#     'AnyPodcastSeason',
+#     'AnyPodcast',
+# ]
+
+# AnyMedia = """Union[
+#     'AnyRelease', 
+#     'AnyStillImage', 
+#     'AnyStillImageAlbum',
+#     'AnySong',
+#     'AnyMusicAlbum',
+#     'AnyVideoProgram',
+#     'AnyPodcastEpisode',
+#     'AnyPodcastSeason',
+#     'AnyPodcast',
+# ]"""
 
 CreditList = Annotated[
     conlist(Credit, min_length=1, max_length=100), 
@@ -359,8 +373,14 @@ TrailerList = Annotated[
     id_schema('a unique list of video or audio file cids')
 ]
 
+# OtherArtworkList = Annotated[
+#     None | conlist(AnyMedia, min_length=1, max_length=25),
+#     unique_list_validator, 
+#     id_schema('a unique list of media cids')
+# ]
+
 OtherArtworkList = Annotated[
-    None | conlist(AnyMedia, min_length=1, max_length=25),
+    None | conlist(ContentIdType, min_length=1, max_length=25),
     unique_list_validator, 
     id_schema('a unique list of media cids')
 ]
@@ -497,7 +517,7 @@ class StillImage(ContentModel):
     credits: Optional[Credit]
     genres: GenreList
     tags: TagList
-    album: Optional['AnyStillImageAlbum']
+    album: Optional[AnyStillImageAlbum]
 
     alt_text: Optional[str]
 
@@ -566,461 +586,6 @@ class StillImageCreator(ModelCreator):
 
 AnyStillImage = Union[StillImage, StillImageCid]
 
-
-#
-# music
-#
-
-
-SongId = Annotated[MongoId, id_schema('a string representing a song id')]
-SongCid = Annotated[ContentIdType, id_schema('a string representing a song content id')]
-
-class Song(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'songs'
-
-    id: SongId = Field(**db_id_kwargs)
-    cid: SongCid = Field(**cid_kwargs)
-
-    title: TitleData
-    release: AnyAudioRelease
-    genres: GenreList
-    tags: TagList
-    music_video: Optional['AnyVideoProgram']
-    cover_artwork: Optional[AnyStillImage]
-    other_artwork: OtherArtworkList
-    lyrics: Optional[AnyTextFile]
-
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '01iEnTt6YHwLaaKTVu3zTWCvn54gXkWfpuSyDoVn68Nw613.json',
-                    'title': {
-                        'title': 'My cool Song'
-                    },
-                    'release': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                    'genres': ['rock', 'blues'],
-                    'tags': ['rock', 'blues', 'guitar'],
-                    'music_video': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                    'cover_artwork': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                    'other_artwork': [
-                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
-                    ],
-                    'lyrics': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
-                }
-            ]
-        }
-    }
-
-
-class SongCreator(ModelCreator):
-    MODEL: ClassVar[Type[Song]] = Song
-
-    title: TitleData
-    release: AnyAudioRelease
-    genres: GenreList
-    tags: TagList
-    music_video: Optional['AnyVideoProgram']
-    cover_artwork: Optional[AnyStillImage]
-    other_artwork: OtherArtworkList
-    lyrics: Optional[AnyTextFile]
-
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'title': {
-                        'title': 'My cool Song'
-                    },
-                    'release': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                    'genres': ['rock', 'blues'],
-                    'tags': ['rock', 'blues', 'guitar'],
-                    'music_video': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                    'cover_artwork': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                    'other_artwork': [
-                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
-                    ],
-                    'lyrics': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
-                }
-            ]
-        }
-    }
-
-
-class MusicAlbumType(StrEnum):
-    album = 'album'
-    ep = 'ep'
-
-AnySong = Union[Song, SongCid]
-
-MusicAlbumId = Annotated[MongoId, id_schema('a string representing a music album id')]
-MusicAlbumCid = Annotated[ContentIdType, id_schema('a string representing a music album content id')]
-
-MusicAlbumSongList = Annotated[
-    conlist(AnySong, min_length=1, max_length=50),
-    unique_list_validator, 
-    id_schema('a unique list of artist cids')
-]
-
-class MusicAlbum(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'music_albums'
-
-    id: MusicAlbumId = Field(**db_id_kwargs)
-    cid: MusicAlbumCid = Field(**cid_kwargs)
-
-    title: TitleData
-    type: MusicAlbumType
-    genres: GenreList
-    tags: TagList
-    songs: MusicAlbumSongList
-    cover_artwork: Optional[AnyStillImage]
-    other_artwork: OtherArtworkList
-
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'title': {
-                        'title': 'My cool Album'
-                    },
-                    'type': 'ep',
-                    'genres': ['rock', 'blues'],
-                    'tags': ['rock', 'blues', 'guitar'],
-                    'songs': [
-                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
-                    ],
-                    'cover_artwork': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                    'other_artwork': [
-                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
-                    ]
-                }
-            ]
-        }
-    }
-
-AnyMusicAlbum = Union[MusicAlbum, MusicAlbumCid]
-
-
-class MusicAlbumCreator(ModelCreator):
-    MODEL: ClassVar[Type[MusicAlbum]] = MusicAlbum
-
-    title: TitleData
-    type: MusicAlbumType
-    genres: GenreList
-    tags: TagList
-    songs: MusicAlbumSongList
-    cover_artwork: Optional[AnyStillImage]
-    other_artwork: OtherArtworkList
-
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'title': {
-                        'title': 'My cool Album'
-                    },
-                    'type': 'ep',
-                    'genres': ['rock', 'blues'],
-                    'tags': ['rock', 'blues', 'guitar'],
-                    'songs': [
-                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
-                    ],
-                    'cover_artwork': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                    'other_artwork': [
-                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
-                    ]
-                }
-            ]
-        }
-    }
-
-
-#
-# podcast
-#
-
-# podcast episode #
-
-PodcastEpisodeId = Annotated[MongoId, id_schema('a string representing a podcast program id')]
-PodcastEpisodeCid = Annotated[ContentIdType, id_schema('a string representing a podcast program content id')]
-
-class PodcastEpisode(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_episode'
-
-    id: PodcastEpisodeId = Field(**db_id_kwargs)
-    cid: PodcastEpisodeCid = Field(**cid_kwargs)
-
-    title: TitleData
-    podcast: 'AnyPodcast'
-
-    program_audio: Optional[AnyAudioRelease] = None
-    program_video: Optional[AnyVideoRelease] = None
-
-    genres: GenreList
-    trailers: TrailerList
-    tags: TagList
-    cover_artwork: Optional[AnyImageRelease] = None
-    other_artwork: OtherArtworkList = None
-
-    @model_validator(mode='after')
-    def has_an_episode(self) -> 'PodcastEpisode':
-        if self.program_audio is None and self.program_video is None:
-            raise ValueError('must provide either an audio or video program')
-        return self
-
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0hx6NJx4sZqTRra4aaOIvAacQHsHFXYWKd27F3CmXZ_c633.json',
-                    'title': {
-                        'title': 'My cool Episode'
-                    },
-                    'podcast': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'program_audio': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'program_video': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'genres': ['politics', 'news'],
-                    'trailers': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'tags': ['us', 'election'],
-                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'other_artwork': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ]
-                }
-            ]
-        }
-    }
-
-AnyPodcastEpisode = Union[PodcastEpisode, PodcastEpisodeCid]
-
-class PodcastEpisodeCreator(ModelCreator):
-    MODEL: ClassVar[Type[PodcastEpisode]] = PodcastEpisode
-
-    title: TitleData
-    podcast: 'AnyPodcast'
-
-    program_audio: Optional[AnyAudioRelease] = None
-    program_video: Optional[AnyVideoRelease] = None
-    
-    genres: GenreList
-    trailers: TrailerList = None
-    tags: TagList
-    cover_artwork: Optional[AnyImageRelease] = None
-    other_artwork: OtherArtworkList = None
-
-    @model_validator(mode='after')
-    def has_an_episode(self) -> 'PodcastEpisodeCreator':
-        if self.program_audio is None and self.program_video is None:
-            raise ValueError('must provide either an audio or video program')
-        return self
-
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'title': {
-                        'title': 'My cool Episode'
-                    },
-                    'podcast': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'program_audio': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'program_video': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'genres': ['politics', 'news'],
-                    'trailers': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'tags': ['us', 'election'],
-                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'other_artwork': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ]
-                }
-            ]
-        }
-    }
-
-PodcastEpisodeList = Annotated[
-    None | conlist(AnyPodcastEpisode, min_length=1, max_length=100),
-    unique_list_validator, 
-    id_schema('a unique list of podcast episode cids')
-]
-
-# podcast season #
-
-PodcastSeasonId = Annotated[MongoId, id_schema('a string representing a podcast season id')]
-PodcastSeasonCid = Annotated[ContentIdType, id_schema('a string representing a podcast season content id')]
-
-class PodcastSeason(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_season'
-
-    id: PodcastSeasonId = Field(**db_id_kwargs)
-    cid: PodcastSeasonCid = Field(**cid_kwargs)
-
-    title: TitleData
-    episodes: PodcastEpisodeList = None
-    trailers: TrailerList = None
-    tags: TagList
-    cover_artwork: Optional[AnyImageRelease] = None
-    other_artwork: OtherArtworkList = None
-
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0cLJq23m8Vpag8kWVW3CBYF1VfKqbu6Cr94lSEDDCGYw457.json',
-                    'title': {
-                        'title': 'My cool Season'
-                    },
-                    'episodes': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'trailers': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'tags': ['us', 'election'],
-                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'other_artwork': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ]
-                }
-            ]
-        }
-    }
-
-AnyPodcastSeason = Union[PodcastSeason, PodcastSeasonCid]
-
-class PodcastSeasonCreator(ModelCreator):
-    MODEL: ClassVar[Type[PodcastSeason]] = PodcastSeason
-
-    title: TitleData
-    episodes: PodcastEpisodeList = None
-    trailers: TrailerList = None
-    tags: TagList
-    cover_artwork: Optional[AnyImageRelease] = None
-    other_artwork: OtherArtworkList = None
-
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'title': {
-                        'title': 'My cool Season'
-                    },
-                    'episodes': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'trailers': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'tags': ['us', 'election'],
-                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'other_artwork': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ]
-                }
-            ]
-        }
-    }
-
-
-PodcastSeasonList = Annotated[
-    None | conlist(AnyPodcastSeason, min_length=1, max_length=100),
-    unique_list_validator, 
-    id_schema('a unique list of podcast season cids')
-]
-
-# podcast #
-
-PodcastId = Annotated[MongoId, id_schema('a string representing a podcast id')]
-PodcastCid = Annotated[ContentIdType, id_schema('a string representing a podcast content id')]
-
-class Podcast(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast'
-
-    id: PodcastId = Field(**db_id_kwargs)
-    cid: PodcastCid = Field(**cid_kwargs)
-
-    title: TitleData
-    seasons: PodcastSeasonList = None
-    trailers: TrailerList = None
-    tags: TagList
-    cover_artwork: Optional[AnyImageRelease] = None
-    other_artwork: OtherArtworkList = None
-
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0AZzUOZfdK0gdYoOjfQ2l4EFJ1Q-lLlrCX68-xzD-n_8457.json',
-                    'title': {
-                        'title': 'My cool Podcast'
-                    },
-                    'seasons': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'trailers': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'tags': ['us', 'election'],
-                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'other_artwork': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ]
-                }
-            ]
-        }
-    }
-
-AnyPodcast = Union[Podcast, PodcastCid]
-
-
-class PodcastCreator(ModelCreator):
-    MODEL: ClassVar[Type[Podcast]] = Podcast
-
-    title: TitleData
-    seasons: PodcastSeasonList = None
-    trailers: TrailerList = None
-    tags: TagList
-    cover_artwork: Optional[AnyImageRelease] = None
-    other_artwork: OtherArtworkList = None
-
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'title': {
-                        'title': 'My cool Podcast'
-                    },
-                    'seasons': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'trailers': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'tags': ['us', 'election'],
-                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'other_artwork': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ]
-                }
-            ]
-        }
-    }
-
-
 #
 # video
 #
@@ -1039,6 +604,7 @@ VideoProgramCid = Annotated[ContentIdType, id_schema('a string representing a vi
 
 class VideoProgram(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_programs'
+    API_PREFIX: ClassVar[str] = '/video-programs'
 
     id: VideoProgramId = Field(**db_id_kwargs)
     cid: VideoProgramCid = Field(**cid_kwargs)
@@ -1137,6 +703,7 @@ VideoEpisodeList = Annotated[
 
 class VideoSeason(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_seasons'
+    API_PREFIX: ClassVar[str] = '/video-seasons'
 
     id: VideoSeasonId = Field(**db_id_kwargs)
     cid: VideoSeasonCid = Field(**cid_kwargs)
@@ -1227,6 +794,7 @@ VideoMiniSeriesCid = Annotated[ContentIdType, id_schema('a string representing a
 
 class VideoMiniSeries(VideoSeason):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_mini_series'
+    API_PREFIX: ClassVar[str] = '/video-mini-series'
 
     model_config = {
         'json_schema_extra': {
@@ -1301,6 +869,7 @@ VideoSeasonList = Annotated[
 
 class VideoSeries(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_series'
+    API_PREFIX: ClassVar[str] = '/video-series'
 
     id: VideoSeriesId = Field(**db_id_kwargs)
     cid: VideoSeriesCid = Field(**cid_kwargs)
@@ -1377,6 +946,462 @@ class VideoSeriesCreator(ModelCreator):
         }
     }
 
+
+#
+# music
+#
+
+
+SongId = Annotated[MongoId, id_schema('a string representing a song id')]
+SongCid = Annotated[ContentIdType, id_schema('a string representing a song content id')]
+
+class Song(ContentModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'songs'
+    API_PREFIX: ClassVar[str] = '/songs'
+
+    id: SongId = Field(**db_id_kwargs)
+    cid: SongCid = Field(**cid_kwargs)
+
+    title: TitleData
+    release: AnyAudioRelease
+    genres: GenreList
+    tags: TagList
+    music_video: Optional[AnyVideoProgram]
+    cover_artwork: Optional[AnyStillImage]
+    other_artwork: OtherArtworkList
+    lyrics: Optional[AnyTextFile]
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '01iEnTt6YHwLaaKTVu3zTWCvn54gXkWfpuSyDoVn68Nw613.json',
+                    'title': {
+                        'title': 'My cool Song'
+                    },
+                    'release': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'genres': ['rock', 'blues'],
+                    'tags': ['rock', 'blues', 'guitar'],
+                    'music_video': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'cover_artwork': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'other_artwork': [
+                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                    ],
+                    'lyrics': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                }
+            ]
+        }
+    }
+
+
+class SongCreator(ModelCreator):
+    MODEL: ClassVar[Type[Song]] = Song
+
+    title: TitleData
+    release: AnyAudioRelease
+    genres: GenreList
+    tags: TagList
+    music_video: Optional[AnyVideoProgram]
+    cover_artwork: Optional[AnyStillImage]
+    other_artwork: OtherArtworkList
+    lyrics: Optional[AnyTextFile]
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': {
+                        'title': 'My cool Song'
+                    },
+                    'release': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'genres': ['rock', 'blues'],
+                    'tags': ['rock', 'blues', 'guitar'],
+                    'music_video': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'cover_artwork': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'other_artwork': [
+                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                    ],
+                    'lyrics': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                }
+            ]
+        }
+    }
+
+
+class MusicAlbumType(StrEnum):
+    album = 'album'
+    ep = 'ep'
+
+AnySong = Union[Song, SongCid]
+
+MusicAlbumId = Annotated[MongoId, id_schema('a string representing a music album id')]
+MusicAlbumCid = Annotated[ContentIdType, id_schema('a string representing a music album content id')]
+
+MusicAlbumSongList = Annotated[
+    conlist(AnySong, min_length=1, max_length=50),
+    unique_list_validator, 
+    id_schema('a unique list of artist cids')
+]
+
+class MusicAlbum(ContentModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'music_albums'
+    API_PREFIX: ClassVar[str] = '/music-albums'
+
+    id: MusicAlbumId = Field(**db_id_kwargs)
+    cid: MusicAlbumCid = Field(**cid_kwargs)
+
+    title: TitleData
+    type: MusicAlbumType
+    genres: GenreList
+    tags: TagList
+    songs: MusicAlbumSongList
+    cover_artwork: Optional[AnyStillImage]
+    other_artwork: OtherArtworkList
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'title': {
+                        'title': 'My cool Album'
+                    },
+                    'type': 'ep',
+                    'genres': ['rock', 'blues'],
+                    'tags': ['rock', 'blues', 'guitar'],
+                    'songs': [
+                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                    ],
+                    'cover_artwork': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'other_artwork': [
+                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                    ]
+                }
+            ]
+        }
+    }
+
+AnyMusicAlbum = Union[MusicAlbum, MusicAlbumCid]
+
+
+class MusicAlbumCreator(ModelCreator):
+    MODEL: ClassVar[Type[MusicAlbum]] = MusicAlbum
+
+    title: TitleData
+    type: MusicAlbumType
+    genres: GenreList
+    tags: TagList
+    songs: MusicAlbumSongList
+    cover_artwork: Optional[AnyStillImage]
+    other_artwork: OtherArtworkList
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': {
+                        'title': 'My cool Album'
+                    },
+                    'type': 'ep',
+                    'genres': ['rock', 'blues'],
+                    'tags': ['rock', 'blues', 'guitar'],
+                    'songs': [
+                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                    ],
+                    'cover_artwork': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                    'other_artwork': [
+                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
+                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
+                    ]
+                }
+            ]
+        }
+    }
+
+
+#
+# podcast
+#
+
+# ids #
+
+PodcastEpisodeId = Annotated[MongoId, id_schema('a string representing a podcast program id')]
+PodcastEpisodeCid = Annotated[ContentIdType, id_schema('a string representing a podcast program content id')]
+PodcastSeasonId = Annotated[MongoId, id_schema('a string representing a podcast season id')]
+PodcastSeasonCid = Annotated[ContentIdType, id_schema('a string representing a podcast season content id')]
+PodcastId = Annotated[MongoId, id_schema('a string representing a podcast id')]
+PodcastCid = Annotated[ContentIdType, id_schema('a string representing a podcast content id')]
+
+# podcast episode #
+
+
+
+class PodcastEpisode(ContentModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_episode'
+    API_PREFIX: ClassVar[str] = '/podcast-episodes'
+
+    id: PodcastEpisodeId = Field(**db_id_kwargs)
+    cid: PodcastEpisodeCid = Field(**cid_kwargs)
+
+    title: TitleData
+    podcast: PodcastCid
+
+    program_audio: Optional[AnyAudioRelease] = None
+    program_video: Optional[AnyVideoRelease] = None
+
+    genres: GenreList
+    trailers: TrailerList
+    tags: TagList
+    cover_artwork: Optional[AnyImageRelease] = None
+    other_artwork: OtherArtworkList = None
+
+    @model_validator(mode='after')
+    def has_an_episode(self) -> 'PodcastEpisode':
+        if self.program_audio is None and self.program_video is None:
+            raise ValueError('must provide either an audio or video program')
+        return self
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0hx6NJx4sZqTRra4aaOIvAacQHsHFXYWKd27F3CmXZ_c633.json',
+                    'title': {
+                        'title': 'My cool Episode'
+                    },
+                    'podcast': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'program_audio': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'program_video': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'genres': ['politics', 'news'],
+                    'trailers': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'tags': ['us', 'election'],
+                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'other_artwork': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ]
+                }
+            ]
+        }
+    }
+
+
+class PodcastEpisodeCreator(ModelCreator):
+    MODEL: ClassVar[Type[PodcastEpisode]] = PodcastEpisode
+
+    title: TitleData
+    podcast: PodcastCid
+
+    program_audio: Optional[AnyAudioRelease] = None
+    program_video: Optional[AnyVideoRelease] = None
+    
+    genres: GenreList
+    trailers: TrailerList = None
+    tags: TagList
+    cover_artwork: Optional[AnyImageRelease] = None
+    other_artwork: OtherArtworkList = None
+
+    @model_validator(mode='after')
+    def has_an_episode(self) -> 'PodcastEpisodeCreator':
+        if self.program_audio is None and self.program_video is None:
+            raise ValueError('must provide either an audio or video program')
+        return self
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': {
+                        'title': 'My cool Episode'
+                    },
+                    'podcast': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'program_audio': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'program_video': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'genres': ['politics', 'news'],
+                    'trailers': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'tags': ['us', 'election'],
+                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'other_artwork': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ]
+                }
+            ]
+        }
+    }
+
+PodcastEpisodeList = Annotated[
+    None | conlist(PodcastEpisodeCid, min_length=1, max_length=100),
+    unique_list_validator, 
+    id_schema('a unique list of podcast episode cids')
+]
+
+# podcast season #
+
+class PodcastSeason(ContentModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast_season'
+    API_PREFIX: ClassVar[str] = '/podcast-seasons'
+
+    id: PodcastSeasonId = Field(**db_id_kwargs)
+    cid: PodcastSeasonCid = Field(**cid_kwargs)
+
+    title: TitleData
+    episodes: PodcastEpisodeList = None
+    trailers: TrailerList = None
+    tags: TagList
+    cover_artwork: Optional[AnyImageRelease] = None
+    other_artwork: OtherArtworkList = None
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0cLJq23m8Vpag8kWVW3CBYF1VfKqbu6Cr94lSEDDCGYw457.json',
+                    'title': {
+                        'title': 'My cool Season'
+                    },
+                    'episodes': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'trailers': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'tags': ['us', 'election'],
+                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'other_artwork': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ]
+                }
+            ]
+        }
+    }
+
+class PodcastSeasonCreator(ModelCreator):
+    MODEL: ClassVar[Type[PodcastSeason]] = PodcastSeason
+
+    title: TitleData
+    episodes: PodcastEpisodeList = None
+    trailers: TrailerList = None
+    tags: TagList
+    cover_artwork: Optional[AnyImageRelease] = None
+    other_artwork: OtherArtworkList = None
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': {
+                        'title': 'My cool Season'
+                    },
+                    'episodes': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'trailers': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'tags': ['us', 'election'],
+                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'other_artwork': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ]
+                }
+            ]
+        }
+    }
+
+
+PodcastSeasonList = Annotated[
+    None | conlist(PodcastSeasonCid, min_length=1, max_length=100),
+    unique_list_validator, 
+    id_schema('a unique list of podcast season cids')
+]
+
+# podcast #
+
+class Podcast(ContentModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'podcast'
+    API_PREFIX: ClassVar[str] = '/podcasts'
+
+    id: PodcastId = Field(**db_id_kwargs)
+    cid: PodcastCid = Field(**cid_kwargs)
+
+    title: TitleData
+    seasons: PodcastSeasonList = None
+    trailers: TrailerList = None
+    tags: TagList
+    cover_artwork: Optional[AnyImageRelease] = None
+    other_artwork: OtherArtworkList = None
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0AZzUOZfdK0gdYoOjfQ2l4EFJ1Q-lLlrCX68-xzD-n_8457.json',
+                    'title': {
+                        'title': 'My cool Podcast'
+                    },
+                    'seasons': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'trailers': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'tags': ['us', 'election'],
+                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'other_artwork': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ]
+                }
+            ]
+        }
+    }
+
+AnyPodcast = Union[Podcast, PodcastCid]
+
+class PodcastCreator(ModelCreator):
+    MODEL: ClassVar[Type[Podcast]] = Podcast
+
+    title: TitleData
+    seasons: PodcastSeasonList = None
+    trailers: TrailerList = None
+    tags: TagList
+    cover_artwork: Optional[AnyImageRelease] = None
+    other_artwork: OtherArtworkList = None
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'title': {
+                        'title': 'My cool Podcast'
+                    },
+                    'seasons': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'trailers': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ],
+                    'tags': ['us', 'election'],
+                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'other_artwork': [
+                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    ]
+                }
+            ]
+        }
+    }
 
 
 
