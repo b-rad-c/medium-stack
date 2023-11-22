@@ -44,47 +44,39 @@ __all__ = [
     'ImageFilePayloadCid',
     'ImageFile',
 
-    'AnyImageFile',
     'AltImageFormatList',
     'ImageReleaseId',
     'ImageReleaseCid',
     'ImageRelease',
-    'AnyImageRelease',
     
     'AudioFileId',
     'AudioFileCid',
     'AudioFilePayloadCid',
     'AudioFile',
 
-    'AnyAudioFile',
     'AltAudioFormatList',
     'AudioReleaseId',
     'AudioReleaseCid',
     'AudioRelease',
-    'AnyAudioRelease',
 
     'VideoFileId',
     'VideoFileCid',
     'VideoFilePayloadCid',
     'VideoFile',
 
-    'AnyVideoFile',
     'AltVideoFormatList',
     'VideoReleaseId',
     'VideoReleaseCid',
     'VideoRelease',
-    'AnyVideoRelease',
     
     'TextFileId',
     'TextFileCid',
     'TextFilePayloadCid',
     'TextFile',
 
-    'AnyTextFile',
-
-    'AnyAVRelease',
-    'AnyMediaRelease',
-    'AnyRelease'
+    'AnyAVReleaseCid',
+    'AnyMediaReleaseCid',
+    'AnyReleaseCid'
 ]
 
 #
@@ -321,10 +313,8 @@ class ImageFile(ContentModel):
         return cls(user_cid=user_cid, payload_cid=payload_cid, height=height, width=width)
 
 
-AnyImageFile = Union[ImageFile, ImageFileCid]
-
 AltImageFormatList = Annotated[
-    None | conlist(AnyImageFile, min_length=1, max_length=10),
+    None | conlist(ImageFileCid, min_length=1, max_length=10),
     unique_list_validator,
     id_schema('a unique list of image files or image file cids')
 ]
@@ -338,10 +328,8 @@ class ImageRelease(ContentModel):
     id: ImageReleaseId = Field(**db_id_kwargs)
     cid: ImageReleaseCid = Field(**cid_kwargs)
 
-    master: AnyImageFile
+    master: ImageFileCid
     alt_formats: AltImageFormatList = None
-
-AnyImageRelease = Union[ImageRelease, ImageReleaseCid]
 
 #
 # audio files
@@ -397,10 +385,8 @@ class AudioFile(ContentModel):
         return cls(user_cid=user_cid, payload_cid=payload_cid, duration=duration, bit_rate=bit_rate)
 
 
-AnyAudioFile = Union[AudioFile, AudioFileCid]
-
 AltAudioFormatList = Annotated[
-    None | conlist(AnyAudioFile, min_length=1, max_length=10),
+    None | conlist(AudioFileCid, min_length=1, max_length=10),
     unique_list_validator,
     id_schema('a unique list of audio files or audio file cids')
 ]
@@ -414,10 +400,8 @@ class AudioRelease(ContentModel):
     id: AudioReleaseId = Field(**db_id_kwargs)
     cid: AudioReleaseCid = Field(**cid_kwargs)
 
-    master: AnyAudioFile
+    master: AudioFileCid
     alt_formats: AltAudioFormatList = None
-
-AnyAudioRelease = Union[AudioRelease, AudioReleaseCid]
 
 VideoFileId = Annotated[MongoId, id_schema('a string representing a video file id')]
 VideoFileCid = Annotated[ContentIdType, id_schema('a string representing a video file cid')]
@@ -477,10 +461,8 @@ class VideoFile(ContentModel):
         return cls(user_cid=user_cid, payload_cid=payload_cid, height=height, width=width, duration=duration, bit_rate=bit_rate, has_audio=has_audio)
 
 
-AnyVideoFile = Union[VideoFile, VideoFileCid]
-
 AltVideoFormatList = Annotated[
-    None | conlist(AnyVideoFile, min_length=1, max_length=10),
+    None | conlist(VideoFileCid, min_length=1, max_length=10),
     unique_list_validator,
     id_schema('a unique list of video files or video file cids')
 ]
@@ -494,10 +476,8 @@ class VideoRelease(ContentModel):
     id: VideoReleaseId = Field(**db_id_kwargs)
     cid: VideoReleaseCid = Field(**cid_kwargs)
 
-    master: AnyVideoFile
+    master: VideoFileCid
     alt_formats: AltVideoFormatList = None
-
-AnyVideoRelease = Union[VideoRelease, VideoReleaseCid]
 
 #
 # text files
@@ -517,12 +497,10 @@ class TextFile(ContentModel):
     payload_cid: TextFilePayloadCid = Field(**cid_kwargs)
 
 
-AnyTextFile = Union[TextFile, TextFileCid]
-
 #
 # misc
 #
 
-AnyAVRelease = Union[AnyAudioRelease, AnyVideoRelease]
-AnyMediaRelease = Union[AnyAVRelease, AnyImageRelease]
-AnyRelease = Union[AnyMediaRelease, AnyTextFile]
+AnyAVReleaseCid = Union[AudioReleaseCid, VideoReleaseCid]
+AnyMediaReleaseCid = Union[AudioReleaseCid, VideoReleaseCid, ImageReleaseCid]
+AnyReleaseCid = Union[AudioReleaseCid, VideoReleaseCid, ImageReleaseCid, TextFileCid]

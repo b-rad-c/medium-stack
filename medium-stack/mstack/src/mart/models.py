@@ -1,5 +1,3 @@
-# from __future__ import annotations
-
 from typing import Annotated, ClassVar, Union, Optional, Type, ForwardRef
 from enum import StrEnum
 from pydantic import BaseModel, Field, conlist, model_validator
@@ -14,13 +12,12 @@ from mcore.models import (
     ModelCreator,
     User,
     UserCid,
-
-    AnyImageRelease,
-    AnyAudioRelease,
-    AnyVideoRelease,
-    AnyAVRelease,
-    AnyTextFile,
-    AnyRelease,
+    
+    ImageReleaseCid,
+    AudioReleaseCid,
+    VideoReleaseCid,
+    TextFileCid,
+    AnyAVReleaseCid,
 
     db_id_kwargs, 
     cid_kwargs,
@@ -34,14 +31,12 @@ __all__ = [
     'ArtistId',
     'ArtistCid',
     'Artist',
-    'AnyArtist',
     'ArtistCreator',
 
     'ArtistGroupId',
     'ArtistGroupCid',
     'ArtistList',
     'ArtistGroup',
-    'AnyArtistGroup',
     'ArtistGroupCreator',
 
     'Credit',
@@ -54,11 +49,9 @@ __all__ = [
     'StillImage',
     'StillImageCreator',
 
-    'AnyStillImage',
     'StillImageAlbumId',
     'StillImageAlbumCid',
     'StillImageAlbum',
-    'AnyStillImageAlbum',
     'StillImageAlbumCreator',
 
     'VideoProgramType',
@@ -67,14 +60,12 @@ __all__ = [
     'VideoProgram',
     'TrailerList',
     'VideoProgramCreator',
-    'AnyVideoProgram',
 
     'VideoSeasonId',
     'VideoSeasonCid',
     'VideoEpisodeList',
     'VideoSeason',
     'VideoSeasonCreator',
-    'AnyVideoSeason',
 
     'VideoMiniSeriesId',
     'VideoMiniSeriesCid',
@@ -93,7 +84,6 @@ __all__ = [
     'SongCreator',
 
     'MusicAlbumType',
-    'AnySong',
     'MusicAlbumId',
     'MusicAlbumCid',
     'MusicAlbumSongList',
@@ -119,9 +109,62 @@ __all__ = [
 ]
 
 #
-# artist, credits, metadata
+# ids
 #
 
+ArtistId = Annotated[MongoId, id_schema('a string representing an artist id')]
+ArtistCid = Annotated[ContentIdType, id_schema('a string representing an artist content id')]
+ArtistGroupId = Annotated[MongoId, id_schema('a string representing an artist group id')]
+ArtistGroupCid = Annotated[ContentIdType, id_schema('a string representing an artist content id')]
+AnyArtistCid = ArtistCid | ArtistGroupCid
+
+StillImageId = Annotated[MongoId, id_schema('a string representing a still image id')]
+StillImageCid = Annotated[ContentIdType, id_schema('a string representing a still image id')]
+StillImageAlbumId = Annotated[MongoId, id_schema('a string representing a still image album id')]
+StillImageAlbumCid = Annotated[ContentIdType, id_schema('a string representing a still image album content id')]
+
+PodcastEpisodeId = Annotated[MongoId, id_schema('a string representing a podcast program id')]
+PodcastEpisodeCid = Annotated[ContentIdType, id_schema('a string representing a podcast program content id')]
+PodcastSeasonId = Annotated[MongoId, id_schema('a string representing a podcast season id')]
+PodcastSeasonCid = Annotated[ContentIdType, id_schema('a string representing a podcast season content id')]
+PodcastId = Annotated[MongoId, id_schema('a string representing a podcast id')]
+PodcastCid = Annotated[ContentIdType, id_schema('a string representing a podcast content id')]
+
+VideoProgramId = Annotated[MongoId, id_schema('a string representing a video program id')]
+VideoProgramCid = Annotated[ContentIdType, id_schema('a string representing a video program content id')]
+VideoSeasonId = Annotated[MongoId, id_schema('a string representing a video season id')]
+VideoSeasonCid = Annotated[ContentIdType, id_schema('a string representing a video season content id')]
+VideoMiniSeriesId = Annotated[MongoId, id_schema('a string representing a video mini series id')]
+VideoMiniSeriesCid = Annotated[ContentIdType, id_schema('a string representing a video mini series content id')]
+VideoSeriesId = Annotated[MongoId, id_schema('a string representing a video series id')]
+VideoSeriesCid = Annotated[ContentIdType, id_schema('a string representing a video series content id')]
+
+SongId = Annotated[MongoId, id_schema('a string representing a song id')]
+SongCid = Annotated[ContentIdType, id_schema('a string representing a song content id')]
+MusicAlbumId = Annotated[MongoId, id_schema('a string representing a music album id')]
+MusicAlbumCid = Annotated[ContentIdType, id_schema('a string representing a music album content id')]
+
+AnyMediaCid = Union[
+    AudioReleaseCid,
+    VideoReleaseCid,
+    ImageReleaseCid,
+    TextFileCid,
+    StillImageCid,
+    StillImageAlbumCid,
+    PodcastEpisodeCid,
+    PodcastSeasonCid,
+    PodcastCid,
+    VideoProgramCid,
+    VideoSeasonCid,
+    VideoMiniSeriesCid,
+    VideoSeriesCid,
+    SongCid,
+    MusicAlbumCid
+]
+
+#
+# artist, credits, metadata
+#
 
 class ArtMedium(StrEnum):
     audio = 'audio'
@@ -135,10 +178,6 @@ ArtMediumList = Annotated[
     unique_list_validator, 
     id_schema('a unique list of art mediums')
 ]
-
-
-ArtistId = Annotated[MongoId, id_schema('a string representing an artist id')]
-ArtistCid = Annotated[ContentIdType, id_schema('a string representing an artist content id')]
 
 
 class Artist(ContentModel):
@@ -180,9 +219,6 @@ class Artist(ContentModel):
     }
 
 
-AnyArtist = Union[Artist, ArtistCid]
-
-
 class ArtistCreator(ModelCreator):
 
     MODEL: ClassVar[Type[Artist]] = Artist
@@ -214,12 +250,8 @@ class ArtistCreator(ModelCreator):
         }
     }
 
-
-ArtistGroupId = Annotated[MongoId, id_schema('a string representing an artist group id')]
-ArtistGroupCid = Annotated[ContentIdType, id_schema('a string representing an artist content id')]
-
 ArtistList = Annotated[
-    conlist(AnyArtist, min_length=1, max_length=50),
+    conlist(AnyArtistCid, min_length=1, max_length=50),
     unique_list_validator, 
     id_schema('a unique list of artist cids')
 ]
@@ -270,9 +302,6 @@ class ArtistGroup(ContentModel):
     }
 
 
-AnyArtistGroup = Union[ArtistGroup, ArtistGroupCid]
-
-
 class ArtistGroupCreator(ModelCreator):
 
     MODEL: ClassVar[Type[ArtistGroup]] = ArtistGroup
@@ -315,7 +344,7 @@ class ArtistGroupCreator(ModelCreator):
 class Credit(BaseModel):
 
     role: str = Field(max_length=50)
-    artist: AnyArtist
+    artist: ArtistCid
 
     model_config = {
         'json_schema_extra': {
@@ -328,32 +357,6 @@ class Credit(BaseModel):
         }
     }
 
-# AnyMedia = ForwardRef('AnyMedia')
-# OtherArtworkList = ForwardRef('OtherArtworkList')
-
-# AnyMedia = Union[
-#     AnyRelease, 
-#     'AnyStillImage', 
-#     'AnyStillImageAlbum',
-#     'AnySong',
-#     'AnyMusicAlbum',
-#     'AnyVideoProgram',
-#     'AnyPodcastEpisode',
-#     'AnyPodcastSeason',
-#     'AnyPodcast',
-# ]
-
-# AnyMedia = """Union[
-#     'AnyRelease', 
-#     'AnyStillImage', 
-#     'AnyStillImageAlbum',
-#     'AnySong',
-#     'AnyMusicAlbum',
-#     'AnyVideoProgram',
-#     'AnyPodcastEpisode',
-#     'AnyPodcastSeason',
-#     'AnyPodcast',
-# ]"""
 
 CreditList = Annotated[
     conlist(Credit, min_length=1, max_length=100), 
@@ -368,19 +371,13 @@ GenreList = Annotated[
 ]
 
 TrailerList = Annotated[
-    None | conlist(AnyAVRelease, min_length=1, max_length=10),
+    None | conlist(AnyAVReleaseCid, min_length=1, max_length=10),
     unique_list_validator,
     id_schema('a unique list of video or audio file cids')
 ]
 
-# OtherArtworkList = Annotated[
-#     None | conlist(AnyMedia, min_length=1, max_length=25),
-#     unique_list_validator, 
-#     id_schema('a unique list of media cids')
-# ]
-
 OtherArtworkList = Annotated[
-    None | conlist(ContentIdType, min_length=1, max_length=25),
+    None | conlist(AnyMediaCid, min_length=1, max_length=25),
     unique_list_validator, 
     id_schema('a unique list of media cids')
 ]
@@ -419,9 +416,6 @@ class TitleData(BaseModel):
 # still image art
 #
 
-StillImageAlbumId = Annotated[MongoId, id_schema('a string representing a still image album id')]
-StillImageAlbumCid = Annotated[ContentIdType, id_schema('a string representing a still image album content id')]
-
 
 """
 the StillImage model references the StillImageAlbum model rather than the other way around so that
@@ -436,7 +430,7 @@ class StillImageAlbum(ContentModel):
     id: StillImageAlbumId = Field(**db_id_kwargs)
     cid: StillImageAlbumCid = Field(**cid_kwargs)
 
-    creator_id: AnyArtist
+    creator_id: AnyArtistCid
 
     title: TitleData
     credits: Credit
@@ -465,13 +459,10 @@ class StillImageAlbum(ContentModel):
     }
 
 
-AnyStillImageAlbum = Union[StillImageAlbum, StillImageAlbumCid]
-
-
 class StillImageAlbumCreator(ModelCreator):
     MODEL: ClassVar[Type[StillImageAlbum]] = StillImageAlbum
 
-    creator_id: AnyArtist
+    creator_id: AnyArtistCid
 
     title: TitleData
     credits: Credit
@@ -498,10 +489,6 @@ class StillImageAlbumCreator(ModelCreator):
     }
 
 
-StillImageId = Annotated[MongoId, id_schema('a string representing a still image id')]
-StillImageCid = Annotated[ContentIdType, id_schema('a string representing a still image id')]
-
-
 class StillImage(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'still_image'
     API_PREFIX: ClassVar[str] = '/still-images'
@@ -509,15 +496,15 @@ class StillImage(ContentModel):
     id: StillImageId = Field(**db_id_kwargs)
     cid: StillImageCid = Field(**cid_kwargs)
 
-    creator_id: AnyArtist
+    creator_id: ArtistCid
 
-    release: AnyImageRelease
+    release: ImageReleaseCid
 
     title: Optional[TitleData]
     credits: Optional[Credit]
     genres: GenreList
     tags: TagList
-    album: Optional[AnyStillImageAlbum]
+    album: Optional[StillImageAlbumCid] = None
 
     alt_text: Optional[str]
 
@@ -549,15 +536,15 @@ class StillImage(ContentModel):
 class StillImageCreator(ModelCreator):
     MODEL: ClassVar[Type[StillImage]] = StillImage
 
-    creator_id: AnyArtist
+    creator_id: ArtistCid
 
-    release: AnyImageRelease
+    release: ImageReleaseCid
 
     title: Optional[TitleData]
     credits: Optional[Credit]
     genres: GenreList
     tags: TagList
-    album: Optional[AnyStillImageAlbum] = None
+    album: Optional[StillImageAlbumCid] = None
 
     alt_text: Optional[str]
 
@@ -584,8 +571,6 @@ class StillImageCreator(ModelCreator):
     }
 
 
-AnyStillImage = Union[StillImage, StillImageCid]
-
 #
 # video
 #
@@ -599,8 +584,6 @@ class VideoProgramType(StrEnum):
     trailer = 'trailer'
     music_Video = 'music_video'
 
-VideoProgramId = Annotated[MongoId, id_schema('a string representing a video program id')]
-VideoProgramCid = Annotated[ContentIdType, id_schema('a string representing a video program content id')]
 
 class VideoProgram(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_programs'
@@ -612,10 +595,10 @@ class VideoProgram(ContentModel):
     title: TitleData
     type: VideoProgramType
 
-    release: AnyVideoRelease
+    release: VideoReleaseCid
     
     trailers: TrailerList = None
-    cover_artwork: Optional[AnyStillImage]
+    cover_artwork: Optional[StillImageCid] = None
     other_artwork: OtherArtworkList
     genres: GenreList
     tags: TagList
@@ -654,10 +637,10 @@ class VideoProgramCreator(ModelCreator):
     title: TitleData
     type: VideoProgramType
 
-    release: AnyVideoRelease
+    release: VideoReleaseCid
     
     trailers: TrailerList = None
-    cover_artwork: Optional[AnyStillImage]
+    cover_artwork: Optional[StillImageCid] = None
     other_artwork: OtherArtworkList
     genres: GenreList
     tags: TagList
@@ -687,16 +670,10 @@ class VideoProgramCreator(ModelCreator):
         }
     }
 
-
-AnyVideoProgram = Union[VideoProgram, VideoProgramCid]
-
 # video season #
 
-VideoSeasonId = Annotated[MongoId, id_schema('a string representing a video season id')]
-VideoSeasonCid = Annotated[ContentIdType, id_schema('a string representing a video season content id')]
-
 VideoEpisodeList = Annotated[
-    conlist(AnyVideoProgram, min_length=1, max_length=50),
+    conlist(VideoProgramCid, min_length=1, max_length=50),
     unique_list_validator, 
     id_schema('a unique list of video program cids')
 ]
@@ -713,7 +690,7 @@ class VideoSeason(ContentModel):
     trailers: TrailerList = None
     genres: GenreList
     tags: TagList
-    cover_artwork: Optional[AnyStillImage]
+    cover_artwork: Optional[StillImageCid] = None
     other_artwork: OtherArtworkList
 
     model_config = {
@@ -754,7 +731,7 @@ class VideoSeasonCreator(ModelCreator):
     trailers: TrailerList = None
     genres: GenreList
     tags: TagList
-    cover_artwork: Optional[AnyStillImage]
+    cover_artwork: Optional[StillImageCid] = None
     other_artwork: OtherArtworkList
 
     model_config = {
@@ -784,13 +761,7 @@ class VideoSeasonCreator(ModelCreator):
         }
     }
 
-
-AnyVideoSeason = Union[VideoSeason, VideoSeasonCid]
-
 # single season series #
-
-VideoMiniSeriesId = Annotated[MongoId, id_schema('a string representing a video mini series id')]
-VideoMiniSeriesCid = Annotated[ContentIdType, id_schema('a string representing a video mini series content id')]
 
 class VideoMiniSeries(VideoSeason):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_mini_series'
@@ -858,11 +829,8 @@ class VideoMiniSeriesCreator(VideoSeasonCreator):
 
 # video episodic series #
 
-VideoSeriesId = Annotated[MongoId, id_schema('a string representing a video series id')]
-VideoSeriesCid = Annotated[ContentIdType, id_schema('a string representing a video series content id')]
-
 VideoSeasonList = Annotated[
-    conlist(AnyVideoSeason, min_length=1, max_length=50),
+    conlist(VideoSeasonCid, min_length=1, max_length=50),
     unique_list_validator,
     id_schema('a unique list of video season cids')
 ]
@@ -879,7 +847,7 @@ class VideoSeries(ContentModel):
     trailers: TrailerList = None
     genres: GenreList
     tags: TagList
-    cover_artwork: Optional[AnyStillImage]
+    cover_artwork: Optional[StillImageCid] = None
     other_artwork: OtherArtworkList
 
     model_config = {
@@ -918,7 +886,7 @@ class VideoSeriesCreator(ModelCreator):
     trailers: TrailerList = None
     genres: GenreList
     tags: TagList
-    cover_artwork: Optional[AnyStillImage]
+    cover_artwork: Optional[StillImageCid] = None
     other_artwork: OtherArtworkList
 
     model_config = {
@@ -952,8 +920,7 @@ class VideoSeriesCreator(ModelCreator):
 #
 
 
-SongId = Annotated[MongoId, id_schema('a string representing a song id')]
-SongCid = Annotated[ContentIdType, id_schema('a string representing a song content id')]
+
 
 class Song(ContentModel):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'songs'
@@ -963,13 +930,13 @@ class Song(ContentModel):
     cid: SongCid = Field(**cid_kwargs)
 
     title: TitleData
-    release: AnyAudioRelease
+    release: AudioReleaseCid
     genres: GenreList
     tags: TagList
-    music_video: Optional[AnyVideoProgram]
-    cover_artwork: Optional[AnyStillImage]
+    music_video: Optional[VideoProgramCid] = None
+    cover_artwork: Optional[StillImageCid] = None
     other_artwork: OtherArtworkList
-    lyrics: Optional[AnyTextFile]
+    lyrics: Optional[TextFileCid] = None
 
     model_config = {
         'json_schema_extra': {
@@ -1000,13 +967,13 @@ class SongCreator(ModelCreator):
     MODEL: ClassVar[Type[Song]] = Song
 
     title: TitleData
-    release: AnyAudioRelease
+    release: AudioReleaseCid
     genres: GenreList
     tags: TagList
-    music_video: Optional[AnyVideoProgram]
-    cover_artwork: Optional[AnyStillImage]
+    music_video: Optional[VideoProgramCid] = None
+    cover_artwork: Optional[StillImageCid] = None
     other_artwork: OtherArtworkList
-    lyrics: Optional[AnyTextFile]
+    lyrics: Optional[TextFileCid] = None
 
     model_config = {
         'json_schema_extra': {
@@ -1035,13 +1002,8 @@ class MusicAlbumType(StrEnum):
     album = 'album'
     ep = 'ep'
 
-AnySong = Union[Song, SongCid]
-
-MusicAlbumId = Annotated[MongoId, id_schema('a string representing a music album id')]
-MusicAlbumCid = Annotated[ContentIdType, id_schema('a string representing a music album content id')]
-
 MusicAlbumSongList = Annotated[
-    conlist(AnySong, min_length=1, max_length=50),
+    conlist(SongCid, min_length=1, max_length=50),
     unique_list_validator, 
     id_schema('a unique list of artist cids')
 ]
@@ -1058,7 +1020,7 @@ class MusicAlbum(ContentModel):
     genres: GenreList
     tags: TagList
     songs: MusicAlbumSongList
-    cover_artwork: Optional[AnyStillImage]
+    cover_artwork: Optional[StillImageCid] = None
     other_artwork: OtherArtworkList
 
     model_config = {
@@ -1087,8 +1049,6 @@ class MusicAlbum(ContentModel):
         }
     }
 
-AnyMusicAlbum = Union[MusicAlbum, MusicAlbumCid]
-
 
 class MusicAlbumCreator(ModelCreator):
     MODEL: ClassVar[Type[MusicAlbum]] = MusicAlbum
@@ -1098,7 +1058,7 @@ class MusicAlbumCreator(ModelCreator):
     genres: GenreList
     tags: TagList
     songs: MusicAlbumSongList
-    cover_artwork: Optional[AnyStillImage]
+    cover_artwork: Optional[StillImageCid] = None
     other_artwork: OtherArtworkList
 
     model_config = {
@@ -1130,15 +1090,6 @@ class MusicAlbumCreator(ModelCreator):
 # podcast
 #
 
-# ids #
-
-PodcastEpisodeId = Annotated[MongoId, id_schema('a string representing a podcast program id')]
-PodcastEpisodeCid = Annotated[ContentIdType, id_schema('a string representing a podcast program content id')]
-PodcastSeasonId = Annotated[MongoId, id_schema('a string representing a podcast season id')]
-PodcastSeasonCid = Annotated[ContentIdType, id_schema('a string representing a podcast season content id')]
-PodcastId = Annotated[MongoId, id_schema('a string representing a podcast id')]
-PodcastCid = Annotated[ContentIdType, id_schema('a string representing a podcast content id')]
-
 # podcast episode #
 
 
@@ -1153,13 +1104,13 @@ class PodcastEpisode(ContentModel):
     title: TitleData
     podcast: PodcastCid
 
-    program_audio: Optional[AnyAudioRelease] = None
-    program_video: Optional[AnyVideoRelease] = None
+    program_audio: Optional[AudioReleaseCid] = None
+    program_video: Optional[VideoReleaseCid] = None
 
     genres: GenreList
     trailers: TrailerList
     tags: TagList
-    cover_artwork: Optional[AnyImageRelease] = None
+    cover_artwork: Optional[ImageReleaseCid] = None
     other_artwork: OtherArtworkList = None
 
     @model_validator(mode='after')
@@ -1201,13 +1152,13 @@ class PodcastEpisodeCreator(ModelCreator):
     title: TitleData
     podcast: PodcastCid
 
-    program_audio: Optional[AnyAudioRelease] = None
-    program_video: Optional[AnyVideoRelease] = None
+    program_audio: Optional[AudioReleaseCid] = None
+    program_video: Optional[VideoReleaseCid] = None
     
     genres: GenreList
     trailers: TrailerList = None
     tags: TagList
-    cover_artwork: Optional[AnyImageRelease] = None
+    cover_artwork: Optional[ImageReleaseCid] = None
     other_artwork: OtherArtworkList = None
 
     @model_validator(mode='after')
@@ -1259,7 +1210,7 @@ class PodcastSeason(ContentModel):
     episodes: PodcastEpisodeList = None
     trailers: TrailerList = None
     tags: TagList
-    cover_artwork: Optional[AnyImageRelease] = None
+    cover_artwork: Optional[ImageReleaseCid] = None
     other_artwork: OtherArtworkList = None
 
     model_config = {
@@ -1294,7 +1245,7 @@ class PodcastSeasonCreator(ModelCreator):
     episodes: PodcastEpisodeList = None
     trailers: TrailerList = None
     tags: TagList
-    cover_artwork: Optional[AnyImageRelease] = None
+    cover_artwork: Optional[ImageReleaseCid] = None
     other_artwork: OtherArtworkList = None
 
     model_config = {
@@ -1340,7 +1291,7 @@ class Podcast(ContentModel):
     seasons: PodcastSeasonList = None
     trailers: TrailerList = None
     tags: TagList
-    cover_artwork: Optional[AnyImageRelease] = None
+    cover_artwork: Optional[ImageReleaseCid] = None
     other_artwork: OtherArtworkList = None
 
     model_config = {
@@ -1368,7 +1319,6 @@ class Podcast(ContentModel):
         }
     }
 
-AnyPodcast = Union[Podcast, PodcastCid]
 
 class PodcastCreator(ModelCreator):
     MODEL: ClassVar[Type[Podcast]] = Podcast
@@ -1377,7 +1327,7 @@ class PodcastCreator(ModelCreator):
     seasons: PodcastSeasonList = None
     trailers: TrailerList = None
     tags: TagList
-    cover_artwork: Optional[AnyImageRelease] = None
+    cover_artwork: Optional[ImageReleaseCid] = None
     other_artwork: OtherArtworkList = None
 
     model_config = {
