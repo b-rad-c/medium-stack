@@ -109,15 +109,17 @@ class ContentId:
     @staticmethod
     def _hash_from_digest(digest:bytes) -> str:
         return base64.urlsafe_b64encode(digest).decode('utf-8')[0:-1]   # remove final padding (=)
+    
+    @classmethod
+    def from_string(cls:'ContentId', string:str, ext:str) -> 'ContentId':
+        hash_obj = sha3_256(string.encode('utf-8'))
+        hash = cls._hash_from_digest(hash_obj.digest())
+        return cls(hash=hash, size=len(string), ext=ext)
 
     @classmethod
     def from_dict(cls:'ContentId', data:Dict) -> 'ContentId':
         json_string = json.dumps(data, sort_keys=True)
-        
-        hash_obj = sha3_256(json_string.encode('utf-8'))
-        hash = cls._hash_from_digest(hash_obj.digest())
-
-        return cls(hash=hash, size=len(json_string), ext='json')
+        return cls.from_string(json_string, 'json')
 
     @classmethod
     def from_io(cls:'ContentId', stream:BinaryIO, size:int, ext:str) -> 'ContentId':

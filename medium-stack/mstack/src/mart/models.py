@@ -1,9 +1,12 @@
 from typing import Annotated, ClassVar, Union, Optional, Type
 from enum import StrEnum
+import random
+
 from pydantic import BaseModel, Field, conlist, model_validator
+from lorem_text import lorem
 
 from mcore.types import TagList, unique_list_validator
-from mcore.util import example_cid
+from mcore.util import example_cid, adjectives, nouns, words, art_genres
 
 from mcore.models import (
     MongoId, 
@@ -11,6 +14,7 @@ from mcore.models import (
     ContentIdType, 
     ModelCreator,
     User,
+    UserCreator,
     UserCid,
     
     ImageReleaseCid,
@@ -220,6 +224,10 @@ class Artist(ContentModel):
 
 
 class ArtistCreator(ModelCreator):
+    """
+    This class is used to create an Artist model, user_cid is not exposed because this model represents user input,
+    the user_cid is added by the controller which uses the cid of the authenticated user.
+    """
 
     MODEL: ClassVar[Type[Artist]] = Artist
 
@@ -249,6 +257,64 @@ class ArtistCreator(ModelCreator):
             ]
         }
     }
+
+    @classmethod
+    def generate(cls, user:User=None, mediums:ArtMediumList=None) -> 'ArtistCreator':
+        if user is None:
+            user = UserCreator.generate_model()
+        
+        # name #
+
+        name_seed = random.randint(0, 5)
+
+        if name_seed == 1:
+            seed_words = [user.first_name, user.last_name]
+        elif name_seed == 2:
+            seed_words = [user.first_name[0], user.last_name]
+        elif name_seed == 3:
+            seed_words = [user.first_name[0], user.last_name, random.choice(adjectives)]
+        elif name_seed == 4:
+            seed_words = [random.choice(adjectives), user.first_name[0], user.last_name]
+        else:
+            seed_words = [random.choice(adjectives), random.choice(adjectives), random.choice(nouns)]
+        
+        if random.randint(0, 3) < 3:
+            seed_words = [seed_word.capitalize() for seed_word in seed_words]
+        
+        name = ' '.join(seed_words)
+
+        # short name #
+
+        short_name_seed = random.randint(0, 5)
+
+        if short_name_seed in [0, 1]:
+            short = f'{seed_words[0]} {seed_words[-1]}'
+        elif short_name_seed in [2, 3]:
+            short = f'{seed_words[0][0]}. {seed_words[-1]}'
+        else:
+            short = f'{seed_words[0]} {seed_words[-1][0]}.'
+        
+        # abreviated name #
+
+        abreviated = ''.join([seed_word[0].capitalize() for seed_word in seed_words])
+
+        if mediums is None:
+            mediums = random.choices(list(ArtMedium), k=random.randint(1, 3))
+            mediums = list(set(mediums))    # ensure is unique
+
+        tags = random.choices(art_genres, k=random.randint(2, 7))
+        tags = list(set(tags))
+
+        return cls(
+            name=name,
+            short_name=short,
+            abreviated_name=abreviated,
+            summary=lorem.sentence()[0:300],
+            description=lorem.paragraph()[0:1500],
+            mediums=mediums,
+            tags=tags
+        )
+            
 
 ArtistList = Annotated[
     conlist(AnyArtistCid, min_length=1, max_length=50),
@@ -384,7 +450,6 @@ OtherArtworkList = Annotated[
 
 
 class TitleData(BaseModel):
-
 
     title: str = Field(min_length=1, max_length=300)                        # rename to TitleData.full
     short_title: Optional[str] = Field(None, max_length=50)                 # rename to TitleData.short

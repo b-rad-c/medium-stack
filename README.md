@@ -15,51 +15,124 @@
 
 ---
 
-+ 🔴 UI
-    + 🔴 do the following for users, file uploads, artists and still images
++ 🟡 UI models :: users, file uploads, artists and still images
+    + 🟡 make a lorem ipsom generator for each ui model
+    + 🔴 for each ui model build components: 
         + 🔴 list
+        + 🔴 create
         + 🔴 read
         + 🔴 delete
 
-+ 🔴 🔴 add mock user auth
-    + 🔴 🔴 backend session model
++ 🔴 add mock user auth
+    + 🔴 backend session model
 
-+ 🔴 🔴 make a lorem ipsom generator for each ui models 
-+ 🔴 🔴 code templating
+ 
++ 🔴 code templating
     + 🔴 api routes
     + 🔴 db wrappers
     + 🔴 model_conig example(s) -> use lorem ipsom gen and hardcode correct cid
     + 🔴 generator function
     + 🔴 unittests
 
-+ 🔴 refactor
-    + 🔴 make mart imports more granular
+    + 🔴 new module structure:
 
-            mart.still_image.types
+        ** handwritten **
 
-            mart.still_image.model                  ** handwritten
-            mart.still_image.model.__doc__          ** handwritten
-            mart.still_image.model()
-            mart.still_image.example
-            mart.still_image.generate()             ** handwritten
+            mart/still_image/types.py
+            mart/still_image/models.py
+                StillImage
+                StillImage.__doc__
+                StillImageCreator
+                generator()
+                creator_generator()
 
-            mart.still_image.creator.model          ** handwritten
-            mart.still_image.creator.model()
-            mart.still_image.creator.example
-            mart.still_image.creator.generate()     ** handwritten
-
-            mart.still_image.db.list()
-            mart.still_image.db.create()
-            mart.still_image.db.get()
-
-            mart.still_image.api.list()
-            mart.still_image.api.create()
-            mart.still_image.api.get()
-
-            mart.still_image.router
+        ** generated **
             
+            mart/sdk/
+                still_image_types.py            ** copied from original
+                still_image_model.py            ** copied from original
+                still_image_template.py         ** generated template code
+
+                    example()
+
+                    db_list()
+                    db_create()
+                    db_get()
+                    db_delete()
+
+                    api_list()
+                    api_create()
+                    api_get()
+                    api_delete()
+
+                    router
+
+                still_image.py                  ** a generated module that creates aliases enabling the following imports to work
+
+                    from mart.sdk import *
+
+                    still_image
+                    still_image.model
+                    still_image.example
+                    still_image.generate()
+
+                    still_image.creator_model
+                    still_image.creator_model()
+                    still_image.creator_example
+                    still_image.creator_generate()
+
+                    still_image.db_list()
+                    still_image.db_create()
+                    still_image.db_get()
+
+                    still_image.api_list()
+                    still_image.api_create()
+                    still_image.api_get()
+
+                    still_image.router
             
-            
+            tests/mart/still_image/
+
+                test_model.py
+                test_creator.py
+                test_example.py
+                test_generator.py
+                test_db.py
+                test_api.py
+
+                creator/
+                    test_model.py
+                    test_creator.py
+                    test_example.py
+                    test_generator.py
+
++ 🔴 refactor mart.TitleData model
+
+
+        from:
+            TitleData.title
+            TitleData.short_title
+            TitleData.abreviated_title
+            ...
+        to:
+            TitleData.full
+            TitleData.short
+            TitleData.abreviated
+            ...
+    
+        this way you wont have duplicate attributes when accessing via parent model
+
+        StillImage.title.title
+        StillImage.title.full
+        StillImage.title.abreviated
+
+        instead of
+
+        StillImage.title.title
+        StillImage.title.short_title
+        StillImage.title.abreviated_title
+
+        this should be done after code templating and generation so that new models, examples and unittests will be auto generated instead of manually updating CIDs
 
 
 + 🔴 text editing

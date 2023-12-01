@@ -15,6 +15,7 @@ dependencies = [
     'boto3',
     'email-validator',
     'fastapi[all]',
+    'lorem-text',
     'requests',
     'phonenumbers',
     'pydantic',

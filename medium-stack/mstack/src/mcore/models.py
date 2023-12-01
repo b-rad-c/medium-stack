@@ -1,4 +1,5 @@
 import os 
+import random
 
 from enum import Enum
 
@@ -8,9 +9,10 @@ from datetime import datetime
 
 from mcore.errors import MStackFilePayloadError
 from mcore.types import unique_list_validator
-from mcore.util import utc_now
+from mcore.util import utc_now, random_name, random_email, random_phone_number
 
 from pymediainfo import MediaInfo
+from bson import ObjectId
 from pydantic_extra_types.phone_numbers import PhoneNumber
 from pydantic import (
     BaseModel,
@@ -112,6 +114,31 @@ class ModelCreator(BaseModel):
         params = self.model_dump()
         params.update(kwargs)
         return self.MODEL(**params)
+    
+    @classmethod
+    def generate(cls, **kwargs) -> 'ContentModel':
+        raise NotImplementedError('generate must be implemented by subclasses')
+    
+    @classmethod
+    def generate_model(cls, with_id:bool = None, gen_kwargs:dict = None, create_kwargs:dict = None) -> 'ContentModel':
+        """
+        if with_id is True, generate a UserCreator with a random id
+        if with_id is False, generate a UserCreator without an id
+        if with_id is None, randomize whether or not to generate an id
+        """
+        if gen_kwargs is None:
+            gen_kwargs = {}
+        if create_kwargs is None:
+            create_kwargs = {}
+            
+        model = cls.generate(**gen_kwargs).create_model(**create_kwargs)
+        if with_id is None:
+            with_id = random.choice([True, False])
+        
+        if with_id:
+            model.id = ObjectId()
+        
+        return model
 
 
 #
@@ -173,6 +200,17 @@ class UserCreator(ModelCreator):
             ]
         }
     }
+
+    @classmethod
+    def generate(cls, **kwargs) -> 'UserCreator':
+        name = random_name()
+        return cls(
+            email=random_email(name),
+            phone_number=random_phone_number(),
+            first_name=name.first,
+            last_name=name.last,
+            middle_name=name.middle
+        )
 
 
 #
