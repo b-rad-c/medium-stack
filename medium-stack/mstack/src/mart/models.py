@@ -385,8 +385,9 @@ OtherArtworkList = Annotated[
 
 class TitleData(BaseModel):
 
-    title: str = Field(min_length=1, max_length=300)
-    short_title: Optional[str] = Field(None, max_length=50)
+
+    title: str = Field(min_length=1, max_length=300)                        # rename to TitleData.full
+    short_title: Optional[str] = Field(None, max_length=50)                 # rename to TitleData.short
     abreviated_title: Optional[str] = Field(None, max_length=10)
 
     subtitle: Optional[str] = Field(None, max_length=500)
