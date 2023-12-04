@@ -14,6 +14,7 @@ def test_user():
 
     _test_model_examples(User)
     _test_model_creator_and_examples(User, UserCreator)
+    _test_model_generator(User, UserCreator)
 
     _test_model_dump(user, user_cid, User)
     _test_model_json_str(user, user_cid, User)

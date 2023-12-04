@@ -8,6 +8,7 @@ def test_artist():
 
     _test_model_examples(Artist)
     _test_model_creator_and_examples(Artist, ArtistCreator)
+    _test_model_generator(Artist, ArtistCreator)
 
     _test_model_dump(artist, artist_cid, Artist)
     _test_model_json_str(artist, artist_cid, Artist)

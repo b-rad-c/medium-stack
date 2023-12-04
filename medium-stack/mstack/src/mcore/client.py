@@ -1,6 +1,7 @@
 import os 
 
 from io import BytesIO
+from pathlib import Path
 from typing import List, Callable, Tuple
 from os.path import join
 
@@ -135,9 +136,22 @@ class MStackClient:
         data = self._post(f'core/file-uploader/{id}', files={'chunk': BytesIO(chunk)})
         return FileUploader(**data)
 
-    def upload_file(self, file_path:str, type:FileUploadTypes, chunk_size=250_000, on_update=Callable[[], FileUploader]) -> FileUploader:
-        size = os.path.getsize(file_path)
-        uploader = self.create_file_uploader(FileUploaderCreator(total_size=size, type=type))
+    def upload_file(
+            self, 
+            file_path:str | Path, 
+            type:FileUploadTypes, 
+            chunk_size=250_000, 
+            on_update=Callable[[], FileUploader], 
+            extension:str=None
+        ) -> FileUploader:
+        """if extension is not provided, it will be inferred from the file_path"""
+        
+        if isinstance(file_path, str):
+            file_path = Path(file_path)
+        
+        size = file_path.stat().st_size
+        ext = file_path.suffix[1:] if extension is None else extension
+        uploader = self.create_file_uploader(FileUploaderCreator(total_size=size, type=type, ext=ext))
 
         with open(file_path, 'rb') as file:
             while True:

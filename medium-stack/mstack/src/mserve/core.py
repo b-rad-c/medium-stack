@@ -87,13 +87,13 @@ async def upload_file(id: str, chunk: UploadFile, db:MongoDB = Depends(MongoDB.f
     
     # touch / create path if doesn't exist #
 
-    path = uploader.local_storage_path()
+    path = uploader.local_path()
 
     try:
-        uploader.local_storage_path().touch()
+        path.touch()
     except FileNotFoundError:
-        os.makedirs(uploader.local_storage_path().parent, exist_ok=True)
-        uploader.local_storage_path().touch()
+        os.makedirs(path.parent, exist_ok=True)
+        path.touch()
     
     # write chunk to disk #
     

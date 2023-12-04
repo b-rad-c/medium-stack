@@ -1,4 +1,5 @@
-import os 
+import os
+import shutil
 import random
 
 from enum import Enum
@@ -88,6 +89,7 @@ __all__ = [
 
 MEDIAINFO_LIB_PATH = os.environ.get('MEDIAINFO_LIB_PATH', '')   # '/opt/homebrew/Cellar/libmediainfo/23.09/lib/libmediainfo.dylib'
 MSERVE_LOCAL_STORAGE_DIRECTORY = os.environ.get('MSERVE_LOCAL_STORAGE_DIRECTORY', '/mstack/files')
+MSERVE_LOCAL_UPLOAD_DIRECTORY = os.environ.get('MSERVE_LOCAL_UPLOAD_DIRECTORY', '/mstack/uploads')
 
 def mediainfo(path: Union[str, Path]) -> MediaInfo:
     library_file = None if MEDIAINFO_LIB_PATH == '' else MEDIAINFO_LIB_PATH
@@ -130,7 +132,7 @@ class ModelCreator(BaseModel):
             gen_kwargs = {}
         if create_kwargs is None:
             create_kwargs = {}
-            
+
         model = cls.generate(**gen_kwargs).create_model(**create_kwargs)
         if with_id is None:
             with_id = random.choice([True, False])
@@ -243,6 +245,7 @@ class FileUploader(BaseModel):
     user_cid: UserCid = Field(**cid_kwargs)
 
     total_size: int
+    ext: str
 
     created: datetime = Field(default_factory=utc_now)
     modifed: Optional[datetime] = None
@@ -261,6 +264,7 @@ class FileUploader(BaseModel):
                     'user_cid': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
                     'type': 'image',
                     'total_size': 100_000,
+                    'ext': 'jpg',
                     'created': '2023-11-04T22:21:02.185694Z',
                     'modified': None,
                     'status': 'uploading',
@@ -275,11 +279,13 @@ class FileUploader(BaseModel):
         self.modifed = utc_now()
 
     
-    def local_storage_path(self) -> Path:
+    def local_path(self) -> Path:
         if self.id is None:
-            raise ValueError(f'FileUploader must have an id to get a local file path')
+            raise ValueError('FileUploader must have an id to get a local file path')
         
-        return Path(MSERVE_LOCAL_STORAGE_DIRECTORY) / str(self.id)
+        ext = self.ext if self.ext.startswith('.') else f'.{self.ext}'
+        
+        return Path(MSERVE_LOCAL_UPLOAD_DIRECTORY) / f'{self.id}{ext}'
 
 
 class FileUploaderCreator(ModelCreator):
@@ -287,17 +293,42 @@ class FileUploaderCreator(ModelCreator):
 
     type: FileUploadTypes
     total_size: int
+    ext: str
 
     model_config = {
         'json_schema_extra': {
             'examples': [
                 {
                     'type': 'image',
-                    'total_size': 100_000
+                    'total_size': 100_000,
+                    'ext': 'jpg'
                 }
             ]
         }
     }
+
+
+class BaseFile(ContentModel):
+
+    @property
+    def local_path(self) -> Path:
+        if self.payload_cid is None:
+            raise ValueError('File must have a cid to get a local path')
+        return Path(MSERVE_LOCAL_STORAGE_DIRECTORY) / str(self.payload_cid)
+    
+    @classmethod
+    def from_filepath(cls:'BaseFile', filepath:Union[str, Path], user_cid: UserCid) -> 'BaseFile':
+        raise NotImplementedError('from_filepath must be implemented by subclasses')
+
+    @classmethod
+    def ingest(cls:'ImageFile', filepath:Union[str, Path], user_cid: UserCid, leave_original:bool = False) -> 'ImageFile':
+        item = cls.from_filepath(filepath, user_cid)
+        if leave_original:
+            shutil.copyfile(filepath, item.local_path)
+        else:
+            os.rename(filepath, item.local_path)
+        
+        return item
 
 
 #
@@ -310,7 +341,7 @@ ImageFileCid = Annotated[ContentIdType, id_schema('a string representing an imag
 ImageFilePayloadCid = Annotated[ContentIdType, id_schema('a string representing an image file payload cid')]
 
 
-class ImageFile(ContentModel):
+class ImageFile(BaseFile):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'image_files'
 
     id: ImageFileId = Field(**db_id_kwargs)
@@ -335,6 +366,7 @@ class ImageFile(ContentModel):
             ]
         }
     }
+
 
     @classmethod
     def from_filepath(cls:'ImageFile', filepath:Union[str, Path], user_cid: UserCid) -> 'ImageFile':
@@ -379,7 +411,7 @@ AudioFileCid = Annotated[ContentIdType, id_schema('a string representing an audi
 AudioFilePayloadCid = Annotated[ContentIdType, id_schema('a string representing an audio file payload cid')]
 
 
-class AudioFile(ContentModel):
+class AudioFile(BaseFile):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'audio_files'
 
     id: AudioFileId = Field(**db_id_kwargs)
@@ -445,7 +477,7 @@ VideoFileId = Annotated[MongoId, id_schema('a string representing a video file i
 VideoFileCid = Annotated[ContentIdType, id_schema('a string representing a video file cid')]
 VideoFilePayloadCid = Annotated[ContentIdType, id_schema('a string representing a video file payload cid')]
 
-class VideoFile(ContentModel):
+class VideoFile(BaseFile):
     MONGO_COLLECTION_NAME: ClassVar[str] = 'video_files'
 
     id: VideoFileId = Field(**db_id_kwargs)

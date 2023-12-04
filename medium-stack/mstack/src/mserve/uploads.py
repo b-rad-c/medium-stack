@@ -81,11 +81,11 @@ def ingest_uploaded_file(uploader:FileUploader):
     logging.info(f'ingesting: {uploader.id}')
 
     if uploader.type == FileUploadTypes.image:
-        obj = ImageFile.from_filepath(uploader.local_storage_path(), uploader.user_cid)
+        obj = ImageFile.ingest(uploader.local_path(), uploader.user_cid)
     elif uploader.type == FileUploadTypes.audio:
-        obj = AudioFile.from_filepath(uploader.local_storage_path(), uploader.user_cid)
+        obj = AudioFile.ingest(uploader.local_path(), uploader.user_cid)
     elif uploader.type == FileUploadTypes.video:
-        obj = VideoFile.from_filepath(uploader.local_storage_path(), uploader.user_cid)
+        obj = VideoFile.ingest(uploader.local_path(), uploader.user_cid)
     else:
         raise ValueError(f'unknown file upload type: {uploader.type}')
     
@@ -131,7 +131,7 @@ def ingest_daemon():
 
 def cleanup_upload(uploader:FileUploader):
     try:
-        uploader.local_storage_path().unlink()
+        uploader.local_path().unlink()
     except FileNotFoundError:
         pass
     db.delete(uploader)
@@ -139,7 +139,7 @@ def cleanup_upload(uploader:FileUploader):
 
 def timeout_upload(uploader:FileUploader):
     try:
-        uploader.local_storage_path().unlink()
+        uploader.local_path().unlink()
     except FileNotFoundError:
         pass
 

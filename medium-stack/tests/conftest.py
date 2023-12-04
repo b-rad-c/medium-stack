@@ -28,6 +28,7 @@ __all__ = [
     '_test_model_json_str',
     '_test_model_examples',
     '_test_model_creator_and_examples',
+    '_test_model_generator',
 
     '_test_db_does_not_exist',
     '_test_db_crud',
@@ -116,7 +117,7 @@ def _test_model_examples(model_type:BaseModel):
         except (AttributeError, KeyError):
             """ignore if model doesn't have cid"""
 
-def _test_model_creator_and_examples(model_type, model_creator_type:ModelCreator):
+def _test_model_creator_and_examples(model_type:BaseModel, model_creator_type:ModelCreator):
     try:
         examples = model_creator_type.model_json_schema()['examples']
     except KeyError:
@@ -129,6 +130,12 @@ def _test_model_creator_and_examples(model_type, model_creator_type:ModelCreator
         model = model_creator.create_model(user_cid=example_cid(User))
         assert isinstance(model, model_type)
 
+def _test_model_generator(model_type:BaseModel, model_creator_type:ModelCreator):
+    model_creator:ModelCreator = model_creator_type.generate()
+    assert isinstance(model_creator, model_creator_type)
+
+    model = model_creator.generate_model()
+    assert isinstance(model, model_type)
 
 #
 # reusable db tests

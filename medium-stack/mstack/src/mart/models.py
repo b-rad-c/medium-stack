@@ -566,8 +566,8 @@ class StillImage(ContentModel):
 
     release: ImageReleaseCid
 
-    title: Optional[TitleData]
-    credits: Optional[Credit]
+    title: Optional[TitleData] = None
+    credits: Optional[CreditList] = None
     genres: GenreList
     tags: TagList
     album: Optional[StillImageAlbumCid] = None
@@ -579,16 +579,18 @@ class StillImage(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
-                    'cid': '0ajFSQpuyKrubp4oGAhuAVS9LQtJ-TYuTdPkE-vnoaQA576.json',
+                    'cid': '0VWImoAL2-xX9uHQtRrV6mr715UxoQxcgwMbfIWqeFK0578.json',
                     'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'release': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'title': {
                         'title': 'My cool Painting'
                     },
-                    'credits': {
-                        'role': 'painter',
-                        'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
-                    },
+                    'credits': [
+                        {
+                            'role': 'painter',
+                            'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
+                        }
+                    ],
                     'genres': ['surrealism', 'painting'],
                     'tags': ['surrealism', 'painting', 'oil painting'],
                     'album': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
@@ -606,8 +608,8 @@ class StillImageCreator(ModelCreator):
 
     release: ImageReleaseCid
 
-    title: Optional[TitleData]
-    credits: Optional[Credit]
+    title: Optional[TitleData] = None
+    credits: Optional[CreditList] = None
     genres: GenreList
     tags: TagList
     album: Optional[StillImageAlbumCid] = None
@@ -623,10 +625,12 @@ class StillImageCreator(ModelCreator):
                     'title': {
                         'title': 'My cool Painting'
                     },
-                    'credits': {
-                        'role': 'painter',
-                        'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
-                    },
+                    'credits': [
+                        {
+                            'role': 'painter',
+                            'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
+                        }
+                    ],
                     'genres': ['surrealism', 'painting'],
                     'tags': ['surrealism', 'painting', 'oil painting'],
                     'album': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
