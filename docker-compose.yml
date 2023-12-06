@@ -5,8 +5,9 @@ services:
     build: .
     container_name: mserve
     volumes:
-      - ./medium-stack:/app
-      - ./lstack:/mstack/
+      - ./medium-stack:/app/medium-stack/
+      - ./samples:/app/samples/
+      - ./lstack:/app/data/
     ports:
       - "8000:8000"
     depends_on:
@@ -25,8 +26,9 @@ services:
     build: .
     container_name: uploader
     volumes:
-      - ./medium-stack:/app
-      - ./lstack:/mstack/
+      - ./medium-stack:/app/medium-stack/
+      - ./samples:/app/samples/
+      - ./lstack:/app/data/
     command: python3 -m mserve.uploads ingest
     depends_on:
       - db

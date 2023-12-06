@@ -4,6 +4,7 @@ import time
 
 from typing import List
 
+from mcore.types import ContentId
 from mcore.client import *
 from mcore.models import *
 from mcore.errors import NotFoundError
@@ -137,3 +138,5 @@ def test_core_file_upload_process(image_file_path):
         time.sleep(0.5)
     
     assert uploader.status == FileUploadStatus.complete
+    assert uploader.payload_cid is not None
+    assert isinstance(uploader.payload_cid, ContentId)

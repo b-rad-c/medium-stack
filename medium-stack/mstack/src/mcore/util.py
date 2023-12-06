@@ -8,6 +8,7 @@ from collections import namedtuple
 from mcore.types import ContentId
 
 from pydantic import BaseModel
+from lorem_text import lorem
 
 __all__ = [
     'utc_now',
@@ -29,7 +30,9 @@ __all__ = [
     'Name',
     'random_name',
     'random_email',
-    'random_phone_number'
+    'random_phone_number',
+    'random_tags',
+    'random_genres'
 ]
 
 def utc_now():
@@ -282,3 +285,35 @@ def random_email(name:Name = None) -> str:
 def random_phone_number() -> str:
     area_codes = ['513', '616', '213', '312', '404', '502', '614', '317']
     return f'tel:+1-{random.choice(area_codes)}-555-{random.randint(1000, 9999)}'
+
+def random_tags(number:int=None):
+    if number is None:
+        number = random.randint(1, 5)
+    tags = []
+    for _ in range(number):
+        while True:
+            tag = lorem.words(1)
+            if tag not in tags:
+                tags.append(tag)
+                break
+    return tags
+
+def random_genres(number:int=None, genres=None):
+    if number is None:
+        number = random.randint(1, 5)
+        
+    if genres is None:
+        genres = art_genres + music_genres
+    
+    if number > len(genres):
+        raise ValueError(f'number of genres requested ({number}) is greater than the number of genres available ({len(genres)})')
+
+    genres = []
+    for _ in range(number):
+        while True:
+            genre = lorem.words(1)
+            if genre not in genres:
+                genres.append(genre)
+                break
+
+    return genres

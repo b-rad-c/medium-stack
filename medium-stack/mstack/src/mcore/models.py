@@ -88,8 +88,8 @@ __all__ = [
 
 
 MEDIAINFO_LIB_PATH = os.environ.get('MEDIAINFO_LIB_PATH', '')   # '/opt/homebrew/Cellar/libmediainfo/23.09/lib/libmediainfo.dylib'
-MSERVE_LOCAL_STORAGE_DIRECTORY = os.environ.get('MSERVE_LOCAL_STORAGE_DIRECTORY', '/mstack/files')
-MSERVE_LOCAL_UPLOAD_DIRECTORY = os.environ.get('MSERVE_LOCAL_UPLOAD_DIRECTORY', '/mstack/uploads')
+MSERVE_LOCAL_STORAGE_DIRECTORY = os.environ.get('MSERVE_LOCAL_STORAGE_DIRECTORY', '/app/data/files')
+MSERVE_LOCAL_UPLOAD_DIRECTORY = os.environ.get('MSERVE_LOCAL_UPLOAD_DIRECTORY', '/app/data/uploads')
 
 def mediainfo(path: Union[str, Path]) -> MediaInfo:
     library_file = None if MEDIAINFO_LIB_PATH == '' else MEDIAINFO_LIB_PATH
@@ -216,7 +216,7 @@ class UserCreator(ModelCreator):
 
 
 #
-# file uploads
+# file classes
 #
 
 FileUploaderId = Annotated[MongoId, id_schema('a string representing a file uploader id')]
@@ -243,6 +243,8 @@ class FileUploader(BaseModel):
     id: FileUploaderId = Field(**db_id_kwargs)
     type: FileUploadTypes
     user_cid: UserCid = Field(**cid_kwargs)
+
+    payload_cid: Optional[ContentIdType] = Field(**cid_kwargs)
 
     total_size: int
     ext: str
@@ -321,7 +323,7 @@ class BaseFile(ContentModel):
         raise NotImplementedError('from_filepath must be implemented by subclasses')
 
     @classmethod
-    def ingest(cls:'ImageFile', filepath:Union[str, Path], user_cid: UserCid, leave_original:bool = False) -> 'ImageFile':
+    def ingest(cls:'BaseFile', filepath:Union[str, Path], user_cid: UserCid, leave_original:bool = False) -> 'BaseFile':
         item = cls.from_filepath(filepath, user_cid)
         if leave_original:
             shutil.copyfile(filepath, item.local_path)

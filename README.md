@@ -18,11 +18,11 @@
 + 🟢 update file ingest
     + 🟢 create new file ingest methods for files that don't need to be uploaded (already on server)
     + 🟢 uploads should have a temp folder and be moved into long term storage folder after recieving CID
-+ 🟡 UI models :: users, file uploads, artists, image files, still images
++ 🟡 UI models :: users, file uploads, artists, image files, image releases, still images
     + 🟡 make a lorem ipsom generator for each ui model (except file upload)
-    + 🔴 for each ui model build components: 
+    + 🔴 for each ui model build components:
         + 🔴 list
-        + 🔴 create
+        + 🔴 create (plus file upload)
         + 🔴 read
         + 🔴 delete
 
@@ -35,7 +35,8 @@
     + 🔴 db wrappers
     + 🔴 model_conig example(s) -> use lorem ipsom gen and hardcode correct cid
     + 🔴 generator function
-    + 🔴 unittests
+    + 🔴 unittests              -> retain hard coded CIDs for data+files for testing CID type
+    + 🔴 move mcore.util.example* funcs to model attributes
 
     + 🔴 new module structure:
 
@@ -109,6 +110,7 @@
                     test_example.py
                     test_generator.py
 
++ 🔴 remane StillImageCreator.id to StillImageCreator.cid -> and check for other similar naming problems
 + 🔴 refactor mart.TitleData model
 
 

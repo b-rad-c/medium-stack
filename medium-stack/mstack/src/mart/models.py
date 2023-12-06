@@ -423,6 +423,23 @@ class Credit(BaseModel):
         }
     }
 
+    @classmethod
+    def generate(cls, artist=None, **kwargs):
+        # a list of various roles for artists in filmaking, photography, music and more
+        if artist is None:
+            artist = ArtistCreator.generate_model()
+
+        roles = [
+            'actor',
+            'director',
+            'camera op',
+            'lighting technician',
+            'musician',
+            'assistant',
+            'grip',
+            'producer'
+        ]
+        return cls(role=random.choice(roles), artist=artist.cid, **kwargs)
 
 CreditList = Annotated[
     conlist(Credit, min_length=1, max_length=100), 
@@ -457,7 +474,7 @@ class TitleData(BaseModel):
 
     subtitle: Optional[str] = Field(None, max_length=500)
     summary: Optional[str] = Field(None, min_length=1, max_length=300)
-    description: Optional[str] = Field(None, min_length=1, max_length=1500)
+    description: Optional[str] = Field(None, min_length=1, max_length=2500)
 
     model_config = {
         'json_schema_extra': {
@@ -476,6 +493,22 @@ class TitleData(BaseModel):
             ]
         }
     }
+
+    @classmethod
+    def generate(cls, **kwargs):
+        title = lorem.words(random.randint(1, 8))[0:300]
+        title_words = title.split(' ')
+        short_title = f'{title_words[0]} {title_words[-1]}'
+        abreviated_title = ''.join([word[0].capitalize() for word in title.split(' ')][0:10])
+        return cls(
+            title=title,
+            short_title=short_title,
+            abreviated_title=abreviated_title,
+            subtitle=lorem.sentence()[0:500],
+            summary=lorem.sentence()[0:300],
+            description=lorem.paragraph()[0:1500],
+            **kwargs
+        )
 
 
 #

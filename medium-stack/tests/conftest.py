@@ -64,7 +64,7 @@ def _test_model_dump(obj, cid, model_type):
         assert as_dict['cid'] == str(cid)
 
     try:
-        assert isinstance(as_dict['payload_cid'], str)
+        assert isinstance(as_dict['payload_cid'], str | None)
     except KeyError:
         "ignore if model doesn't have payload_cid"
     
