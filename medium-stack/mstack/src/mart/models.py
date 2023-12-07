@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, conlist, model_validator
 from lorem_text import lorem
 
 from mcore.types import TagList, unique_list_validator
-from mcore.util import example_cid, adjectives, nouns, words, art_genres
+from mcore.util import example_cid, adjectives, nouns, art_genres
 
 from mcore.models import (
     MongoId, 

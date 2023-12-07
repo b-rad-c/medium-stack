@@ -92,7 +92,7 @@ def ingest_uploaded_file(uploader:FileUploader):
     db.create(obj)
 
     uploader.status = FileUploadStatus.complete
-    uploader.payload_cid = obj.payload_cid
+    uploader.result_cid = obj.cid
     db.update(uploader)
 
     logging.info(f'ingest complete, created: {obj}')

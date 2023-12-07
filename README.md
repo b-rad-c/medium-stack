@@ -18,8 +18,9 @@
 + 🟢 update file ingest
     + 🟢 create new file ingest methods for files that don't need to be uploaded (already on server)
     + 🟢 uploads should have a temp folder and be moved into long term storage folder after recieving CID
++ 🟢 add API endpoints for image files / releases
 + 🟡 UI models :: users, file uploads, artists, image files, image releases, still images
-    + 🟡 make a lorem ipsom generator for each ui model (except file upload)
+    + 🟡 make a lorem ipsom generator for each ui model
     + 🔴 for each ui model build components:
         + 🔴 list
         + 🔴 create (plus file upload)
@@ -29,6 +30,7 @@
 + 🔴 add mock user auth
     + 🔴 backend session model
 
++ 🔴 add tests for seeder - these will also test that user login and item/creator ownership is working
  
 + 🔴 code templating
     + 🔴 api routes

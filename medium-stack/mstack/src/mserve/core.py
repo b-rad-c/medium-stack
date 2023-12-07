@@ -2,7 +2,16 @@ import os
 
 from typing import List
 
-from mcore.models import User, UserCreator, FileUploader, FileUploaderCreator, FileUploadStatus
+from mcore.models import (
+    User,
+    UserCreator,
+    FileUploader,
+    FileUploaderCreator,
+    FileUploadStatus,
+    ImageFile,
+    ImageRelease,
+    ImageReleaseCreator
+)
 from mcore.db import MongoDB
 from mcore.errors import NotFoundError
 from mcore.types import ModelIdType
@@ -119,3 +128,49 @@ async def upload_file(id: str, chunk: UploadFile, db:MongoDB = Depends(MongoDB.f
     db.update(uploader)
 
     return uploader
+
+#
+# images
+#
+
+# image releases #
+
+@core_router.post('/image-release', response_model=ImageRelease, response_model_by_alias=False)
+def create_image_release(image_release_creator:ImageReleaseCreator, db:MongoDB = Depends(MongoDB.from_cache), user:User = Depends(current_user)):
+    image_release = image_release_creator.create_model(user_cid=user.cid)
+    db.create(image_release)
+    return image_release
+
+@core_router.get('/image-release', response_model=List[ImageRelease], response_model_by_alias=False)
+async def list_image_releases(offset:int=0, size:int=50, db:MongoDB = Depends(MongoDB.from_cache)):
+    return list(db.find(ImageRelease, offset=offset, size=size))
+
+
+@core_router.get('/image-release/{id_type}/{id}', response_model=ImageRelease, response_model_by_alias=False)
+def read_image_release(id_type:ModelIdType, id:str, db:MongoDB = Depends(MongoDB.from_cache)):
+    try:
+        return db.read(ImageRelease, **{id_type.value: id})
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@core_router.delete('/image-release/{id_type}/{id}', status_code=201)
+def delete_image_release(id_type:ModelIdType, id:str, db:MongoDB = Depends(MongoDB.from_cache)):
+    db.delete(ImageRelease, **{id_type.value: id})
+
+# image files #
+
+@core_router.get('/image-files', response_model=List[ImageFile], response_model_by_alias=False)
+async def list_image_files(offset:int=0, size:int=50, db:MongoDB = Depends(MongoDB.from_cache)):
+    return list(db.find(ImageFile, offset=offset, size=size))
+
+
+@core_router.get('/image-files/{id_type}/{id}', response_model=ImageFile, response_model_by_alias=False)
+def read_image_file(id_type:ModelIdType, id:str, db:MongoDB = Depends(MongoDB.from_cache)):
+    try:
+        return db.read(ImageFile, **{id_type.value: id})
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@core_router.delete('/image-files/{id_type}/{id}', status_code=201)
+def delete_image_file(id_type:ModelIdType, id:str, db:MongoDB = Depends(MongoDB.from_cache)):
+    db.delete(ImageFile, **{id_type.value: id})

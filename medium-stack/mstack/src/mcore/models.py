@@ -23,7 +23,7 @@ from pydantic import (
     conlist
 )
 
-from .types import ContentId, MongoId, id_schema, db_id_kwargs, cid_kwargs, ContentIdType
+from mcore.types import ContentId, MongoId, id_schema, db_id_kwargs, cid_kwargs, ContentIdType
 
 __all__ = [
     'mediainfo',
@@ -51,6 +51,7 @@ __all__ = [
     'ImageReleaseId',
     'ImageReleaseCid',
     'ImageRelease',
+    'ImageReleaseCreator',
     
     'AudioFileId',
     'AudioFileCid',
@@ -244,7 +245,7 @@ class FileUploader(BaseModel):
     type: FileUploadTypes
     user_cid: UserCid = Field(**cid_kwargs)
 
-    payload_cid: Optional[ContentIdType] = Field(**cid_kwargs)
+    result_cid: Optional[ContentIdType] = Field(**cid_kwargs)
 
     total_size: int
     ext: str
@@ -399,6 +400,14 @@ class ImageRelease(ContentModel):
 
     id: ImageReleaseId = Field(**db_id_kwargs)
     cid: ImageReleaseCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
+
+    master: ImageFileCid
+    alt_formats: AltImageFormatList = None
+
+
+class ImageReleaseCreator(ModelCreator):
+    MODEL: ClassVar[Type[ImageRelease]] = ImageRelease
 
     master: ImageFileCid
     alt_formats: AltImageFormatList = None

@@ -6,6 +6,7 @@ from typing import List
 from pathlib import Path
 from glob import glob
 
+from mcore.db import MongoDB
 from mcore.client import MStackClient
 from mcore.models import *
 from mart.models import *
@@ -25,6 +26,7 @@ class DataSeeder:
     
         def __init__(self):
             self.mstack = MStackClient()
+            self.db = MongoDB.from_cache()
 
             self.users:List[User] = []
             self.artists:List[Artist] = []
@@ -39,10 +41,11 @@ class DataSeeder:
             self.seed_still_images()
     
         def seed_users(self):
-            for _ in range(10):
+            for _ in range(5):
                 user_creator = UserCreator.generate()
                 user = self.mstack.create_user(user_creator)
                 self.users.append(user)
+                self.mstack.upload_file(self._next_image_path(), FileUploadTypes.image)
             
             random.shuffle(self.users)
     
@@ -56,16 +59,21 @@ class DataSeeder:
 
         def seed_still_images(self):
             for artist in self.artists:
-                for _ in range(random.randint(3, 25)):
+                for _ in range(random.randint(3, 10)):
+
+                    image_release_creator = self._get_image_release(artist)
+                    image_release = self.mstack.create_image_release(image_release_creator)
+
                     still_image_creator = StillImageCreator(
                         creator_id=artist.cid,
-                        release=self._get_image_release(artist).cid,
+                        release=image_release.cid,
                         title=TitleData.generate(),
                         credits=[Credit.generate() for _ in range(random.randint(1, 5))],
                         genres=random_genres(genres=art_genres),
                         tags=random_tags(),
                         alt_text=lorem.sentence(),
                     )
+
                     still_image = self.mstack.create_still_image(still_image_creator)
                     self.still_images.append(still_image)
 
@@ -76,22 +84,32 @@ class DataSeeder:
             
             random.shuffle(self.image_paths)
 
+        def _next_image_path(self) -> Path:
+            path = self.image_paths.pop(0)
+            self.image_paths.append(path)
+            return path
+
         def _get_image_release(self, artist:Artist) -> ImageRelease:
-            master_path = self.image_paths.pop()
+            master_path = self._next_image_path()
+
             pattern = str(master_path.parent.parent / 'thumbs' / f'{master_path.stem}*')
             alt_paths = glob(pattern)
             assert len(alt_paths) > 0
 
-            master = ImageFile.ingest(master_path, user_cid=artist.user_cid)
-            alts = [ImageFile.ingest(path, user_cid=artist.user_cid) for path in alt_paths]
+            master = ImageFile.ingest(master_path, user_cid=artist.user_cid, leave_original=True)
+            self.db.create(master)
 
-            return ImageRelease(
+            alts = []
+            for alt_path in alt_paths:
+                alt = ImageFile.ingest(alt_path, user_cid=artist.user_cid, leave_original=True)
+                self.db.create(alt)
+                alts.append(alt)
+
+            return ImageReleaseCreator(
                 master=master.cid,
-                alts=[alt.cid for alt in alts]
+                alt_formats=[alt.cid for alt in alts]
             )
 
 if __name__ == '__main__':
     seeder = DataSeeder()
     seeder.seed()
-    breakpoint()
-
