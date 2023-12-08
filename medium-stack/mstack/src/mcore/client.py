@@ -98,6 +98,10 @@ class MStackClient:
     # core
     #
 
+    def login(self, username:str, password:str) -> str:
+        data = self._post('core/auth/login', data={'username': username, 'password': password})
+        self.session.headers.update({'Authorization': f'Bearer {data["access_token"]}'})
+
     # users #
 
     def create_user(self, user_creator: UserCreator) -> User:

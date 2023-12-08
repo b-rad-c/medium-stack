@@ -1,5 +1,6 @@
 from typing import Type, Callable
 
+from mcore.auth import create_new_user
 from mcore.client import *
 from mcore.types import ContentId
 from mcore.models import *
@@ -43,8 +44,6 @@ SAMPLE_BIN = Path(__file__).parent / 'samples'
 db = MongoDB.from_cache()
 
 user_cid = example_cid(User)
-
-mstack = MStackClient()
 
 #
 # helpers
@@ -272,12 +271,13 @@ def _check_client_response_id(mstack:MStackClient):
         raise Exception('Invalid response type')
 
 def _test_client_crud_ops(
+        mstack:MStackClient,
         model_type:ContentModel, 
         model_creator:ModelCreator, 
         create_op:Callable, 
         list_op:Callable,
         read_op:Callable,
-        delete_op:Callable,
+        delete_op:Callable
     ):
 
     # init #
@@ -373,8 +373,20 @@ def _test_client_crud_ops(
 
 
 #
-# model fixtures
+# fixtures
 #
+
+@pytest.fixture(scope='function')
+def client() -> MStackClient:
+    user_creator = UserCreator.generate()
+    user = create_new_user(user_creator)
+
+    mstack = MStackClient()
+    mstack.login(user_creator.email, user_creator.password1)
+
+    return mstack
+
+
 
 # image #
 

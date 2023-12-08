@@ -29,8 +29,8 @@
 
 + 🟡 add user auth
     + 🟢 web api
-    + 🔴 client
-    + 🔴 make unittests
+    + 🟢 client
+    + 🟡 update unittests
 
 + 🔴 add tests for seeder - these will also test that user login and item/creator ownership is working
  
