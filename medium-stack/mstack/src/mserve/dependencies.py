@@ -1,21 +1,45 @@
-from typing import List
+from typing import List, Annotated
+from datetime import timedelta
 
+from mcore.auth import MSTACK_AUTH_SECRET_KEY, MSTACK_AUTH_ALGORITHM
 from mcore.models import User, ContentModel, ModelCreator
 from mcore.db import MongoDB
 from mcore.errors import NotFoundError
 from mcore.types import ModelIdType
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v0/core/auth/login')
 
-async def current_user() -> User:
-    params = User.model_json_schema()['examples'][0]
-    return User(**params)
+async def current_user(token: Annotated[str, Depends(oauth2_scheme)], db:MongoDB = Depends(MongoDB.from_cache)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail='Could not validate credentials',
+        headers={'WWW-Authenticate': 'Bearer'},
+    )
+
+    try:
+        payload = jwt.decode(token, MSTACK_AUTH_SECRET_KEY, algorithms=[MSTACK_AUTH_ALGORITHM])
+        user_id: str = payload.get('sub')
+        if user_id is None:
+            raise credentials_exception
+        
+    except JWTError:
+        raise credentials_exception
+    
+    user = db.read(User, id=user_id)
+
+    if user is None:
+        raise credentials_exception
+    
+    return user
 
 
 def add_crud_routes(router:APIRouter, model_type:ContentModel, model_creator:ModelCreator):
     try:
-        prefix = model_type.API_PREFIX
+        prefix:str = model_type.API_PREFIX
     except AttributeError:
         raise ValueError(f'{model_type.__class__.__name__} does not have an API_PREFIX attribute')
     

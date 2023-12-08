@@ -1,6 +1,13 @@
 import os
 
-from typing import List
+from typing import List, Annotated
+from datetime import timedelta
+
+from mcore.auth import (
+    authenticate_user, 
+    create_access_token,
+    MSTACK_AUTH_LOGIN_EXPIRATION_MINUTES
+)
 
 from mcore.models import (
     User,
@@ -12,24 +19,55 @@ from mcore.models import (
     ImageRelease,
     ImageReleaseCreator
 )
+from mcore.auth import create_new_user
 from mcore.db import MongoDB
-from mcore.errors import NotFoundError
+from mcore.errors import NotFoundError, MStackAuthenticationError
 from mcore.types import ModelIdType
 from mserve.dependencies import current_user
 
-from fastapi import APIRouter, HTTPException, Depends, UploadFile
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, status
+from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
+
 
 core_router = APIRouter(tags=['Core'])
+
+#
+# auth
+#
+
+class AccessToken(BaseModel):
+    access_token: str
+    token_type: str
+
+@core_router.post('/auth/login', response_model=AccessToken)
+async def auth_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    try:
+        user = authenticate_user(form_data.username, form_data.password)
+    except MStackAuthenticationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            # detail='Incorrect username or password',
+            detail=str(e),
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
+    
+    token_expires = timedelta(minutes=MSTACK_AUTH_LOGIN_EXPIRATION_MINUTES)
+    access_token = create_access_token(data={'sub': str(user.id)}, expires_delta=token_expires)
+
+    return AccessToken(access_token=access_token, token_type='bearer')
 
 #
 # users
 #
 
-@core_router.post('/users', response_model=User, response_model_by_alias=False)
-def create_user(user_creator:UserCreator, db:MongoDB = Depends(MongoDB.from_cache)):
-    user = user_creator.create_model()
-    db.create(user)
+@core_router.get('/users/me', response_model=User, response_model_by_alias=False)
+async def read_users_me(user:User = Depends(current_user)):
     return user
+
+@core_router.post('/users', response_model=User, response_model_by_alias=False)
+def create_user(user_creator:UserCreator):
+    return create_new_user(user_creator)
 
 
 @core_router.get('/users', response_model=List[User], response_model_by_alias=False)

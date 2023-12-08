@@ -17,9 +17,12 @@ dependencies = [
     'fastapi[all]',
     'lorem-text',
     'requests',
+    'passlib[bcrypt]',
     'phonenumbers',
     'pydantic',
     'pydantic-extra-types',
     'pymediainfo',
-    'pymongo'
+    'pymongo',
+    'python-jose[cryptography]',
+    'python-multipart'
 ]

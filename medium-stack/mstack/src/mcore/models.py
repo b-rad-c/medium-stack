@@ -181,6 +181,15 @@ class User(ContentModel):
     }
 
 
+UserPasswordHashId = Annotated[MongoId, id_schema('a string representing a user password hash id')]
+
+class UserPasswordHash(BaseModel):
+    MONGO_COLLECTION_NAME: ClassVar[str] = 'user_password_hashes'
+    id: UserPasswordHashId = Field(**db_id_kwargs)
+    user_id: UserId
+    hashed_password: str
+
+
 class UserCreator(ModelCreator):
     MODEL: ClassVar[Type[User]] = User
 
@@ -189,6 +198,8 @@ class UserCreator(ModelCreator):
     first_name: str = Field(min_length=1, max_length=100)
     last_name: str = Field(min_length=1, max_length=100)
     middle_name: str = Field(min_length=1, max_length=100, default=None, validate_default=False)    
+    password1: str = Field(min_length=8, max_length=64)
+    password2: str = Field(min_length=8, max_length=64)
 
     model_config = {
         'json_schema_extra': {
@@ -198,21 +209,40 @@ class UserCreator(ModelCreator):
                     'phone_number': 'tel:+1-513-555-0123',
                     'first_name': 'Alice',
                     'last_name': 'Smith',
-                    'middle_name': 'C'
+                    'middle_name': 'C',
+                    'password1': 'password',
+                    'password2': 'password'
                 }
             ]
         }
     }
 
+    def create_model(self, **kwargs) -> 'User':
+        params = self.model_dump()
+        del params['password1']
+        del params['password2']
+
+        params.update(kwargs)
+        return User(**params)
+
+    @model_validator(mode='after')
+    def validate_passwords(self) -> 'UserCreator':
+        if self.password1 != self.password2:
+            raise ValueError('passwords do not match')
+        return self
+
     @classmethod
     def generate(cls, **kwargs) -> 'UserCreator':
         name = random_name()
+        pw = str(random.randint(10_000_000, 999_999_999))
         return cls(
             email=random_email(name),
             phone_number=random_phone_number(),
             first_name=name.first,
             last_name=name.last,
-            middle_name=name.middle
+            middle_name=name.middle,
+            password1=pw,
+            password2=pw
         )
 
 

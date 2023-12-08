@@ -13,7 +13,8 @@ services:
     depends_on:
       - db
     environment:
-      - MONGO_DB_URI=mongodb://db:27017
+      - MONGO_DB_URI
+      - MSTACK_AUTH_SECRET_KEY
 
   db:
     image: mongo
@@ -33,7 +34,7 @@ services:
     depends_on:
       - db
     environment:
-      - MONGO_DB_URI=mongodb://db:27017
+      - MONGO_DB_URI
 
 volumes:
   db-data:

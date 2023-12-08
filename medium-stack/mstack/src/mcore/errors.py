@@ -13,6 +13,8 @@ class MStackClientError(MStackCoreError):
         except AttributeError:
             self.status_code = None
 
+class MStackAuthenticationError(MStackCoreError):
+    pass
 
 class MStackFilePayloadError(MStackCoreError):
     pass

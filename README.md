@@ -20,15 +20,17 @@
     + 🟢 uploads should have a temp folder and be moved into long term storage folder after recieving CID
 + 🟢 add API endpoints for image files / releases
 + 🟡 UI models :: users, file uploads, artists, image files, image releases, still images
-    + 🟡 make a lorem ipsom generator for each ui model
+    + 🟢 make a lorem ipsom generator for each ui model
     + 🔴 for each ui model build components:
         + 🔴 list
         + 🔴 create (plus file upload)
         + 🔴 read
         + 🔴 delete
 
-+ 🔴 add mock user auth
-    + 🔴 backend session model
++ 🟡 add user auth
+    + 🟢 web api
+    + 🔴 client
+    + 🔴 make unittests
 
 + 🔴 add tests for seeder - these will also test that user login and item/creator ownership is working
  
@@ -176,17 +178,21 @@
 + 🔴 mjournalism
     ...
 
-###
+### backlog
 
-+ 🔴 auth
-    + 🔴 add actual auth
-    + 🔴 add ACLs for CRUD operations
++ 🔴 authentication improvments
+    + 🔴 create admin+user auth scopes to lock down endpoints like users and file uploads
+        https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/
+    + 🔴 ensure only 1 user can be created per email and phonenumber
+        + 🔴 create unit test for this and ensure email is case insensitive
 
-+ 🔴 backlog
-    + 🔴 write tests for upload cleanup process
++ 🔴 add user sessions so that tokens can be expired prematurly by admins or users
 
-+ 🔴 R&D
-    + 🔴 versionable CIDs
++ 🔴 increate password requirements
+
++ 🔴 write tests for upload cleanup process
+
++ 🔴 versionable CIDs
     + 🔴 add update functions to models, create & modified timestamps, and integrate changes with versionable CID
 
 
