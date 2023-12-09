@@ -34,48 +34,10 @@ class DataSeeder:
             self.image_paths:List[Path] = []
             self.still_images:List[StillImage] = []
             self._load_image_samples()
-    
-        def seed(self):
-            self.seed_users()
-            self.seed_artists()
-            self.seed_still_images()
-    
-        def seed_users(self):
-            for _ in range(5):
-                user_creator = UserCreator.generate()
-                user = self.mstack.create_user(user_creator)
-                self.users.append(user)
-                self.mstack.upload_file(self._next_image_path(), FileUploadTypes.image)
-            
-            random.shuffle(self.users)
-    
-        def seed_artists(self):
-            count = int(len(self.users) * (2/3))
-            for user in self.users[:count]:
-                artist_creator = ArtistCreator.generate(user)
-                artist = self.mstack.create_artist(artist_creator)
-                self.artists.append(artist)
-    
 
-        def seed_still_images(self):
-            for artist in self.artists:
-                for _ in range(random.randint(3, 10)):
-
-                    image_release_creator = self._get_image_release(artist)
-                    image_release = self.mstack.create_image_release(image_release_creator)
-
-                    still_image_creator = StillImageCreator(
-                        creator_id=artist.cid,
-                        release=image_release.cid,
-                        title=TitleData.generate(),
-                        credits=[Credit.generate() for _ in range(random.randint(1, 5))],
-                        genres=random_genres(genres=art_genres),
-                        tags=random_tags(),
-                        alt_text=lorem.sentence(),
-                    )
-
-                    still_image = self.mstack.create_still_image(still_image_creator)
-                    self.still_images.append(still_image)
+        #
+        # util methods
+        #
 
         def _load_image_samples(self):
             pattern = (IMAGE_SAMPLE_SOURCES / '*').absolute()
@@ -88,8 +50,59 @@ class DataSeeder:
             path = self.image_paths.pop(0)
             self.image_paths.append(path)
             return path
+        
+        #
+        # seeder methods
+        #
+    
+        def seed(self):
+            for _ in range(5):
+                user = self.seed_user()
 
-        def _get_image_release(self, artist:Artist) -> ImageRelease:
+        def seed_user(self) -> User:
+            user_creator = UserCreator.generate()
+            user = self.mstack.create_user(user_creator)
+            self.users.append(user)
+
+            self.mstack.login(user.email, user_creator.password1)
+
+            # populate FileUploaders
+            for _ in range(random.randint(1, 3)):
+                self.mstack.upload_file(self._next_image_path(), FileUploadTypes.image)
+
+            self.seed_artist(user)
+
+            return user
+    
+        def seed_artist(self, user:User):
+            artist_creator = ArtistCreator.generate(user)
+            artist = self.mstack.create_artist(artist_creator)
+            self.artists.append(artist)
+
+            self.seed_still_images(artist)
+    
+
+        def seed_still_images(self, artist:Artist):
+            for _ in range(random.randint(3, 10)):
+
+                image_release_creator = self.seed_image_release(artist)
+                image_release = self.mstack.create_image_release(image_release_creator)
+
+                still_image_creator = StillImageCreator(
+                    creator_id=artist.cid,
+                    release=image_release.cid,
+                    title=TitleData.generate(),
+                    credits=[Credit.generate() for _ in range(random.randint(1, 5))],
+                    genres=random_genres(genres=art_genres),
+                    tags=random_tags(),
+                    alt_text=lorem.sentence(),
+                )
+
+                still_image = self.mstack.create_still_image(still_image_creator)
+                self.still_images.append(still_image)
+
+
+        def seed_image_release(self, artist:Artist) -> ImageRelease:
             master_path = self._next_image_path()
 
             pattern = str(master_path.parent.parent / 'thumbs' / f'{master_path.stem}*')
