@@ -27,10 +27,10 @@
         + 🔴 read
         + 🔴 delete
 
-+ 🟡 add user auth
++ 🟢 add user auth
     + 🟢 web api
     + 🟢 client
-    + 🟡 update unittests
+    + 🟢 update unittests
 
 + 🔴 add tests for seeder - these will also test that user login and item/creator ownership is working
  
