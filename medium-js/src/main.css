@@ -18,14 +18,24 @@ h1 {
   justify-content: center;
 }
 
-.nav {
-  display: flex;
-  justify-content: space-around;
+.navbar {
+
   margin-top: 20px;
-  padding: 10px;
+  margin-bottom: 20px;
+  
+}
+
+#nav-bar-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+  color: midnightblue;
 }
 
 .navbar-link {
+  position: relative;
+  top: -5px;
   text-decoration: none;
   background-color: #fff;
   color: midnightblue;

@@ -21,11 +21,14 @@
 + 🟢 add API endpoints for image files / releases
 + 🟡 UI models :: users, file uploads, artists, image files, image releases, still images
     + 🟢 make a lorem ipsom generator for each ui model
-    + 🔴 for each ui model build components:
-        + 🔴 list
-        + 🔴 create (plus file upload)
-        + 🔴 read
-        + 🔴 delete
+    + 🟡 index page linking to other pages
+    + 🟡 for each ui model build components/pages for list, create (plus file upload), read, delete
+        + 🟡 users
+        + 🔴 file uploads
+        + 🔴 artists
+        + 🔴 image files
+        + 🔴 image releases
+        + 🔴 still images
 
 + 🟢 add user auth
     + 🟢 web api

@@ -9,6 +9,7 @@ from mserve.mart import *
 from mcore.util import utc_now
 
 from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 
@@ -57,6 +58,14 @@ async def index():
 #
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=False,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
 
 if MSERVE_INCLUDE_MAIN:
     app.include_router(main_router, prefix=API_PREFIX)
