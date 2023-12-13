@@ -63,12 +63,11 @@ h1 {
   color: red;
 }
 
-
 input {
   margin: 10px;
 }
 
-.profile-left-col {
+.grid-left-col {
   font-weight: bold;
   width: 100px;
 }

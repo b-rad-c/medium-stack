@@ -1,22 +1,21 @@
 import createCone from 'van-cone';
 import van from 'vanjs-core';
 const { div } = van.tags;
-import usersPage from './pages/users';
-
-console.log('app.js')
 
 const routes = [
   {
-    path: '/users/:userId',
+    path: '/users/:cid',
+    backend: '/core/users/cid/:cid',
     name: 'user',
     title: 'Medium Tech | User',
     callable: async () => import('./pages/user')
   },
   {
     path: '/users',
+    backend: '/core/users',
     name: 'users',
     title: 'Medium Tech | Users',
-    callable: async () => usersPage
+    callable: async () => import('./pages/users')
   },
   {
     path: '/',
@@ -32,8 +31,6 @@ const routes = [
   },
 ];
 
-
 const layoutElement = div({ id: 'layout' })
-
-const cone = createCone(layoutElement, routes)
+const cone = createCone(layoutElement, routes, null, { backendPrefix: 'http://localhost:8000/api/v0' })
 export default cone

@@ -2,7 +2,7 @@ import cone from './app'
 import van from 'vanjs-core'
 
 const { navLink } = cone
-const { div, nav, hr, h1, ul, li, span, p } = van.tags
+const { div, hr, span } = van.tags
 
 const navbar = () => {
 
