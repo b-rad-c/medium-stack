@@ -23,7 +23,7 @@
     + 🟢 make a lorem ipsom generator for each ui model
     + 🟡 index page linking to other pages
     + 🟡 for each ui model build components/pages for list, create (plus file upload), read, delete
-        + 🟡 users
+        + 🟢 users
         + 🔴 file uploads
         + 🔴 artists
         + 🔴 image files

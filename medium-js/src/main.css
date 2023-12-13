@@ -76,3 +76,24 @@ input {
   margin: 0 auto;
 }
 
+/*
+widgets
+*/
+
+.key-value-table {
+  width: 50%;
+}
+
+.key-value-table-row {
+  border-bottom: 1px solid #ddd;
+}
+
+.key-value-table-l-col {
+  font-weight: bold;
+  margin-right: 0%;
+}
+
+.key-value-table-r-col {
+  margin-left: 0%;
+  padding-left: 0%;
+}

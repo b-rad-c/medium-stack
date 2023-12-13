@@ -1,34 +1,18 @@
 import van from 'vanjs-core'
 import cone from '../app'
+import { keyValueTable } from '../../components/widgets'
 
 const { router, navLink } = cone
-const { section, div, p, h1, table, tr, td } = van.tags
+const { section, div, p, h1 } = van.tags
 
 const userWidget = (user) => {
-
-  return table(
-    tr(
-      td('first name:'),
-      td(user.first_name),
-    ),
-    tr(
-      td('middle name:'),
-      td(user.middle_name),
-    ),
-    tr(
-      td('last name:'),
-      td(user.last_name),
-    ),
-    tr(
-      td('email:'),
-      td(user.email),
-    ),
-    tr(
-      td('phone number:'),
-      td(user.phone_number),
-    )
+  return keyValueTable(
+    user, 
+    {
+      keys: ['first_name', 'middle_name', 'last_name', 'email', 'phone_number'],
+      labels: ['First Name', 'Middle Name', 'Last Name', 'Email', 'Phone']
+    }
   )
-
 }
 
 const userPage = (params, query, context) => {
