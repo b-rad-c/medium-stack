@@ -4,18 +4,32 @@ const { div } = van.tags;
 
 const routes = [
   {
+    path: '/file-uploader',
+    backend: '/core/file-uploader',
+    name: 'file-uploader',
+    title: 'Medium Tech | File Uploader',
+    callable: async () => import('./pages/core/fileUploader')
+  },
+  {
+    path: '/file-uploaders',
+    backend: '/core/file-uploader',
+    name: 'file-uploaders',
+    title: 'Medium Tech | File Uploaders',
+    callable: async () => import('./pages/core/fileUploaders')
+  },
+  {
     path: '/users/:cid',
     backend: '/core/users/cid/:cid',
     name: 'user',
     title: 'Medium Tech | User',
-    callable: async () => import('./pages/user')
+    callable: async () => import('./pages/core/user')
   },
   {
     path: '/users',
     backend: '/core/users',
     name: 'users',
     title: 'Medium Tech | Users',
-    callable: async () => import('./pages/users')
+    callable: async () => import('./pages/core/users')
   },
   {
     path: '/',

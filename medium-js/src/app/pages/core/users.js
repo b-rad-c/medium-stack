@@ -1,6 +1,6 @@
 import van from 'vanjs-core'
 import * as vanX from "vanjs-ext"
-import cone from '../app'
+import cone from '../../app'
 
 const { router, navLink, pushHistory } = cone
 const { section, div, h1, p, hr, ul, li, input, button, span } = van.tags
@@ -23,23 +23,29 @@ const usersPage = () => {
     pageState.val = 'loading...'
 
     fetch(router.backendUrl('users', {}, { size: pageSize.val, offset: pageOffset.val}))
-    .then(r => r.json())
-    .then(data => { 
-      if (data.length === 0 && pageOffset.val === 0) {
-        pageState.val = 'no users found'
-      }else if (data.length === 0) {
-        pageState.val = 'no users on this page, go to previous page'
-      }else{
-        pageState.val = `showing users ${pageOffset.val + 1} thru ${pageOffset.val + data.length}`
-      }
-      
-      // @ts-ignore
-      userList.splice(0, Infinity, ...data)
-    })
-    .catch(error => {
-      console.error(error)
-      pageState.val = 'error: ' + error.toString()
-    })
+      .then(r => {
+        if (!r.ok) {
+          console.log(r)
+          throw new Error(r.statusText)
+        }
+        return r.json()
+      })
+      .then(data => { 
+        if (data.length === 0 && pageOffset.val === 0) {
+          pageState.val = 'no users found'
+        }else if (data.length === 0) {
+          pageState.val = 'no users on this page, go to previous page'
+        }else{
+          pageState.val = `showing users ${pageOffset.val + 1} thru ${pageOffset.val + data.length}`
+        }
+        
+        // @ts-ignore
+        userList.splice(0, Infinity, ...data)
+      })
+      .catch(error => {
+        console.error(error)
+        pageState.val = 'error: ' + error.toString()
+      })
   }
 
   const pushBrowserUrl = () => pushHistory(router.navUrl('users', {}, { size: pageSize.val, offset: pageOffset.val}))

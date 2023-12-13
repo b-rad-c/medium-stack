@@ -1,6 +1,6 @@
 import van from 'vanjs-core'
-import cone from '../app'
-import { keyValueTable } from '../../components/widgets'
+import cone from '../../app'
+import { keyValueTable } from '../../../components/widgets'
 
 const { router, navLink } = cone
 const { section, div, p, h1 } = van.tags
@@ -21,8 +21,6 @@ const userPage = (params, query, context) => {
   // page state
   //
 
-  console.log('userPage')
-
   const pageState = van.state('')
   const showUser = van.state(false)
   let userData = null
@@ -42,7 +40,13 @@ const userPage = (params, query, context) => {
     console.log ('fetching', url)
 
     fetch(url)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) {
+          console.log(r)
+          throw new Error(r.statusText)
+        }
+        return r.json()
+      })
       .then(data => { 
         userData = data
         pageState.val = ''

@@ -24,7 +24,7 @@
     + 🟡 index page linking to other pages
     + 🟡 for each ui model build components/pages for list, create (plus file upload), read, delete
         + 🟢 users
-        + 🔴 file uploads
+        + 🟢 file uploads
         + 🔴 artists
         + 🔴 image files
         + 🔴 image releases
