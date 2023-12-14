@@ -12,9 +12,10 @@ const keyValueTable = (data, props) => {
     const keyEnding = (typeof end !== 'undefined') ? end : ':'
 
     const rows = keyList.map((key, index) => {
+        const value = (Array.isArray(data[key])) ? data[key].join(', ') : data[key]
         return tr({'class': rowClass || 'key-value-table-row'},
             td({'class': lColClass || 'key-value-table-l-col'}, keyFields[index], keyEnding),
-            td({'class': rColClass || 'key-value-table-r-col'}, data[key]),
+            td({'class': rColClass || 'key-value-table-r-col'}, value),
         )
     })
 

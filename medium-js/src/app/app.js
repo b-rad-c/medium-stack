@@ -4,6 +4,20 @@ const { div } = van.tags;
 
 const routes = [
   {
+    path: '/art/artists/:cid',
+    backend: '/art/artists/cid/:cid',
+    name: 'artist',
+    title: 'Medium Tech | Artist',
+    callable: async () => import('./pages/art/artists/artist')
+  },
+  {
+    path: '/art/artists',
+    backend: '/mart/artists',
+    name: 'artists',
+    title: 'Medium Tech | Artists',
+    callable: async () => import('./pages/art/artists/artists')
+  },
+  {
     path: '/file-uploader',
     backend: '/core/file-uploader',
     name: 'file-uploader',

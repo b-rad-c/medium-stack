@@ -14,7 +14,8 @@ const homePage = () => {
       div(
         ul(
           li(navLink({name: 'users'}, 'Users')),
-          li(navLink({name: 'file-uploaders'}, 'File uploaders'))
+          li(navLink({name: 'file-uploaders'}, 'File uploaders')),
+          li(navLink({name: 'artists'}, 'Artists')),
         )
       )
     );
