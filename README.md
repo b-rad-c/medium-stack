@@ -25,7 +25,7 @@
     + 🟡 for each ui model build components/pages for list, create (plus file upload), read, delete
         + 🟢 users
         + 🟢 file uploads
-        + 🔴 artists
+        + 🟢 artists
         + 🔴 image files
         + 🔴 image releases
         + 🔴 still images
