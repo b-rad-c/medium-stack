@@ -19,6 +19,7 @@
     + 🟢 create new file ingest methods for files that don't need to be uploaded (already on server)
     + 🟢 uploads should have a temp folder and be moved into long term storage folder after recieving CID
 + 🟢 add API endpoints for image files / releases
++ 🔴 update backend API to serve static files
 + 🟡 UI models :: users, file uploads, artists, image files, image releases, still images
     + 🟢 make a lorem ipsom generator for each ui model
     + 🟡 index page linking to other pages
@@ -193,8 +194,11 @@
     + 🔴 create admin+user auth scopes to lock down endpoints like users and file uploads
         https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/
     + 🔴 add user sessions so that tokens can be expired prematurly by admins or users
+    + 🔴 process to delete user
+    + 🔴 process to delete artist account
+    + 🔴 ACLs - allow users to create custom ACLs for items they own
 
-+ 🔴 increate password requirements
++ 🔴 create password requirements
 
 + 🔴 write tests for upload cleanup process
 

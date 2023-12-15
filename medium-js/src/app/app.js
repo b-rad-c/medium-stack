@@ -37,6 +37,20 @@ const routes = [
     callable: async () => import('./pages/core/fileUploaders')
   },
   {
+    path: '/image-files/:cid',
+    backend: '/image-files/cid/:cid',
+    name: 'image-file',
+    title: 'Medium Tech | Image File',
+    callable: async () =>  (await import('./pages/core/imageFiles')).imageFilePage
+  },
+  {
+    path: '/image-files',
+    backend: '/core/image-files',
+    name: 'image-files',
+    title: 'Medium Tech | Imagae Files',
+    callable: async () => (await import('./pages/core/imageFiles')).imageFileListPage
+  },
+  {
     path: '/users/me',
     backend: '/core/users/me',
     name: 'me',

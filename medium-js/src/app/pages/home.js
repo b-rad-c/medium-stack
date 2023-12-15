@@ -16,6 +16,7 @@ const homePage = () => {
           li(navLink({name: 'users'}, 'Users')),
           li(navLink({name: 'file-uploaders'}, 'File uploaders')),
           li(navLink({name: 'artists'}, 'Artists')),
+          li(navLink({name: 'image-files'}, 'Image files'))
         )
       )
     );
