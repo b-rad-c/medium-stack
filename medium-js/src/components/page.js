@@ -1,11 +1,11 @@
 import van from 'vanjs-core'
 import * as vanX from "vanjs-ext"
-import cone from '../app/app'
+import cone, { authenticatedFetch } from '../app/app'
 
 const { router, pushHistory } = cone
 const { section, div, h1, p, hr, ul, input, button, span } = van.tags
 
-const contentModelPage = (pageTitle, routeName, contentModelWidget, routerData) => {
+const contentModelPage = (pageTitle, routeName, contentModelWidget, routerData, authenticateFetch) => {
     const { params, query, context } = routerData
     //
     // page state
@@ -19,6 +19,8 @@ const contentModelPage = (pageTitle, routeName, contentModelWidget, routerData) 
     // load data function
     //
 
+    const request = authenticateFetch === true ? authenticatedFetch : fetch
+
     const getModel = () => {
 
         pageState.val = 'loading...'
@@ -29,7 +31,7 @@ const contentModelPage = (pageTitle, routeName, contentModelWidget, routerData) 
 
         console.log('fetching', url)
 
-        fetch(url)
+        request(url)
             .then(r => {
                 if (!r.ok) {
                     console.log(r)

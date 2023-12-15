@@ -19,7 +19,7 @@
     + 🟢 create new file ingest methods for files that don't need to be uploaded (already on server)
     + 🟢 uploads should have a temp folder and be moved into long term storage folder after recieving CID
 + 🟢 add API endpoints for image files / releases
-+ 🔴 update backend API to serve static files
++ 🔴 update backend API to serve static files + unittests
 + 🟡 UI models :: users, file uploads, artists, image files, image releases, still images
     + 🟢 make a lorem ipsom generator for each ui model
     + 🟡 index page linking to other pages
@@ -27,7 +27,7 @@
         + 🟡 users
         + 🟡 file uploads
         + 🟡 artists
-        + 🔴 image files
+        + 🟡 image files
         + 🔴 image releases
         + 🔴 still images
 + 🟢 UI auth
@@ -39,8 +39,6 @@
     + 🟢 web api
     + 🟢 client
     + 🟢 update unittests
-
-+ 🔴 add tests for seeder - these will also test that user login and item/creator ownership is working
  
 + 🔴 code templating
     + 🔴 api routes
@@ -151,6 +149,9 @@
 
         this should be done after code templating and generation so that new models, examples and unittests will be auto generated instead of manually updating CIDs
 
++ 🔴 add backend widget and list item models for each content model that will be used to generate the front end models
+
++ 🔴 add tests for seeder - these will also test that user login and item/creator ownership is working
 
 + 🔴 text editing
     + 🔴 find text editing libray

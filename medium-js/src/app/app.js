@@ -13,63 +13,63 @@ const routes = [
     backend: '/art/artists/cid/:cid',
     name: 'artist',
     title: 'Medium Tech | Artist',
-    callable: async () => import('./pages/art/artists/artist')
+    callable: async () => (await import('./pages/art/artist')).artistPage
   },
   {
     path: '/art/artists',
     backend: '/mart/artists',
     name: 'artists',
     title: 'Medium Tech | Artists',
-    callable: async () => import('./pages/art/artists/artists')
+    callable: async () => (await import('./pages/art/artist')).artistListPage
   },
   {
     path: '/file-uploader',
     backend: '/core/file-uploader',
     name: 'file-uploader',
     title: 'Medium Tech | File Uploader',
-    callable: async () => import('./pages/core/fileUploader')
+    callable: async () => (await import('./pages/core/fileUploader')).fileUploaderPage
   },
   {
     path: '/file-uploaders',
     backend: '/core/file-uploader',
     name: 'file-uploaders',
     title: 'Medium Tech | File Uploaders',
-    callable: async () => import('./pages/core/fileUploaders')
+    callable: async () => (await import('./pages/core/fileUploader')).fileUploaderListPage
   },
   {
     path: '/image-files/:cid',
     backend: '/image-files/cid/:cid',
     name: 'image-file',
     title: 'Medium Tech | Image File',
-    callable: async () =>  (await import('./pages/core/imageFiles')).imageFilePage
+    callable: async () =>  (await import('./pages/core/imageFile')).imageFilePage
   },
   {
     path: '/image-files',
     backend: '/core/image-files',
     name: 'image-files',
     title: 'Medium Tech | Imagae Files',
-    callable: async () => (await import('./pages/core/imageFiles')).imageFileListPage
+    callable: async () => (await import('./pages/core/imageFile')).imageFileListPage
   },
   {
     path: '/users/me',
     backend: '/core/users/me',
     name: 'me',
     title: 'Medium Tech | Me',
-    callable: async () => import('./pages/core/me')
+    callable: async () => (await import('./pages/core/user')).mePage
   },
   {
     path: '/users/:cid',
     backend: '/core/users/cid/:cid',
     name: 'user',
     title: 'Medium Tech | User',
-    callable: async () => import('./pages/core/user')
+    callable: async () => (await import('./pages/core/user')).userPage
   },
   {
     path: '/users',
     backend: '/core/users',
     name: 'users',
     title: 'Medium Tech | Users',
-    callable: async () => import('./pages/core/users')
+    callable: async () => (await import('./pages/core/user')).userListPage
   },
   {
     path: '/login',

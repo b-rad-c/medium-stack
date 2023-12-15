@@ -1,11 +1,16 @@
 import van from 'vanjs-core'
-import cone from '../../app'
+import cone, { logout } from '../../app'
 import { keyValueTable } from '../../../components/widgets'
+import { contentModelListPage, contentModelPage } from '../../../components/page'
 
-const { router, navLink } = cone
-const { section, div, p, h1 } = van.tags
+const { navLink } = cone
+const { li, div, button } = van.tags
 
-const userWidget = (user) => {
+//
+// users
+//
+
+export const userWidget = (user) => {
   return keyValueTable(
     user, 
     {
@@ -15,69 +20,23 @@ const userWidget = (user) => {
   )
 }
 
-const userPage = (params, query, context) => {
+export const userListItem = (user) => li(navLink({ name: 'user', params: { cid: user.cid }, context: { payload: user } }, `${user.first_name} ${user.last_name}`))
 
-  //
-  // page state
-  //
+export const userPage = (params, query, context) => contentModelPage('User', 'user', userWidget, { params, query, context })
 
-  const pageState = van.state('')
-  const showUser = van.state(false)
-  let userData = null
+export const userListPage = (params, query, context) => contentModelListPage('Users', 'users', userListItem, { params, query, context })
+
+//
+// me (authenticated user)
+//
+
+export const meWidget = (user) => keyValueTable(user)
+
+export const mePage = (params, query, context) => {
+
+  return div(
+    contentModelPage('Me', 'me', meWidget, { params, query, context }, true),
+    button({ onclick: logout }, 'Logout')
+  )
   
-  //
-  // load data function
-  //
-
-  const getUser = () => {
-
-    pageState.val = 'loading...'
-    showUser.val = false
-    userData = null
-
-    const url = router.backendUrl('user', params)
-
-    console.log ('fetching', url)
-
-    fetch(url)
-      .then(r => {
-        if (!r.ok) {
-          console.log(r)
-          throw new Error(r.statusText)
-        }
-        return r.json()
-      })
-      .then(data => { 
-        userData = data
-        pageState.val = ''
-        showUser.val = true
-      })
-      .catch(error => {
-        console.error(error)
-        pageState.val = 'error: ' + error.toString()
-      })
-  }
-
-  //
-  // on initial load
-  //
-
-  if(typeof context.payload === 'undefined') {
-    getUser()
-  }else{
-    console.log('data preloaded')
-    userData = context.payload
-    showUser.val = true
-  }
-
-  return () =>
-    section(
-      h1('user'),
-      div(
-        navLink({name: 'users'}, '< users'),
-        () => showUser.val === true ? userWidget(userData) : p(pageState)
-      )
-    );
-};
-
-export default userPage;
+}

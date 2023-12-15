@@ -4,7 +4,7 @@ import cone, { setAuthToken, appState } from '../../app'
 
 
 const { router, navigate } = cone
-const { section, div, br, h1, button, input, p } = van.tags
+const { section, div, br, h1, button, input } = van.tags
 
 const loading = van.state(false)
 
