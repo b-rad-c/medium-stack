@@ -1,10 +1,10 @@
-import navbar from './app/navbar'
 import van from 'vanjs-core'
-import cone from './app/app'
+import cone, { appState } from './app/app'
+import navbar from './app/navbar'
 import './main.css'
 const { div } = van.tags;
 
-const { routerElement, router } = cone
+const { routerElement } = cone
 
 const Navbar = navbar();
 

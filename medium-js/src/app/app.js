@@ -1,6 +1,11 @@
 import createCone from 'van-cone';
 import van from 'vanjs-core';
+import * as vanX from 'vanjs-ext';
 const { div } = van.tags;
+
+//
+// cone app
+//
 
 const routes = [
   {
@@ -32,6 +37,13 @@ const routes = [
     callable: async () => import('./pages/core/fileUploaders')
   },
   {
+    path: '/users/me',
+    backend: '/core/users/me',
+    name: 'me',
+    title: 'Medium Tech | Me',
+    callable: async () => import('./pages/core/me')
+  },
+  {
     path: '/users/:cid',
     backend: '/core/users/cid/:cid',
     name: 'user',
@@ -44,6 +56,13 @@ const routes = [
     name: 'users',
     title: 'Medium Tech | Users',
     callable: async () => import('./pages/core/users')
+  },
+  {
+    path: '/login',
+    backend: '/core/auth/login',
+    name: 'login',
+    title: 'Medium Tech | Login',
+    callable: async () => import('./pages/core/loginSignup')
   },
   {
     path: '/',
@@ -61,4 +80,52 @@ const routes = [
 
 const layoutElement = div({ id: 'layout' })
 const cone = createCone(layoutElement, routes, null, { backendPrefix: 'http://localhost:8000/api/v0' })
+
+//
+// app state
+//
+
+const appState = vanX.reactive({loggedIn: false})
+
+//
+// authentication
+//
+
+class NotLoggedInError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'NotLoggedInError';
+  }
+}
+
+const getAuthToken = () => localStorage.getItem('authToken')
+
+const setAuthToken = (token) => {
+  localStorage.setItem('authToken', token)
+  appState.loggedIn = true
+}
+const logout = () => {
+  localStorage.removeItem('authToken')
+  appState.loggedIn = false
+  cone.navigate(cone.router.navUrl('login'))
+}
+
+const authenticatedFetch = (url, options) => {
+  const authToken = getAuthToken()
+  if (!authToken) {
+    throw new NotLoggedInError('Not logged in')
+  }
+  const params = options || {}
+  if (!params.headers) params.headers = {}
+  params.headers['Authorization'] = `Bearer ${authToken}`
+  return fetch(url, { ...params })
+}
+
+//
+// set initial state
+//
+
+appState.loggedIn = !!getAuthToken()
+
 export default cone
+export { getAuthToken, setAuthToken, authenticatedFetch, logout, appState, NotLoggedInError }

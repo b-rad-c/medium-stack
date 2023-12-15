@@ -23,12 +23,16 @@
     + 🟢 make a lorem ipsom generator for each ui model
     + 🟡 index page linking to other pages
     + 🟡 for each ui model build components/pages for list, create (plus file upload), read, delete
-        + 🟢 users
-        + 🟢 file uploads
-        + 🟢 artists
+        + 🟡 users
+        + 🟡 file uploads
+        + 🟡 artists
         + 🔴 image files
         + 🔴 image releases
         + 🔴 still images
++ 🟢 UI auth
+    + 🟢 login page
+    + 🟢 account page
+    + 🟢 create account
 
 + 🟢 add user auth
     + 🟢 web api
@@ -184,12 +188,11 @@
 ### backlog
 
 + 🔴 authentication improvments
-    + 🔴 create admin+user auth scopes to lock down endpoints like users and file uploads
-        https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/
     + 🔴 ensure only 1 user can be created per email and phonenumber
         + 🔴 create unit test for this and ensure email is case insensitive
-
-+ 🔴 add user sessions so that tokens can be expired prematurly by admins or users
+    + 🔴 create admin+user auth scopes to lock down endpoints like users and file uploads
+        https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/
+    + 🔴 add user sessions so that tokens can be expired prematurly by admins or users
 
 + 🔴 increate password requirements
 
