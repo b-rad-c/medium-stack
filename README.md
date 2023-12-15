@@ -28,8 +28,8 @@
         + 🟡 file uploads
         + 🟡 artists
         + 🟡 image files
-        + 🔴 image releases
-        + 🔴 still images
+        + 🟡 image releases
+        + 🟡 still images
 + 🟢 UI auth
     + 🟢 login page
     + 🟢 account page

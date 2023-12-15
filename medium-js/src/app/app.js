@@ -8,20 +8,51 @@ const { div } = van.tags;
 //
 
 const routes = [
+
+  //
+  // art
+  //
+
+  // still images
+
+  {
+    path: '/art/still-images/:cid',
+    backend: '/mart/still-images/cid/:cid',
+    name: 'still-image',
+    title: 'Medium Tech | Still Image',
+    callable: async () => (await import('./pages/art/imageModels')).stillImagePage
+  },
+  {
+    path: '/art/still-images',
+    backend: '/mart/still-images',
+    name: 'still-images',
+    title: 'Medium Tech | Still Images',
+    callable: async () => (await import('./pages/art/imageModels')).stillImageListPage
+  },
+
+  // artists
+
   {
     path: '/art/artists/:cid',
     backend: '/art/artists/cid/:cid',
     name: 'artist',
     title: 'Medium Tech | Artist',
-    callable: async () => (await import('./pages/art/artist')).artistPage
+    callable: async () => (await import('./pages/art/artistModels')).artistPage
   },
   {
     path: '/art/artists',
     backend: '/mart/artists',
     name: 'artists',
     title: 'Medium Tech | Artists',
-    callable: async () => (await import('./pages/art/artist')).artistListPage
+    callable: async () => (await import('./pages/art/artistModels')).artistListPage
   },
+
+  //
+  // core
+  //
+
+  // file uploaders
+
   {
     path: '/file-uploader',
     backend: '/core/file-uploader',
@@ -36,20 +67,41 @@ const routes = [
     title: 'Medium Tech | File Uploaders',
     callable: async () => (await import('./pages/core/fileUploader')).fileUploaderListPage
   },
+
+  // images
+
   {
     path: '/image-files/:cid',
-    backend: '/image-files/cid/:cid',
+    backend: '/core/image-files/cid/:cid',
     name: 'image-file',
     title: 'Medium Tech | Image File',
-    callable: async () =>  (await import('./pages/core/imageFile')).imageFilePage
+    callable: async () => (await import('./pages/core/imageModels')).imageFilePage
   },
   {
     path: '/image-files',
     backend: '/core/image-files',
     name: 'image-files',
     title: 'Medium Tech | Imagae Files',
-    callable: async () => (await import('./pages/core/imageFile')).imageFileListPage
+    callable: async () => (await import('./pages/core/imageModels')).imageFileListPage
   },
+
+  {
+    path: 'image-release/:cid',
+    backend: '/core/image-release/cid/:cid',
+    name: 'image-release',
+    title: 'Medium Tech | Image Release',
+    callable: async () => (await import('./pages/core/imageModels')).imageReleasePage
+  },
+  {
+    path: '/image-release',
+    backend: '/core/image-release',
+    name: 'image-releases',
+    title: 'Medium Tech | Image Releases',
+    callable: async () => (await import('./pages/core/imageModels')).imageReleaseListPage
+  },
+
+  // users
+
   {
     path: '/users/me',
     backend: '/core/users/me',
@@ -78,6 +130,11 @@ const routes = [
     title: 'Medium Tech | Login',
     callable: async () => import('./pages/core/loginSignup')
   },
+
+  //
+  // main
+  //
+
   {
     path: '/',
     name: 'home',
@@ -99,7 +156,7 @@ const cone = createCone(layoutElement, routes, null, { backendPrefix: 'http://lo
 // app state
 //
 
-const appState = vanX.reactive({loggedIn: false})
+const appState = vanX.reactive({ loggedIn: false })
 
 //
 // authentication

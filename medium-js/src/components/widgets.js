@@ -12,14 +12,28 @@ const keyValueTable = (data, props) => {
     const keyEnding = (typeof end !== 'undefined') ? end : ':'
 
     const rows = keyList.map((key, index) => {
-        const value = (Array.isArray(data[key])) ? data[key].join(', ') : data[key]
-        return tr({'class': rowClass || 'key-value-table-row'},
-            td({'class': lColClass || 'key-value-table-l-col'}, keyFields[index], keyEnding),
-            td({'class': rColClass || 'key-value-table-r-col'}, value),
+
+        let value
+
+        console.log('key typeof', key, typeof data[key], data[key])
+
+        if (Array.isArray(data[key])) {
+            value = data[key].join(', ')
+        } else if (data[key] === null) {
+            value = '-'
+        } else if (typeof data[key] === 'object') {
+            value = keyValueTable(data[key], props)
+        }else {
+            value = data[key]
+        }
+
+        return tr({ 'class': rowClass || 'key-value-table-row' },
+            td({ 'class': lColClass || 'key-value-table-l-col' }, keyFields[index], keyEnding),
+            td({ 'class': rColClass || 'key-value-table-r-col' }, value),
         )
     })
 
-    return table({'class': tableClass || 'key-value-table'}, rows)
+    return table({ 'class': tableClass || 'key-value-table' }, rows)
 
 }
 
