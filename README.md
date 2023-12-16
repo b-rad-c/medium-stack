@@ -19,10 +19,9 @@
     + 🟢 create new file ingest methods for files that don't need to be uploaded (already on server)
     + 🟢 uploads should have a temp folder and be moved into long term storage folder after recieving CID
 + 🟢 add API endpoints for image files / releases
-+ 🔴 update backend API to serve static files + unittests
 + 🟡 UI models :: users, file uploads, artists, image files, image releases, still images
     + 🟢 make a lorem ipsom generator for each ui model
-    + 🟡 index page linking to other pages
+    + 🟢 index page linking to other pages
     + 🟡 for each ui model build components/pages for list, create (plus file upload), read, delete
         + 🟡 users
         + 🟡 file uploads
@@ -30,6 +29,12 @@
         + 🟡 image files
         + 🟡 image releases
         + 🟡 still images
+
++ 🔴 update backend
+    + 🔴 serve static files
+    + 🔴 add backend widget and list item models for each content model that will be used to generate the front end models
+    + 🔴 unittests
+
 + 🟢 UI auth
     + 🟢 login page
     + 🟢 account page
@@ -41,9 +46,11 @@
     + 🟢 update unittests
  
 + 🔴 code templating
-    + 🔴 api routes
     + 🔴 db wrappers
-    + 🔴 model_conig example(s) -> use lorem ipsom gen and hardcode correct cid
+    + 🔴 sdk -> wrap calls like delete because they need to be different for users/files/models with just data
+    + 🔴 api routes -> uses above sdk
+    + 🔴 cli -> uses above sdk
+    + 🔴 model_config example(s) -> use lorem ipsom gen and hardcode correct cid
     + 🔴 generator function
     + 🔴 unittests              -> retain hard coded CIDs for data+files for testing CID type
     + 🔴 move mcore.util.example* funcs to model attributes
@@ -149,8 +156,6 @@
 
         this should be done after code templating and generation so that new models, examples and unittests will be auto generated instead of manually updating CIDs
 
-+ 🔴 add backend widget and list item models for each content model that will be used to generate the front end models
-
 + 🔴 add tests for seeder - these will also test that user login and item/creator ownership is working
 
 + 🔴 text editing
@@ -195,9 +200,10 @@
     + 🔴 create admin+user auth scopes to lock down endpoints like users and file uploads
         https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/
     + 🔴 add user sessions so that tokens can be expired prematurly by admins or users
-    + 🔴 process to delete user
-    + 🔴 process to delete artist account
+    + 🔴 only owner can delete items
+    + 🔴 process to delete user, artist, files
     + 🔴 ACLs - allow users to create custom ACLs for items they own
+    + 🔴 disable deleting users, artists, file uploads, (image files?)
 
 + 🔴 create password requirements
 
