@@ -7,9 +7,11 @@ from os.path import join
 from mserve.core import core_router
 from mserve.mart import *
 from mcore.util import utc_now
+from mcore.models import MSERVE_LOCAL_STORAGE_DIRECTORY
 
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 
@@ -32,6 +34,7 @@ def env_to_bool(variable_name:str, default_value:str) -> bool:
 #
 
 MSERVE_VERSION = environ.get('MSERVE_VERSION', '-')
+MSERVE_STATIC_FILES = env_to_bool('MSERVE_STATIC_FILES', '1')
 MSERVE_INCLUDE_MAIN = env_to_bool('MSERVE_INCLUDE_MAIN', '1')
 MSERVE_INCLUDE_CORE = env_to_bool('MSERVE_INCLUDE_CORE', '1')
 MSERVE_INCLUDE_MART = env_to_bool('MSERVE_INCLUDE_MART', '1')
@@ -66,6 +69,9 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+
+if MSERVE_STATIC_FILES:
+    app.mount('/files', StaticFiles(directory=MSERVE_LOCAL_STORAGE_DIRECTORY), name='static')
 
 if MSERVE_INCLUDE_MAIN:
     app.include_router(main_router, prefix=API_PREFIX)

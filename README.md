@@ -30,8 +30,8 @@
         + 🟡 image releases
         + 🟡 still images
 
-+ 🔴 update backend
-    + 🔴 serve static files
++ 🟡 update backend
+    + 🟢 serve static files
     + 🔴 add backend widget and list item models for each content model that will be used to generate the front end models
     + 🔴 unittests
 
