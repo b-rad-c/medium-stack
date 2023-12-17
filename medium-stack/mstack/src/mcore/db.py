@@ -1,6 +1,5 @@
 from mcore.errors import MStackDBError, NotFoundError
 from mcore.types import ContentId
-from mcore.models import ModelCreator
 
 from os import environ
 

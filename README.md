@@ -45,7 +45,7 @@
     + 🟢 client
     + 🟢 update unittests
  
-+ 🔴 code templating
++ 🟡 code templating
     + 🔴 db wrappers
     + 🔴 sdk -> wrap calls like delete because they need to be different for users/files/models with just data
     + 🔴 api routes -> uses above sdk
