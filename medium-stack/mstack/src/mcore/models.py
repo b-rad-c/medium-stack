@@ -153,7 +153,7 @@ UserCid = Annotated[ContentIdType, id_schema('a string representing a user conte
 
 
 class User(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'users'
+    DB_NAME: ClassVar[str] = 'users'
 
     id: UserId = Field(**db_id_kwargs)
     cid: UserCid = Field(**cid_kwargs)
@@ -184,7 +184,7 @@ class User(ContentModel):
 UserPasswordHashId = Annotated[MongoId, id_schema('a string representing a user password hash id')]
 
 class UserPasswordHash(BaseModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'user_password_hashes'
+    DB_NAME: ClassVar[str] = 'user_password_hashes'
     id: UserPasswordHashId = Field(**db_id_kwargs)
     user_id: UserId
     hashed_password: str
@@ -269,7 +269,7 @@ class FileUploadTypes(str, Enum):
 
 
 class FileUploader(BaseModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'file_uploads'
+    DB_NAME: ClassVar[str] = 'file_uploads'
 
     id: FileUploaderId = Field(**db_id_kwargs)
     type: FileUploadTypes
@@ -375,7 +375,7 @@ ImageFilePayloadCid = Annotated[ContentIdType, id_schema('a string representing 
 
 
 class ImageFile(BaseFile):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'image_files'
+    DB_NAME: ClassVar[str] = 'image_files'
 
     id: ImageFileId = Field(**db_id_kwargs)
     cid: ImageFileCid = Field(**cid_kwargs)
@@ -426,7 +426,7 @@ ImageReleaseId = Annotated[MongoId, id_schema('a string representing an image re
 ImageReleaseCid = Annotated[ContentIdType, id_schema('a string representing an image release cid')]
 
 class ImageRelease(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'image_release'
+    DB_NAME: ClassVar[str] = 'image_release'
 
     id: ImageReleaseId = Field(**db_id_kwargs)
     cid: ImageReleaseCid = Field(**cid_kwargs)
@@ -453,7 +453,7 @@ AudioFilePayloadCid = Annotated[ContentIdType, id_schema('a string representing 
 
 
 class AudioFile(BaseFile):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'audio_files'
+    DB_NAME: ClassVar[str] = 'audio_files'
 
     id: AudioFileId = Field(**db_id_kwargs)
     cid: AudioFileCid = Field(**cid_kwargs)
@@ -506,7 +506,7 @@ AudioReleaseId = Annotated[MongoId, id_schema('a string representing an audio re
 AudioReleaseCid = Annotated[ContentIdType, id_schema('a string representing an audio release id')]
 
 class AudioRelease(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'audio_release'
+    DB_NAME: ClassVar[str] = 'audio_release'
 
     id: AudioReleaseId = Field(**db_id_kwargs)
     cid: AudioReleaseCid = Field(**cid_kwargs)
@@ -519,7 +519,7 @@ VideoFileCid = Annotated[ContentIdType, id_schema('a string representing a video
 VideoFilePayloadCid = Annotated[ContentIdType, id_schema('a string representing a video file payload cid')]
 
 class VideoFile(BaseFile):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'video_files'
+    DB_NAME: ClassVar[str] = 'video_files'
 
     id: VideoFileId = Field(**db_id_kwargs)
     cid: VideoFileCid = Field(**cid_kwargs)
@@ -582,7 +582,7 @@ VideoReleaseId = Annotated[MongoId, id_schema('a string representing a video rel
 VideoReleaseCid = Annotated[ContentIdType, id_schema('a string representing a video release cid')]
 
 class VideoRelease(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'video_release'
+    DB_NAME: ClassVar[str] = 'video_release'
 
     id: VideoReleaseId = Field(**db_id_kwargs)
     cid: VideoReleaseCid = Field(**cid_kwargs)
@@ -599,7 +599,7 @@ TextFileCid = Annotated[ContentIdType, id_schema('a string representing a text f
 TextFilePayloadCid = Annotated[ContentIdType, id_schema('a string representing a text file payload cid')]
 
 class TextFile(ContentModel):
-    MONGO_COLLECTION_NAME: ClassVar[str] = 'text_files'
+    DB_NAME: ClassVar[str] = 'text_files'
 
     id: TextFileId = Field(**db_id_kwargs)
     cid: TextFileCid = Field(**cid_kwargs)

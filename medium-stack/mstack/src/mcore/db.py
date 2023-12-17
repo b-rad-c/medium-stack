@@ -39,10 +39,10 @@ class MongoDB:
 
     def get_collection(self, model: InstanceOrType):
         try:
-            name = model.__class__.MONGO_COLLECTION_NAME
+            name = model.__class__.DB_NAME
         except AttributeError:
             try:
-                name = model.MONGO_COLLECTION_NAME
+                name = model.DB_NAME
             except AttributeError:
                 raise MStackDBError(f'Invalid model: does not define a database collection')
         

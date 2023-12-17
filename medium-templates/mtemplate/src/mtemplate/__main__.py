@@ -45,7 +45,8 @@ def all():
 #
 
 parser = argparse.ArgumentParser(description='Medium Stack templating engine')
-parser.add_argument('command', choices=['all', 'client', 'sdk'], help='Which command to run')
+parser.add_argument('command', choices=['all', 'client', 'sdk', 'loader'], help='Which command to run')
+parser.add_argument('--module_name', '-m')
 args = parser.parse_args()
 
 match args.command:
@@ -57,6 +58,9 @@ match args.command:
 
     case 'sdk':
         sdk()
+
+    case 'loader':
+        loader(args.module_name)
 
     case _:
         print('Unknown mode')

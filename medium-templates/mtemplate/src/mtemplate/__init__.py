@@ -1,8 +1,12 @@
-from pathlib import Path
 import json 
+import importlib
 
-from mtemplate import *
+from pathlib import Path
+
+from mcore.models import ContentModel
+
 from jinja2 import Environment, Template, FileSystemLoader
+from pydantic import BaseModel
 
 __all__ = [
     'PYTHON_SOURCES',
@@ -10,12 +14,14 @@ __all__ = [
     'OUTPUT_FOLDER',
     'jinja_env',
     'write_output',
-    'extract_template'
+    'extract_template',
+    'loader'
 ]
 
-PYTHON_SOURCES = Path(__file__).parent.parent / 'py'
-TEMPLATE_FOLDER = Path(__file__).parent.parent / 'templates'
-OUTPUT_FOLDER = Path(__file__).parent.parent / 'output'
+MEDIUM_TEMPLATE_ROOT = Path(__file__).parent.parent.parent.parent
+PYTHON_SOURCES = MEDIUM_TEMPLATE_ROOT / 'py'
+TEMPLATE_FOLDER = MEDIUM_TEMPLATE_ROOT / 'templates'
+OUTPUT_FOLDER = MEDIUM_TEMPLATE_ROOT / 'output'
 
 jinja_env = Environment(
     loader=FileSystemLoader(TEMPLATE_FOLDER),
@@ -51,3 +57,24 @@ def extract_template(path:Path | str) -> (str, Template):
         template = template.replace(extracted_val, '{{ ' + template_var + ' }}')
     
     return base, jinja_env.from_string(template)
+
+
+def loader(module_name:Path | str):
+    module = importlib.import_module(module_name)
+    count = 0
+    for name in module.__all__:
+        model = getattr(module, name)
+
+        try:
+            is_base_model = issubclass(model, BaseModel)
+            is_content_model = issubclass(model, ContentModel)
+        except TypeError:
+            continue
+
+        print(is_base_model, is_content_model, name)
+
+        count += 1
+
+    print(f'{module.__file__=}')
+    print(f'{len(module.__all__)=}')
+    print(f'{count=}')
