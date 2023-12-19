@@ -185,9 +185,9 @@ ArtMediumList = Annotated[
 
 
 class Artist(ContentModel):
-    SNAKE_CASE: ClassVar[str] = 'artist'
-    DB_NAME: ClassVar[str] = 'artists'
-    ENDPOINT: ClassVar[str] = '/artists'
+    LOWER_CASE: ClassVar[str] = 'artist'
+    DB: ClassVar[bool] = True
+    ENDPOINT: ClassVar[bool] = True
 
     id: ArtistId = Field(**db_id_kwargs)
     cid: ArtistCid = Field(**cid_kwargs)
@@ -324,9 +324,9 @@ ArtistList = Annotated[
 ]
 
 class ArtistGroup(ContentModel):
-    SNAKE_CASE: ClassVar[str] = 'artist_group'
-    DB_NAME: ClassVar[str] = 'artist_groups'
-    ENDPOINT: ClassVar[str] = '/artist-groups'
+    LOWER_CASE: ClassVar[str] = 'artist group'
+    DB: ClassVar[bool] = True
+    ENDPOINT: ClassVar[bool] = True
 
     id: ArtistGroupId = Field(**db_id_kwargs)
     cid: ArtistGroupCid = Field(**cid_kwargs)
@@ -525,9 +525,9 @@ albums can be arbitrarily large without bloating the StillImage model. This allo
 
 
 class StillImageAlbum(ContentModel):
-    SNAKE_CASE: ClassVar[str] = 'still_image_album'
-    DB_NAME: ClassVar[str] = 'still_image_album'
-    ENDPOINT: ClassVar[str] = '/still-image-albums'
+    LOWER_CASE: ClassVar[str] = 'still image album'
+    DB: ClassVar[bool] = True
+    ENDPOINT: ClassVar[bool] = True
 
     id: StillImageAlbumId = Field(**db_id_kwargs)
     cid: StillImageAlbumCid = Field(**cid_kwargs)
@@ -592,9 +592,9 @@ class StillImageAlbumCreator(ModelCreator):
 
 
 class StillImage(ContentModel):
-    SNAKE_CASE: ClassVar[str] = 'still_image'
-    DB_NAME: ClassVar[str] = 'still_image'
-    ENDPOINT: ClassVar[str] = '/still-images'
+    LOWER_CASE: ClassVar[str] = 'still image'
+    DB: ClassVar[bool] = True
+    ENDPOINT: ClassVar[bool] = True
 
     id: StillImageId = Field(**db_id_kwargs)
     cid: StillImageCid = Field(**cid_kwargs)
@@ -693,9 +693,9 @@ class VideoProgramType(StrEnum):
 
 
 class VideoProgram(ContentModel):
-    SNAKE_CASE: ClassVar[str] = 'video_program'
-    DB_NAME: ClassVar[str] = 'video_programs'
-    ENDPOINT: ClassVar[str] = '/video-programs'
+    LOWER_CASE: ClassVar[str] = 'video program'
+    DB: ClassVar[bool] = True
+    ENDPOINT: ClassVar[bool] = True
 
     id: VideoProgramId = Field(**db_id_kwargs)
     cid: VideoProgramCid = Field(**cid_kwargs)
@@ -787,9 +787,9 @@ VideoEpisodeList = Annotated[
 ]
 
 class VideoSeason(ContentModel):
-    SNAKE_CASE: ClassVar[str] = 'video_season'
-    DB_NAME: ClassVar[str] = 'video_seasons'
-    ENDPOINT: ClassVar[str] = '/video-seasons'
+    LOWER_CASE: ClassVar[str] = 'video season'
+    DB: ClassVar[bool] = True
+    ENDPOINT: ClassVar[bool] = True
 
     id: VideoSeasonId = Field(**db_id_kwargs)
     cid: VideoSeasonCid = Field(**cid_kwargs)
@@ -873,9 +873,9 @@ class VideoSeasonCreator(ModelCreator):
 # single season series #
 
 class VideoMiniSeries(VideoSeason):
-    SNAKE_CASE: ClassVar[str] = 'video_mini_series'
-    DB_NAME: ClassVar[str] = 'video_mini_series'
-    ENDPOINT: ClassVar[str] = '/video-mini-series'
+    LOWER_CASE: ClassVar[str] = 'video mini series'
+    DB: ClassVar[bool] = True
+    ENDPOINT: ClassVar[bool] = True
 
     model_config = {
         'json_schema_extra': {
@@ -946,9 +946,9 @@ VideoSeasonList = Annotated[
 ]
 
 class VideoSeries(ContentModel):
-    SNAKE_CASE: ClassVar[str] = 'video_series'
-    DB_NAME: ClassVar[str] = 'video_series'
-    ENDPOINT: ClassVar[str] = '/video-series'
+    LOWER_CASE: ClassVar[str] = 'video series'
+    DB: ClassVar[bool] = True
+    ENDPOINT: ClassVar[bool] = True
 
     id: VideoSeriesId = Field(**db_id_kwargs)
     cid: VideoSeriesCid = Field(**cid_kwargs)
@@ -1032,9 +1032,9 @@ class VideoSeriesCreator(ModelCreator):
 
 
 class Song(ContentModel):
-    SNAKE_CASE: ClassVar[str] = 'song'
-    DB_NAME: ClassVar[str] = 'songs'
-    ENDPOINT: ClassVar[str] = '/songs'
+    LOWER_CASE: ClassVar[str] = 'song'
+    DB: ClassVar[bool] = True
+    ENDPOINT: ClassVar[bool] = True
 
     id: SongId = Field(**db_id_kwargs)
     cid: SongCid = Field(**cid_kwargs)
@@ -1119,9 +1119,9 @@ MusicAlbumSongList = Annotated[
 ]
 
 class MusicAlbum(ContentModel):
-    SNAKE_CASE: ClassVar[str] = 'music_album'
-    DB_NAME: ClassVar[str] = 'music_albums'
-    ENDPOINT: ClassVar[str] = '/music-albums'
+    LOWER_CASE: ClassVar[str] = 'music album'
+    DB: ClassVar[bool] = True
+    ENDPOINT: ClassVar[bool] = True
 
     id: MusicAlbumId = Field(**db_id_kwargs)
     cid: MusicAlbumCid = Field(**cid_kwargs)
@@ -1205,9 +1205,9 @@ class MusicAlbumCreator(ModelCreator):
 
 
 class PodcastEpisode(ContentModel):
-    SNAKE_CASE: ClassVar[str] = 'podcast_episode'
-    DB_NAME: ClassVar[str] = 'podcast_episode'
-    ENDPOINT: ClassVar[str] = '/podcast-episodes'
+    LOWER_CASE: ClassVar[str] = 'podcast episode'
+    DB: ClassVar[bool] = True
+    ENDPOINT: ClassVar[bool] = True
 
     id: PodcastEpisodeId = Field(**db_id_kwargs)
     cid: PodcastEpisodeCid = Field(**cid_kwargs)
@@ -1311,9 +1311,9 @@ PodcastEpisodeList = Annotated[
 # podcast season #
 
 class PodcastSeason(ContentModel):
-    SNAKE_CASE: ClassVar[str] = 'podcast_season'
-    DB_NAME: ClassVar[str] = 'podcast_season'
-    ENDPOINT: ClassVar[str] = '/podcast-seasons'
+    LOWER_CASE: ClassVar[str] = 'podcast season'
+    DB: ClassVar[bool] = True
+    ENDPOINT: ClassVar[bool] = True
 
     id: PodcastSeasonId = Field(**db_id_kwargs)
     cid: PodcastSeasonCid = Field(**cid_kwargs)
@@ -1393,9 +1393,9 @@ PodcastSeasonList = Annotated[
 # podcast #
 
 class Podcast(ContentModel):
-    SNAKE_CASE: ClassVar[str] = 'podcast'
-    DB_NAME: ClassVar[str] = 'podcast'
-    ENDPOINT: ClassVar[str] = '/podcasts'
+    LOWER_CASE: ClassVar[str] = 'podcast'
+    DB: ClassVar[bool] = True
+    ENDPOINT: ClassVar[bool] = True
 
     id: PodcastId = Field(**db_id_kwargs)
     cid: PodcastCid = Field(**cid_kwargs)

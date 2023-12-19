@@ -16,6 +16,7 @@ dependencies = [
     'email-validator',
     'fastapi[all]',
     'lorem-text',
+    'Jinja2',
     'requests',
     'passlib[bcrypt]',
     'phonenumbers',

@@ -26,7 +26,7 @@ class MCore:
     
     def delete_user(self, user: User | UserCid) -> None:
         try:
-            user = self.user_read(user.cid)
+            user = self.read_user(user.cid)
         except AttributeError:
             pass
         delete_user(user)
@@ -71,6 +71,8 @@ class MCore:
             cid = artist
         
         return delete_artist(cid)
+    # mtemplate - extract start
+    # {"type": "StillImage", "creator_type": "StillImageCreator", "cid_type": "StillImageCid", "snake_case": "still_image", "lower_case": "still image"}
 
     # still image
 
@@ -95,27 +97,3 @@ class MCore:
         except AttributeError:
             cid = still_image
         self.db.delete(StillImage, cid=cid)
-
-    # still image album
-
-    def create_still_image_album(self, creator:StillImageAlbumCreator, user_cid:UserCid) -> StillImageAlbum:
-        still_image_album:StillImageAlbum = creator.create_model(user_cid=user_cid)
-        self.db.create(still_image_album)
-        return still_image_album
-    
-    def list_still_image_album(self, offset:int=DEFAULT_OFFSET, size:int=DEFAULT_SIZE) -> list[StillImageAlbum]:
-        return list(self.db.find(StillImageAlbum, offset=offset, size=size))
-    
-    def read_still_image_album(self, still_image_album:StillImageAlbum | StillImageAlbumCid) -> StillImageAlbum:
-        try:
-            cid = still_image_album.cid
-        except AttributeError:
-            cid = still_image_album
-        return self.db.read(StillImageAlbum, cid=cid)
-    
-    def delete_still_image_album(self, still_image_album: StillImageAlbum | StillImageAlbumCid) -> None:
-        try:
-            cid = still_image_album.cid
-        except AttributeError:
-            cid = still_image_album
-        self.db.delete(StillImageAlbum, cid=cid)
