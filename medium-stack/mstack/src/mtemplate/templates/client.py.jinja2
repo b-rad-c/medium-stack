@@ -1,0 +1,48 @@
+import os 
+
+from typing import List
+from os.path import join
+
+from mcore.client import MStackClient
+from mcore.models import *
+from mart.models import *
+
+import requests
+
+
+__all__ = [
+    'MStackClient',
+    '{{ env_var_prefix }}_API_HOST',
+    '{{ env_var_prefix }}_API_PREFIX'
+]
+
+
+{{ env_var_prefix }}_API_HOST = os.environ.get('{{ env_var_prefix }}_API_HOST', 'http://localhost:8000')
+{{ env_var_prefix }}_API_PREFIX = os.environ.get('{{ env_var_prefix }}_API_PREFIX', 'api/v0')
+
+    
+class {{ client_class_name }}(MStackClient):
+
+    def __init__(self):
+        self.session = requests.Session()
+        self.url_base = join({{ env_var_prefix }}_API_HOST, {{ env_var_prefix }}_API_PREFIX)
+        self.response = None
+{% for model in models %}
+    # {{ model.lower_case }} #
+
+    def create_{{ model.snake_case }}(self, creator: {{ model.type }}Creator) -> {{ model.type }}:
+        data = self._post('{{ model.endpoint }}', json=creator.model_dump())
+        return {{ model.type }}(**data)
+    
+    def read_{{ model.snake_case }}(self, id:str = None, cid:str = None) -> {{ model.type }}:
+        url = self._model_id_type_url('{{ model.endpoint }}', id, cid)
+        data = self._get(url)
+        return {{ model.type }}(**data)
+    
+    def delete_{{ model.snake_case }}(self, id:str = None, cid:str = None) -> None:
+        self._delete(self._model_id_type_url('{{ model.endpoint }}', id, cid))
+
+    def list_{{ model.snake_case }}s(self, offset:int=0, size:int=50) -> List[{{ model.type }}]:
+        data = self._get('{{ model.endpoint }}', params={'offset': offset, 'size': size})
+        return [{{ model.type }}(**{{ model.snake_case }}) for {{ model.snake_case }} in data]
+{% endfor %}

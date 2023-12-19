@@ -8,16 +8,13 @@ from configparser import ConfigParser
 from mcore.types import ContentId
 from mcore.models import ContentModel
 
-from jinja2 import Environment, Template
+from jinja2 import Environment, PackageLoader
 from pydantic import BaseModel
 from bson import ObjectId
 
 __all__ = [
-    'MTemplateProject',
-    'PYTHON_SOURCES'
+    'MTemplateProject'
 ]
-
-PYTHON_SOURCES = Path(__file__).parent.parent / 'mcore'
 
 class SourceModel(BaseModel):
     type:str
@@ -156,33 +153,24 @@ class MTemplateProject:
         self.dist_directory = Path(self.config['mtemplate']['output'])
 
         self.jinja_env = Environment(
-            keep_trailing_newline=True,
-            autoescape=False
+            autoescape=False,
+            loader=PackageLoader('mtemplate', 'templates')
         )
 
-    def _extract_template(self, path:Path | str) -> (str, Template):
-        base = ''
-        template = ''
-        capturing_template = False
-        capturing_template_variables = False
-        with open(path, 'r') as f:
-            for line in f:
-                if 'mtemplate - extract start' in line:
-                    capturing_template_variables = True
-                    continue
-                if capturing_template_variables:
-                    template_vars = json.loads(line.strip()[1:].strip())
-                    capturing_template_variables = False
-                    capturing_template = True
-                elif capturing_template:
-                    template += line
-                else:
-                    base += line
+        try:
+            self.jinja_env.globals = dict(self.config['global_template_variables'])
+        except KeyError:
+            raise KeyError(f'global_template_variables must be defined in mtemplate config file')
         
-        for template_var, extracted_val in template_vars.items():
-            template = template.replace(extracted_val, '{{ ' + template_var + ' }}')
+        if not 'env_var_prefix' in self.jinja_env.globals:
+            raise KeyError(f'env_var_prefix must be defined in global_template_variables in mtemplate config file')
         
-        return base, self.jinja_env.from_string(template)
+        if not 'sdk_class_name' in self.jinja_env.globals:
+            raise KeyError(f'sdk_class_name must be defined in global_template_variables in mtemplate config file')
+        
+        if not 'client_class_name' in self.jinja_env.globals:
+            raise KeyError(f'client_class_name must be defined in global_template_variables in mtemplate config file')
+    
     
     def _output_file(self, name:str, output:str):
         output_path = self.dist_directory / name
@@ -192,17 +180,13 @@ class MTemplateProject:
             f.write(output)
 
     def render_client(self):
-        output, template = self._extract_template(PYTHON_SOURCES / 'client.py')
-        for model_source in self.models.with_endpoint():
-            output += template.render(**model_source.model_dump())
-
+        template = self.jinja_env.get_template('client.py.jinja2')
+        output = template.render(models=self.models.with_db())
         self._output_file('client.py', output)
 
     def render_sdk(self):
-        output, template = self._extract_template(PYTHON_SOURCES / 'sdk.py')
-        for model_source in self.models.with_db():
-            output += template.render(**model_source.model_dump())
-        
+        template = self.jinja_env.get_template('sdk.py.jinja2')
+        output = template.render(models=self.models.with_endpoint())
         self._output_file('sdk.py', output)
 
     def render(self):
