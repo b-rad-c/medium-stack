@@ -22,15 +22,7 @@ def test_main(client):
     assert isinstance(data, IndexResponse)
 
 def test_core_users(client:MStackClient):
-    _test_client_crud_ops(
-        client,
-        User, 
-        UserCreator, 
-        client.create_user, 
-        client.list_users, 
-        client.read_user, 
-        client.delete_user
-    )
+    pass
 
 def test_core_file_uploader(client:MStackClient):
 

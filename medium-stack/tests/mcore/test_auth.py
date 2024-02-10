@@ -3,6 +3,7 @@ from mcore.auth import *
 
 import pytest
 
+
 def test_user_creator():
 
     data = {

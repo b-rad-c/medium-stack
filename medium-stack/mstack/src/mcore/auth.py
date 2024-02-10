@@ -2,7 +2,7 @@ import os
 
 from mcore.db import MongoDB
 from mcore.errors import MStackAuthenticationError
-from mcore.models import User, UserCreator, UserPasswordHash
+from mcore.models import User, UserCreator, UserPasswordHash, Profile
 
 from datetime import datetime, timedelta
 
@@ -16,7 +16,8 @@ __all__ = [
     'authenticate_user',
     'create_access_token',
     'create_new_user',
-    'delete_user'
+    'delete_user',
+    'delete_profile'
 ]
 
 
@@ -73,6 +74,11 @@ def create_new_user(user_creator:UserCreator) -> User:
     db = MongoDB.from_cache()
 
     user = user_creator.create_model()
+    user.email = user.email.lower()
+
+    if db.find(User, {'email': user.email}):
+        raise MStackAuthenticationError('Email already registered')
+
     db.create(user)
 
     user_password_hash = UserPasswordHash(user_id=user.id, hashed_password=get_password_hash(user_creator.password1))
@@ -85,6 +91,23 @@ def delete_user(user:User) -> None:
     """
     placeholder for a future function that will delete a user and all associated data after a waiting period
     """
+
     db = MongoDB.from_cache()
-    db.delete(UserPasswordHash, user_id=user.id)
+    try:
+        user_pw:UserPasswordHash = list(db.find(UserPasswordHash, {'user_id': user.id}))[0]
+        db.delete(UserPasswordHash, id=user_pw.id)
+    except IndexError:
+        pass
+    
     db.delete(User, id=user.id)
+
+
+def delete_profile(profile:Profile, logged_in_user:User) -> None:
+    """
+    placeholder for a future function that will delete a profile and all associated data after a waiting period
+    """
+    if profile.user_cid != logged_in_user.cid:
+        raise MStackAuthenticationError('Only logged in user can delete their own profile')
+    
+    db = MongoDB.from_cache()
+    db.delete(Profile, id=profile.id)

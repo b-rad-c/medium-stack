@@ -12,6 +12,8 @@ from mcore.auth import (
 from mcore.models import (
     User,
     UserCreator,
+    Profile,
+    ProfileCreator,
     FileUploader,
     FileUploaderCreator,
     FileUploadStatus,
@@ -19,7 +21,7 @@ from mcore.models import (
     ImageRelease,
     ImageReleaseCreator
 )
-from mcore.auth import create_new_user
+from mcore.auth import create_new_user, delete_user, delete_profile
 from mcore.db import MongoDB
 from mcore.errors import NotFoundError, MStackAuthenticationError
 from mcore.types import ModelIdType
@@ -42,15 +44,7 @@ class AccessToken(BaseModel):
 
 @core_router.post('/auth/login', response_model=AccessToken)
 async def auth_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    try:
-        user = authenticate_user(form_data.username, form_data.password)
-    except MStackAuthenticationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            # detail='Incorrect username or password',
-            detail=str(e),
-            headers={'WWW-Authenticate': 'Bearer'},
-        )
+    user = authenticate_user(form_data.username, form_data.password)
     
     token_expires = timedelta(minutes=MSTACK_AUTH_LOGIN_EXPIRATION_MINUTES)
     access_token = create_access_token(data={'sub': str(user.id)}, expires_delta=token_expires)
@@ -81,11 +75,44 @@ def read_user(id_type:ModelIdType, id:str, db:MongoDB = Depends(MongoDB.from_cac
         return db.read(User, **{id_type.value: id})
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    
 
-@core_router.delete('/users/{id_type}/{id}', status_code=201)
-def delete_user(id_type:ModelIdType, id:str, db:MongoDB = Depends(MongoDB.from_cache)):
-    db.delete(User, **{id_type.value: id})
+
+@core_router.delete('/users/me', status_code=201)
+def _delete_user(user:User = Depends(current_user)):
+    delete_user(user)
+
+#
+# profiles
+#
+    
+@core_router.post('/profiles', response_model=Profile, response_model_by_alias=False)
+async def create_profile(profile_creator:ProfileCreator, db:MongoDB = Depends(MongoDB.from_cache), user:User = Depends(current_user)):
+    profile = profile_creator.create_model(user_cid=user.cid)
+    db.create(profile)
+    return profile
+
+
+@core_router.get('/profiles/mine', response_model=List[Profile], response_model_by_alias=False)
+async def list_profiles(offset:int=0, size:int=50, db:MongoDB = Depends(MongoDB.from_cache), user:User = Depends(current_user)):
+    return list(db.find(Profile, filter={'user_cid': user.cid}, offset=offset, size=size))
+
+
+@core_router.get('/profiles', response_model=List[Profile], response_model_by_alias=False)
+async def list_profiles(offset:int=0, size:int=50, db:MongoDB = Depends(MongoDB.from_cache)):
+    return list(db.find(Profile, offset=offset, size=size))
+
+
+@core_router.get('/profiles/{id_type}/{id}', response_model=Profile, response_model_by_alias=False)
+def read_profile(id_type:ModelIdType, id:str, db:MongoDB = Depends(MongoDB.from_cache)):
+    try:
+        return db.read(Profile, **{id_type.value: id})
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    
+@core_router.delete('/profiles/{id_type}/{id}', status_code=201)
+def delete_profile(id_type:ModelIdType, id:str, db:MongoDB = Depends(MongoDB.from_cache), user:User = Depends(current_user)):
+    profile = db.read(Profile, **{id_type.value: id})
+    delete_profile(profile, user)
 
 #
 # file uploads

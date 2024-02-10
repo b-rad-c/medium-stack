@@ -3,7 +3,7 @@ import os
 from mcore.db import MongoDB
 from mcore.auth import create_new_user, delete_user, delete_artist
 from mcore.models import *
-from mart.models import *
+
 
 __all__ = [
     'SDK_DEFAULT_OFFSET',

@@ -84,21 +84,13 @@ __all__ = [
     'AnyReleaseCid'
 ]
 
-# ids --- moved these to types.py
+# ids
 
 UserId = Annotated[MongoId, id_schema('a string representing a user id')]
 UserCid = Annotated[ContentIdType, id_schema('a string representing a user content id')]
 ProfileId = Annotated[MongoId, id_schema('a string representing a profile id')]
 ProfileCid = Annotated[ContentIdType, id_schema('a string representing a profile content id')]  
-ProfileGroupId = Annotated[MongoId, id_schema('a string representing a profile group id')]
-ProfileGroupCid = Annotated[ContentIdType, id_schema('a string representing a profile groups content id')]
-AnyProfileCid = ProfileCid | ProfileGroupCid
 
-ProfileList = Annotated[
-    conlist(AnyProfileCid, min_length=1, max_length=50),
-    unique_list_validator, 
-    id_schema('a unique list of profile or profile group cids')
-]
 
 #
 # media info

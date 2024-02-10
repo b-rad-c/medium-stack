@@ -7,8 +7,9 @@ from os.path import join
 from mserve.core import core_router
 from mcore.util import utc_now
 from mcore.models import MSERVE_LOCAL_STORAGE_DIRECTORY
+from mcore.errors import NotFoundError, MStackAuthenticationError
 
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -68,6 +69,24 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+
+@app.middleware('http')
+async def exception_wrapper(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except MStackAuthenticationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            # detail='Incorrect username or password',
+            detail=str(e),
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
+    except HTTPException:
+        raise
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail='Internal Server Error')
 
 if MSERVE_STATIC_FILES:
     app.mount('/files', StaticFiles(directory=MSERVE_LOCAL_STORAGE_DIRECTORY), name='static')

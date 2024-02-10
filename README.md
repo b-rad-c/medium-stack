@@ -16,11 +16,19 @@
 ---
 
 + 🟡 implement profiles
-    + 🔴 router
+    + 🟡 router
     + 🔴 sdk
     + 🔴 client
     + 🔴 unittests
     + 🔴 delete logic
+
++ 🔴 build out sdk
+    + 🔴 sdk unittests
+    + 🔴 update router to use sdk
+
++ 🔴 update unittests for users
+    + 🔴 unique emails
+    + 🔴 test_client - create/login/delete user
 
 + 🟢 update file ingest
     + 🟢 create new file ingest methods for files that don't need to be uploaded (already on server)
@@ -216,6 +224,8 @@
     + 🔴 disable deleting users, artists, file uploads, (image files?)
 
 + 🔴 create password requirements
+
++ 🔴 add unique index on user email field
 
 + 🔴 write tests for upload cleanup process
 

@@ -347,7 +347,7 @@ def _test_client_crud_ops(
     assert result is None
     assert mstack.response.status_code == 201
 
-    result = delete_op(id=model.id)    # run delete again because the endpoint is designed 
+    result = delete_op(id=model.id)             # run delete again because the endpoint is designed 
     assert result is None                       # to return the same response if the item was already deleted
     assert mstack.response.status_code == 201
 

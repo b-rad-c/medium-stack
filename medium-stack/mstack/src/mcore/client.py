@@ -153,8 +153,8 @@ class MStackClient:
         data = self._get(url)
         return User(**data)
 
-    def delete_user(self, id:str = None, cid:str = None) -> None:
-        self._delete(self._model_id_type_url('core/users', id, cid))
+    def delete_user(self) -> None:
+        self._delete('core/users/me')
 
     def list_users(self, offset:int=0, size:int=50) -> List[User]:
         data = self._get('core/users', params={'offset': offset, 'size': size})
