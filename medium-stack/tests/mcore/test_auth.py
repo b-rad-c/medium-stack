@@ -1,8 +1,12 @@
 from mcore.models import User, UserCreator
+from mcore.errors import MStackAuthenticationError, NotFoundError
 from mcore.auth import *
+from mcore.util import example_model
+from mcore.db import MongoDB
 
 import pytest
 
+db = MongoDB.from_cache()
 
 def test_user_creator():
 
@@ -54,3 +58,24 @@ def test_password_verification():
     hash = get_password_hash(password)
     assert verify_password(password, hash)
     assert not verify_password('wrong password', hash)
+
+
+def test_user_create_procedure():
+    user_creator:UserCreator = example_model(UserCreator)
+
+    user = create_new_user(user_creator)
+    assert user.id is not None
+    assert user.cid is not None
+
+    with pytest.raises(MStackAuthenticationError, match='Email already registered'):
+        create_new_user(user_creator)
+
+    with pytest.raises(MStackAuthenticationError, match='Invalid username or password'):
+        authenticate_user(user.email, 'wrong password')
+
+    authenticate_user(user.email, user_creator.password1)
+
+    delete_user(user)
+
+    with pytest.raises(NotFoundError):
+        db.find_one(User, {'email': user.email})

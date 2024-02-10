@@ -36,6 +36,8 @@ __all__ = [
     'UserCid',
     'User',
     'UserCreator',
+    'UserPasswordHashId',
+    'UserPasswordHash',
 
     'FileUploaderId',
     'FileUploadStatus',

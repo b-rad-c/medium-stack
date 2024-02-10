@@ -1,7 +1,7 @@
 import os
 
 from mcore.db import MongoDB
-from mcore.errors import MStackAuthenticationError
+from mcore.errors import MStackAuthenticationError, NotFoundError
 from mcore.models import User, UserCreator, UserPasswordHash, Profile
 
 from datetime import datetime, timedelta
@@ -42,7 +42,7 @@ def authenticate_user(email: str, password: str) -> User:
     db = MongoDB.from_cache()
 
     try:
-        user:User = list(db.find(User, {'email': email}))[0]
+        user:User = db.find_one(User, {'email': email.lower()})
     except IndexError:
         raise MStackAuthenticationError('Invalid username or password (a)')
     
@@ -76,7 +76,12 @@ def create_new_user(user_creator:UserCreator) -> User:
     user = user_creator.create_model()
     user.email = user.email.lower()
 
-    if db.find(User, {'email': user.email}):
+    try:
+        db.find_one(User, {'email': user.email})
+    except NotFoundError:
+        """if user not found we can continue creating a user,
+        note that this check is not a substitute for a unique index on the email field in the database"""
+    else:
         raise MStackAuthenticationError('Email already registered')
 
     db.create(user)

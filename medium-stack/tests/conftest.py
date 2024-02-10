@@ -376,10 +376,13 @@ def _test_client_crud_ops(
 # fixtures
 #
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='session')
 def client() -> MStackClient:
+    reset_collection(User)
+    reset_collection(UserPasswordHash)
+
     user_creator = UserCreator.generate()
-    user = create_new_user(user_creator)
+    create_new_user(user_creator)
 
     mstack = MStackClient()
     mstack.login(user_creator.email, user_creator.password1)

@@ -22,13 +22,19 @@
     + 🔴 unittests
     + 🔴 delete logic
 
-+ 🔴 build out sdk
-    + 🔴 sdk unittests
++ 🟡 build out sdk
+    + 🟡 file uploader - move logic from router to sdk
+    + 🔴 profiles
+    + 🔴 each type of file
     + 🔴 update router to use sdk
+    + 🔴 sdk unittests
 
-+ 🔴 update unittests for users
-    + 🔴 unique emails
-    + 🔴 test_client - create/login/delete user
++ 🔴 update client to have matching sdk api
+    + 🔴 update client unittests
+
++ 🟢 update unittests for users
+    + 🟢 unique emails for users
+    + 🟢 login procedure
 
 + 🟢 update file ingest
     + 🟢 create new file ingest methods for files that don't need to be uploaded (already on server)
@@ -225,7 +231,7 @@
 
 + 🔴 create password requirements
 
-+ 🔴 add unique index on user email field
++ 🔴 add unique index on user email field and user_id field for password hash
 
 + 🔴 write tests for upload cleanup process
 

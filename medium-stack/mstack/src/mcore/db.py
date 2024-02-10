@@ -3,7 +3,7 @@ from mcore.types import ContentId
 
 from os import environ
 
-from typing import Type, List, Union
+from typing import Type, Generator, Union
 from bson import ObjectId
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -109,10 +109,18 @@ class MongoDB:
         collection = self.get_collection(model)
         collection.delete_one(query)
 
-    def find(self, model_type: Type[BaseModel], filter=None, offset:int=0, size:int=50, **kwargs) -> List[BaseModel]:
+    def find(self, model_type: Type[BaseModel], filter=None, offset:int=0, size:int=50, **kwargs) -> Generator[BaseModel, None, None]:
         collection = self.get_collection(model_type)
         for entry in collection.find(filter=filter, skip=offset, limit=size, **kwargs):
             yield model_type(**entry)
+
+    def find_one(self, model_type: Type[BaseModel], filter=None, **kwargs) -> BaseModel:
+        collection = self.get_collection(model_type)
+        entry = collection.find_one(filter, **kwargs)
+        if entry is None:
+            raise NotFoundError(f'Item not found in database')
+        else:
+            return model_type(**entry)
 
     @classmethod
     def from_cache(cls) -> 'MongoDB':
