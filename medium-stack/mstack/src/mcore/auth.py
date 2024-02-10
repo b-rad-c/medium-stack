@@ -90,7 +90,8 @@ def delete_user(user:User) -> None:
     db = MongoDB.from_cache()
     db.delete(UserPasswordHash, user_id=user.id)
     db.delete(User, id=user.id)
-    
+
+ 
 def delete_artist(cid:ArtistCid) -> None:
     """
     placeholder for a future function that will delete an artist and all associated data after a waiting period

@@ -77,29 +77,3 @@ class MCore:
             cid = artist
         
         return delete_artist(cid)
-    # mtemplate - extract start
-    # {"type": "StillImage", "creator_type": "StillImageCreator", "cid_type": "StillImageCid", "snake_case": "still_image", "lower_case": "still image"}
-
-    # still image
-
-    def create_still_image(self, creator:StillImageCreator, user_cid:UserCid) -> StillImage:
-        still_image:StillImage = creator.create_model(user_cid=user_cid)
-        self.db.create(still_image)
-        return still_image
-    
-    def list_still_image(self, offset:int=SDK_DEFAULT_OFFSET, size:int=SDK_DEFAULT_SIZE) -> list[StillImage]:
-        return list(self.db.find(StillImage, offset=offset, size=size))
-    
-    def read_still_image(self, still_image:StillImage | StillImageCid) -> StillImage:
-        try:
-            cid = still_image.cid
-        except AttributeError:
-            cid = still_image
-        return self.db.read(StillImage, cid=cid)
-    
-    def delete_still_image(self, still_image: StillImage | StillImageCid) -> None:
-        try:
-            cid = still_image.cid
-        except AttributeError:
-            cid = still_image
-        self.db.delete(StillImage, cid=cid)

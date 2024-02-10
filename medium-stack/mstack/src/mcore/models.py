@@ -4,14 +4,15 @@ import random
 
 from enum import Enum
 
-from typing import Annotated, ClassVar, Union, Optional, Type, List
+from typing import Annotated, ClassVar, Union, Optional, Type
 from pathlib import Path
 from datetime import datetime
 
 from mcore.errors import MStackFilePayloadError
-from mcore.types import unique_list_validator
-from mcore.util import utc_now, random_name, random_email, random_phone_number
+from mcore.types import unique_list_validator, TagList
+from mcore.util import utc_now, random_name, random_email, random_phone_number, example_cid, adjectives, nouns
 
+from lorem_text import lorem
 from pymediainfo import MediaInfo
 from bson import ObjectId
 from pydantic_extra_types.phone_numbers import PhoneNumber
@@ -83,6 +84,22 @@ __all__ = [
     'AnyReleaseCid'
 ]
 
+# ids --- moved these to types.py
+
+UserId = Annotated[MongoId, id_schema('a string representing a user id')]
+UserCid = Annotated[ContentIdType, id_schema('a string representing a user content id')]
+ProfileId = Annotated[MongoId, id_schema('a string representing a profile id')]
+ProfileCid = Annotated[ContentIdType, id_schema('a string representing a profile content id')]  
+ProfileGroupId = Annotated[MongoId, id_schema('a string representing a profile group id')]
+ProfileGroupCid = Annotated[ContentIdType, id_schema('a string representing a profile groups content id')]
+AnyProfileCid = ProfileCid | ProfileGroupCid
+
+ProfileList = Annotated[
+    conlist(AnyProfileCid, min_length=1, max_length=50),
+    unique_list_validator, 
+    id_schema('a unique list of profile or profile group cids')
+]
+
 #
 # media info
 #
@@ -147,9 +164,6 @@ class ModelCreator(BaseModel):
 #
 # user
 #
-
-UserId = Annotated[MongoId, id_schema('a string representing a user id')]
-UserCid = Annotated[ContentIdType, id_schema('a string representing a user content id')]
 
 
 class User(ContentModel):
@@ -244,6 +258,172 @@ class UserCreator(ModelCreator):
             password1=pw,
             password2=pw
         )
+
+#
+# profiles
+#
+    
+class Profile(ContentModel):
+    SNAKE_CASE: ClassVar[str] = 'profile'
+    DB_NAME: ClassVar[str] = True
+    ENDPOINT: ClassVar[str] = True
+
+    id: ProfileId = Field(**db_id_kwargs)
+    cid: ProfileCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
+
+    name: str = Field(min_length=1, max_length=300)
+    short_name: str = Field(min_length=1, max_length=50)
+    abreviated_name: str = Field(max_length=10)
+
+    tag_line: str = Field(min_length=1, max_length=300)
+    bio: str = Field(min_length=1, max_length=1500)
+    tags: TagList = None
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0SXvy_2EV0Pm6YAmfznDb5nwT4l7RfIXN9RNe9v279vk707.json',
+                    'user_cid': str(example_cid(User)),
+                    'name': 'Blue Giant Footballer',
+                    'short_name': 'Blue Giant',
+                    'abreviated_name': 'BGF',
+                    'tag_line': 'woke up like dis',
+                    'bio': 'Just another dude who loves football',
+                    'tags': ['football', 'soccer', 'uk']
+                }
+            ]
+        }
+    }
+
+
+class ProfileCreator(ModelCreator):
+    """
+    This class is used to create a Profile model, user_cid is not exposed because this model represents user input,
+    the user_cid is added by the controller which uses the cid of the authenticated user.
+    """
+
+    MODEL: ClassVar[Type[Profile]] = Profile
+
+    name: str = Field(min_length=1, max_length=300)
+    short_name: str = Field(min_length=1, max_length=50)
+    abreviated_name: str = Field(max_length=10)
+
+    tag_line: str = Field(min_length=1, max_length=300)
+    bio: str = Field(min_length=1, max_length=1500)
+    tags: TagList = None
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'name': 'Blue Giant Footballer',
+                    'short_name': 'Blue Giant',
+                    'abreviated_name': 'BGF',
+                    'tag_line': 'woke up like dis',
+                    'bio': 'Just another dude who loves football',
+                    'tags': ['football', 'soccer', 'uk']
+                }
+            ]
+        }
+    }
+
+    @classmethod
+    def generate(cls, user:User=None) -> 'ProfileCreator':
+        if user is None:
+            user = UserCreator.generate_model()
+        
+        # name #
+
+        name_seed = random.randint(0, 5)
+
+        if name_seed == 1:
+            seed_words = [user.first_name, user.last_name]
+        elif name_seed == 2:
+            seed_words = [user.first_name[0], user.last_name]
+        elif name_seed == 3:
+            seed_words = [user.first_name[0], user.last_name, random.choice(adjectives)]
+        elif name_seed == 4:
+            seed_words = [random.choice(adjectives), user.first_name[0], user.last_name]
+        else:
+            seed_words = [random.choice(adjectives), random.choice(adjectives), random.choice(nouns)]
+        
+        if random.randint(0, 3) < 3:
+            seed_words = [seed_word.capitalize() for seed_word in seed_words]
+        
+        name = ' '.join(seed_words)
+
+        # short name #
+
+        short_name_seed = random.randint(0, 5)
+
+        if short_name_seed in [0, 1]:
+            short = f'{seed_words[0]} {seed_words[-1]}'
+        elif short_name_seed in [2, 3]:
+            short = f'{seed_words[0][0]}. {seed_words[-1]}'
+        else:
+            short = f'{seed_words[0]} {seed_words[-1][0]}.'
+        
+        # abreviated name #
+
+        abreviated = ''.join([seed_word[0].capitalize() for seed_word in seed_words])
+
+        return cls(
+            name=name,
+            short_name=short,
+            abreviated_name=abreviated,
+            tag_line=lorem.sentence()[0:300],
+            bio=lorem.paragraph()[0:1500],
+            tags=list(set(lorem.words(random.randint(2, 7))))
+        )
+
+
+class ProfileGroup(ContentModel):
+    SNAKE_CASE: ClassVar[str] = 'profile_group'
+    DB_NAME: ClassVar[str] = True
+    ENDPOINT: ClassVar[str] = True
+
+    id: ProfileGroupId = Field(**db_id_kwargs)
+    cid: ProfileGroupCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
+
+    name: str = Field(min_length=1, max_length=300)
+    short_name: str = Field(min_length=1, max_length=50)
+    abreviated_name: str = Field(max_length=10)
+
+    summary: str = Field(min_length=1, max_length=300)
+    description: str = Field(min_length=1, max_length=1500)
+    tags: TagList = None
+
+    profiles: ProfileList
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441',
+                    'cid': '0DuHIdrOYrCcHt2WMuBQP7-9xI6mp8sdeWRu8RnBjdTI752.json',
+                    'user_cid': str(example_cid(User)),
+                    'name': 'The Beatles',
+                    'short_name': 'The Beatles',
+                    'abreviated_name': 'TB',
+                    'summary': 'English rock band formed in Liverpool in 1960.',
+                    'description': 'The Beatles were an English rock band formed in Liverpool in 1960. With a line-up comprising John Lennon, '
+                                   'Paul McCartney, George Harrison and Ringo Starr, they are regarded as the most influential band of all time.',
+                    'mediums': ['audio', 'video'],
+                    'tags': ['rock', 'pop', 'british invasion'],
+                    'artists': [
+                        '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json', 
+                        '0Ve5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                        '0We5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                        '0Xe5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
+                    ]
+                }
+            ]
+        }
+    }
 
 
 #

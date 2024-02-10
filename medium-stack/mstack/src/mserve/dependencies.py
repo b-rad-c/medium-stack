@@ -39,9 +39,9 @@ async def current_user(token: Annotated[str, Depends(oauth2_scheme)], db:MongoDB
 
 def add_crud_routes(router:APIRouter, model_type:ContentModel, model_creator:ModelCreator):
     try:
-        prefix:str = model_type.API_PREFIX
+        prefix:str = model_type.ENDPOINT
     except AttributeError:
-        raise ValueError(f'{model_type.__class__.__name__} does not have an API_PREFIX attribute')
+        raise ValueError(f'{model_type.__class__.__name__} does not have an ENDPOINT attribute')
     
     if not prefix.startswith('/'):
         raise ValueError('prefix must start with /')

@@ -47,7 +47,8 @@
  
 + 🟡 code templating
     + 🔴 db wrappers
-    + 🔴 sdk -> wrap calls like delete because they need to be different for users/files/models with just data
+    + 🟡 sdk -> wrap calls like delete because they need to be different for users/files/models with just data
+    + 🟡 client
     + 🔴 api routes -> uses above sdk
     + 🔴 cli -> uses above sdk
     + 🔴 model_config example(s) -> use lorem ipsom gen and hardcode correct cid

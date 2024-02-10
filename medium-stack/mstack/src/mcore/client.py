@@ -160,23 +160,3 @@ class MStackClient:
     def list_users(self, offset:int=0, size:int=50) -> List[User]:
         data = self._get('core/users', params={'offset': offset, 'size': size})
         return [User(**user) for user in data]
-    # mtemplate - extract start
-    # {"type": "ImageRelease", "creator_type": "ImageReleaseCreator", "snake_case": "image_release", "endpoint": "core/image-release", "lower_case": "image release"}
-
-    # image release #
-
-    def create_image_release(self, creator: ImageReleaseCreator) -> ImageRelease:
-        data = self._post('core/image-release', json=creator.model_dump())
-        return ImageRelease(**data)
-    
-    def read_image_release(self, id:str = None, cid:str = None) -> ImageRelease:
-        url = self._model_id_type_url('core/image-release', id, cid)
-        data = self._get(url)
-        return ImageRelease(**data)
-    
-    def delete_image_release(self, id:str = None, cid:str = None) -> None:
-        self._delete(self._model_id_type_url('core/image-release', id, cid))
-
-    def list_image_releases(self, offset:int=0, size:int=50) -> List[ImageRelease]:
-        data = self._get('core/image-release', params={'offset': offset, 'size': size})
-        return [ImageRelease(**image_release) for image_release in data]
