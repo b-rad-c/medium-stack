@@ -57,23 +57,3 @@ class MCore:
             id = file_uploader
         self.db.delete(FileUploader, id=id)
 
-    # artists
-        
-    def create_artist(self, creator:ArtistCreator, user_cid:UserCid) -> Artist:
-        artist:Artist = creator.create_model(user_cid=user_cid)
-        self.db.create(artist)
-        return artist
-    
-    def list_artist(self, offset:int=SDK_DEFAULT_OFFSET, size:int=SDK_DEFAULT_SIZE) -> list[Artist]:
-        return list(self.db.find(Artist, offset=offset, size=size))
-    
-    def read_artist(self, cid:ArtistCid) -> Artist:
-        return self.db.read(Artist, cid=cid)
-    
-    def delete_artist(self, artist: Artist | ArtistCid) -> None:
-        try:
-            cid = artist.cid
-        except AttributeError:
-            cid = artist
-        
-        return delete_artist(cid)

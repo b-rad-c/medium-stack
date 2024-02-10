@@ -5,7 +5,6 @@ from os import environ
 from os.path import join
 
 from mserve.core import core_router
-from mserve.mart import *
 from mcore.util import utc_now
 from mcore.models import MSERVE_LOCAL_STORAGE_DIRECTORY
 
@@ -39,7 +38,7 @@ MSERVE_INCLUDE_MAIN = env_to_bool('MSERVE_INCLUDE_MAIN', '1')
 MSERVE_INCLUDE_CORE = env_to_bool('MSERVE_INCLUDE_CORE', '1')
 MSERVE_INCLUDE_MART = env_to_bool('MSERVE_INCLUDE_MART', '1')
 
-API_PREFIX = '/api/v0'
+MSERVE_API_PREFIX = environ.get('MSERVE_API_PREFIX', '/api/v0')
 
 #
 # main router
@@ -74,14 +73,7 @@ if MSERVE_STATIC_FILES:
     app.mount('/files', StaticFiles(directory=MSERVE_LOCAL_STORAGE_DIRECTORY), name='static')
 
 if MSERVE_INCLUDE_MAIN:
-    app.include_router(main_router, prefix=API_PREFIX)
+    app.include_router(main_router, prefix=MSERVE_API_PREFIX)
 
 if MSERVE_INCLUDE_CORE:
-    app.include_router(core_router, prefix=join(API_PREFIX, 'core'))
-
-if MSERVE_INCLUDE_MART:
-    app.include_router(artist_router, prefix=join(API_PREFIX, 'mart'))
-    app.include_router(still_image_router, prefix=join(API_PREFIX, 'mart'))
-    app.include_router(video_router, prefix=join(API_PREFIX, 'mart'))
-    app.include_router(music_router, prefix=join(API_PREFIX, 'mart'))
-    app.include_router(podcast_router, prefix=join(API_PREFIX, 'mart'))
+    app.include_router(core_router, prefix=join(MSERVE_API_PREFIX, 'core'))

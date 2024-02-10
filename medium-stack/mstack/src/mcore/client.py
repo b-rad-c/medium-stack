@@ -9,7 +9,6 @@ from mcore.errors import MStackClientError, NotFoundError
 from mserve import IndexResponse
 from mcore.types import ModelIdType, ContentIdType
 from mcore.models import *
-from mart.models import *
 
 import requests
 from requests.exceptions import RequestException

@@ -3,7 +3,6 @@ import os
 from mcore.db import MongoDB
 from mcore.errors import MStackAuthenticationError
 from mcore.models import User, UserCreator, UserPasswordHash
-from mart.models import Artist, ArtistCid
 
 from datetime import datetime, timedelta
 
@@ -17,8 +16,7 @@ __all__ = [
     'authenticate_user',
     'create_access_token',
     'create_new_user',
-    'delete_user',
-    'delete_artist'
+    'delete_user'
 ]
 
 
@@ -90,11 +88,3 @@ def delete_user(user:User) -> None:
     db = MongoDB.from_cache()
     db.delete(UserPasswordHash, user_id=user.id)
     db.delete(User, id=user.id)
-
- 
-def delete_artist(cid:ArtistCid) -> None:
-    """
-    placeholder for a future function that will delete an artist and all associated data after a waiting period
-    """
-    db = MongoDB.from_cache()
-    db.delete(Artist, cid=cid)

@@ -380,52 +380,6 @@ class ProfileCreator(ModelCreator):
         )
 
 
-class ProfileGroup(ContentModel):
-    SNAKE_CASE: ClassVar[str] = 'profile_group'
-    DB_NAME: ClassVar[str] = True
-    ENDPOINT: ClassVar[str] = True
-
-    id: ProfileGroupId = Field(**db_id_kwargs)
-    cid: ProfileGroupCid = Field(**cid_kwargs)
-    user_cid: UserCid = Field(**cid_kwargs)
-
-    name: str = Field(min_length=1, max_length=300)
-    short_name: str = Field(min_length=1, max_length=50)
-    abreviated_name: str = Field(max_length=10)
-
-    summary: str = Field(min_length=1, max_length=300)
-    description: str = Field(min_length=1, max_length=1500)
-    tags: TagList = None
-
-    profiles: ProfileList
-
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0DuHIdrOYrCcHt2WMuBQP7-9xI6mp8sdeWRu8RnBjdTI752.json',
-                    'user_cid': str(example_cid(User)),
-                    'name': 'The Beatles',
-                    'short_name': 'The Beatles',
-                    'abreviated_name': 'TB',
-                    'summary': 'English rock band formed in Liverpool in 1960.',
-                    'description': 'The Beatles were an English rock band formed in Liverpool in 1960. With a line-up comprising John Lennon, '
-                                   'Paul McCartney, George Harrison and Ringo Starr, they are regarded as the most influential band of all time.',
-                    'mediums': ['audio', 'video'],
-                    'tags': ['rock', 'pop', 'british invasion'],
-                    'artists': [
-                        '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json', 
-                        '0Ve5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                        '0We5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                        '0Xe5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
-                    ]
-                }
-            ]
-        }
-    }
-
-
 #
 # file classes
 #
