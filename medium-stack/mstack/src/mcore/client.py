@@ -91,55 +91,55 @@ class MStackClient:
 
     # users #
 
-    def create_user(self, user_creator: UserCreator) -> User:
+    def user_create(self, user_creator: UserCreator) -> User:
         data = self._post('core/users', json=user_creator.model_dump())
         return User(**data)
 
-    def read_user(self, id:str = None, cid:str = None) -> User:
+    def user_read(self, id:str = None, cid:str = None) -> User:
         url = self._model_id_type_url('core/users', id, cid)
         data = self._get(url)
         return User(**data)
 
-    def delete_user(self) -> None:
+    def user_delete(self) -> None:
         self._delete('core/users/me')
 
-    def list_users(self, offset:int=0, size:int=50) -> List[User]:
+    def user_list(self, offset:int=0, size:int=50) -> List[User]:
         data = self._get('core/users', params={'offset': offset, 'size': size})
         return [User(**user) for user in data]
 
     # profiles #
 
-    def create_profile(self, profile_creator: ProfileCreator) -> Profile:
+    def profile_create(self, profile_creator: ProfileCreator) -> Profile:
         data = self._post('core/profiles', json=profile_creator.model_dump())
         return Profile(**data)
     
-    def read_profile(self, id:str = None, cid:str = None) -> Profile:
+    def profile_read(self, id:str = None, cid:str = None) -> Profile:
         url = self._model_id_type_url('core/profiles', id, cid)
         data = self._get(url)
         return Profile(**data)
     
-    def delete_profile(self, id:str = None, cid:str = None) -> None:
+    def profile_delete(self, id:str = None, cid:str = None) -> None:
         url = self._model_id_type_url('core/profiles', id, cid)
         self._delete(url)
 
-    def list_profiles(self, offset:int=0, size:int=50) -> List[Profile]:
+    def profile_list(self, offset:int=0, size:int=50) -> List[Profile]:
         data = self._get('core/profiles', params={'offset': offset, 'size': size})
         return [Profile(**profile) for profile in data]
 
     # file upload #
 
-    def create_file_uploader(self, file_upload_creator: FileUploaderCreator) -> FileUploader:
+    def file_uploader_create(self, file_upload_creator: FileUploaderCreator) -> FileUploader:
         data = self._post('core/file-uploader', json=file_upload_creator.model_dump())
         return FileUploader(**data)
 
-    def read_file_uploader(self, id: str) -> FileUploader:
+    def file_uploader_read(self, id: str) -> FileUploader:
         data = self._get(f'core/file-uploader/{id}')
         return FileUploader(**data)
 
-    def delete_file_uploader(self, id:str = None) -> None:
+    def file_uploader_delete(self, id:str = None) -> None:
         self._delete(f'core/file-uploader/{id}')
 
-    def list_file_uploaders(self, offset:int=0, size:int=50) -> List[FileUploader]:
+    def file_uploaders_list(self, offset:int=0, size:int=50) -> List[FileUploader]:
         data = self._get('core/file-uploader', params={'offset': offset, 'size': size})
         return [FileUploader(**uploader) for uploader in data]
     
@@ -176,7 +176,7 @@ class MStackClient:
             on_update:Callable[[], FileUploader]=None, 
         ) -> FileUploader:
         
-        uploader = self.create_file_uploader(FileUploaderCreator(total_size=size, type=type, ext=extension))
+        uploader = self.file_uploader_create(FileUploaderCreator(total_size=size, type=type, ext=extension))
 
 
         while True:

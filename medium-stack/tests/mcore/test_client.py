@@ -29,7 +29,7 @@ def test_core_file_uploader(client:MStackClient):
     # init #
 
     reset_collection(FileUploader)
-    assert len(client.list_file_uploaders()) == 0, 'file uploader collection was not reset'
+    assert len(client.file_uploaders_list()) == 0, 'file uploader collection was not reset'
 
     # create #
 
@@ -40,20 +40,20 @@ def test_core_file_uploader(client:MStackClient):
         new_uploader = FileUploaderCreator(**creator_params)
         new_uploader.total_size *= 1_000
 
-        created_uploader = client.create_file_uploader(new_uploader)
+        created_uploader = client.file_uploader_create(new_uploader)
         created_uploaders.append(created_uploader)
         assert isinstance(created_uploader, FileUploader)
         _check_client_response_id(client)
 
     # read #
 
-    uploader_read = client.read_file_uploader(id=created_uploader.id)
+    uploader_read = client.file_uploader_read(id=created_uploader.id)
     assert uploader_read == created_uploader
     _check_client_response_id(client)
 
     # list #
 
-    uploader_list = client.list_file_uploaders()
+    uploader_list = client.file_uploaders_list()
     assert len(uploader_list) == 10
     for uploader in uploader_list:
         assert isinstance(uploader, FileUploader)
@@ -62,14 +62,14 @@ def test_core_file_uploader(client:MStackClient):
 
     # pagination by 10 #
 
-    assert len(client.list_file_uploaders(offset=0, size=10)) == 10
+    assert len(client.file_uploaders_list(offset=0, size=10)) == 10
     _check_client_response_id(client)
 
     # pagination by 5 #
 
     total = 0
     for offset in range(0, 10, 5):
-        for uploader in client.list_file_uploaders(offset=offset, size=5):
+        for uploader in client.file_uploaders_list(offset=offset, size=5):
             assert isinstance(uploader, FileUploader)
             total += 1
 
@@ -80,7 +80,7 @@ def test_core_file_uploader(client:MStackClient):
 
     total = 0
     for offset in range(0, 10, 3):
-        for uploader in client.list_file_uploaders(offset=offset, size=3):
+        for uploader in client.file_uploaders_list(offset=offset, size=3):
             assert isinstance(uploader, FileUploader)
             total += 1
 
@@ -89,16 +89,16 @@ def test_core_file_uploader(client:MStackClient):
 
     # delete by id #
 
-    result = client.delete_file_uploader(id=created_uploader.id)
+    result = client.file_uploader_delete(id=created_uploader.id)
     assert result is None
     assert client.response.status_code == 201
 
-    result = client.delete_file_uploader(id=created_uploader.id)    # run delete again because the endpoint is designed 
+    result = client.file_uploader_delete(id=created_uploader.id)    # run delete again because the endpoint is designed 
     assert result is None                                           # to return the same response if the item was already deleted
     assert client.response.status_code == 201
 
     with pytest.raises(NotFoundError):
-        client.read_file_uploader(id=created_uploader.id)
+        client.file_uploader_read(id=created_uploader.id)
 
     reset_collection(FileUploader)
 
@@ -125,7 +125,7 @@ def test_core_file_upload_process(image_file_path, client:MStackClient):
         last_uploaded = update.total_uploaded
 
     for _ in range(10):
-        uploader = client.read_file_uploader(id=uploader.id)
+        uploader = client.file_uploader_read(id=uploader.id)
         if uploader.status not in [FileUploadStatus.processing, FileUploadStatus.process_queue]:
             break
         time.sleep(0.5)

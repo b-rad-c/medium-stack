@@ -61,7 +61,7 @@ class DataSeeder:
 
         def seed_user(self) -> User:
             user_creator = UserCreator.generate()
-            user = self.mstack.create_user(user_creator)
+            user = self.mstack.user_create(user_creator)
             self.users.append(user)
 
             self.mstack.login(user.email, user_creator.password1)
