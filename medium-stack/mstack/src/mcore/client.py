@@ -2,7 +2,7 @@ import os
 
 from io import BytesIO
 from pathlib import Path
-from typing import List, Callable
+from typing import List, Callable, BinaryIO
 from os.path import join
 
 from mcore.errors import MStackClientError, NotFoundError
@@ -88,6 +88,44 @@ class MStackClient:
         data = self._post('core/auth/login', data={'username': username, 'password': password})
         self.session.headers.update({'Authorization': f'Bearer {data["access_token"]}'})
 
+
+    # users #
+
+    def create_user(self, user_creator: UserCreator) -> User:
+        data = self._post('core/users', json=user_creator.model_dump())
+        return User(**data)
+
+    def read_user(self, id:str = None, cid:str = None) -> User:
+        url = self._model_id_type_url('core/users', id, cid)
+        data = self._get(url)
+        return User(**data)
+
+    def delete_user(self) -> None:
+        self._delete('core/users/me')
+
+    def list_users(self, offset:int=0, size:int=50) -> List[User]:
+        data = self._get('core/users', params={'offset': offset, 'size': size})
+        return [User(**user) for user in data]
+
+    # profiles #
+
+    def create_profile(self, profile_creator: ProfileCreator) -> Profile:
+        data = self._post('core/profiles', json=profile_creator.model_dump())
+        return Profile(**data)
+    
+    def read_profile(self, id:str = None, cid:str = None) -> Profile:
+        url = self._model_id_type_url('core/profiles', id, cid)
+        data = self._get(url)
+        return Profile(**data)
+    
+    def delete_profile(self, id:str = None, cid:str = None) -> None:
+        url = self._model_id_type_url('core/profiles', id, cid)
+        self._delete(url)
+
+    def list_profiles(self, offset:int=0, size:int=50) -> List[Profile]:
+        data = self._get('core/profiles', params={'offset': offset, 'size': size})
+        return [Profile(**profile) for profile in data]
+
     # file upload #
 
     def create_file_uploader(self, file_upload_creator: FileUploaderCreator) -> FileUploader:
@@ -113,9 +151,9 @@ class MStackClient:
             self, 
             file_path:str | Path, 
             type:FileUploadTypes, 
+            extension:str=None,
             chunk_size=250_000, 
-            on_update:Callable[[], FileUploader]=None, 
-            extension:str=None
+            on_update:Callable[[], FileUploader]=None
         ) -> FileUploader:
         """if extension is not provided, it will be inferred from the file_path"""
         
@@ -124,38 +162,33 @@ class MStackClient:
         
         size = file_path.stat().st_size
         ext = file_path.suffix[1:] if extension is None else extension
-        uploader = self.create_file_uploader(FileUploaderCreator(total_size=size, type=type, ext=ext))
-
+        
         with open(file_path, 'rb') as file:
-            while True:
-                chunk = file.read(chunk_size)
-                if not chunk:
-                    break
+            return self.upload_file_obj(file, type, size, ext, chunk_size, on_update)
+    
+    def upload_file_obj(
+            self, 
+            file_obj:BinaryIO, 
+            type:FileUploadTypes, 
+            size: int,
+            extension:str,
+            chunk_size=250_000, 
+            on_update:Callable[[], FileUploader]=None, 
+        ) -> FileUploader:
+        
+        uploader = self.create_file_uploader(FileUploaderCreator(total_size=size, type=type, ext=extension))
 
-                uploader = self.upload_chunk(uploader.id, chunk)
-                if on_update is not None:
-                    on_update(uploader)
+
+        while True:
+            chunk = file_obj.read(chunk_size)
+            if not chunk:
+                break
+
+            uploader = self.upload_chunk(uploader.id, chunk)
+            if on_update is not None:
+                on_update(uploader)
 
         return uploader
 
-
     def download_file(cid: ContentIdType):
         raise NotImplementedError('download_file not implemented')
-
-    # users #
-
-    def create_user(self, user_creator: UserCreator) -> User:
-        data = self._post('core/users', json=user_creator.model_dump())
-        return User(**data)
-
-    def read_user(self, id:str = None, cid:str = None) -> User:
-        url = self._model_id_type_url('core/users', id, cid)
-        data = self._get(url)
-        return User(**data)
-
-    def delete_user(self) -> None:
-        self._delete('core/users/me')
-
-    def list_users(self, offset:int=0, size:int=50) -> List[User]:
-        data = self._get('core/users', params={'offset': offset, 'size': size})
-        return [User(**user) for user in data]

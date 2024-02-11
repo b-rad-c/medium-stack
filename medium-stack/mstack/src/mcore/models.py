@@ -39,6 +39,11 @@ __all__ = [
     'UserPasswordHashId',
     'UserPasswordHash',
 
+    'ProfileId',
+    'ProfileCid',
+    'Profile',
+    'ProfileCreator',
+
     'FileUploaderId',
     'FileUploadStatus',
     'FileUploadTypes',
@@ -65,6 +70,7 @@ __all__ = [
     'AudioReleaseId',
     'AudioReleaseCid',
     'AudioRelease',
+    'AudioReleaseCreator',
 
     'VideoFileId',
     'VideoFileCid',
@@ -75,6 +81,7 @@ __all__ = [
     'VideoReleaseId',
     'VideoReleaseCid',
     'VideoRelease',
+    'VideoReleaseCreator',
     
     'TextFileId',
     'TextFileCid',
@@ -638,9 +645,18 @@ class AudioRelease(ContentModel):
 
     id: AudioReleaseId = Field(**db_id_kwargs)
     cid: AudioReleaseCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
 
     master: AudioFileCid
     alt_formats: AltAudioFormatList = None
+
+
+class AudioReleaseCreator(ModelCreator):
+    MODEL: ClassVar[Type[AudioRelease]] = AudioRelease
+
+    master: AudioFileCid
+    alt_formats: AltAudioFormatList = None
+
 
 VideoFileId = Annotated[MongoId, id_schema('a string representing a video file id')]
 VideoFileCid = Annotated[ContentIdType, id_schema('a string representing a video file cid')]
@@ -714,6 +730,14 @@ class VideoRelease(ContentModel):
 
     id: VideoReleaseId = Field(**db_id_kwargs)
     cid: VideoReleaseCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
+
+    master: VideoFileCid
+    alt_formats: AltVideoFormatList = None
+
+
+class VideoReleaseCreator(ModelCreator):
+    MODEL: ClassVar[Type[VideoRelease]] = VideoRelease
 
     master: VideoFileCid
     alt_formats: AltVideoFormatList = None

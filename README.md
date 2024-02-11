@@ -16,20 +16,20 @@
 ---
 
 + 🟡 implement profiles
-    + 🟡 router
-    + 🔴 sdk
-    + 🔴 client
+    + 🟢 router
+    + 🟢 sdk
+    + 🟢 client
     + 🔴 unittests
     + 🔴 delete logic
 
 + 🟡 build out sdk
     + 🟢 file uploader - move logic from router to sdk
-    + 🔴 profiles
-    + 🔴 each type of file
+    + 🟢 profiles
+    + 🟢 each type of file
     + 🟡 update router to use sdk
     + 🔴 sdk unittests
 
-+ 🔴 update client to have matching sdk api
++ 🟡 update client to have matching sdk api
     + 🔴 update client unittests
 
 + 🟢 update unittests for users
@@ -65,6 +65,11 @@
     + 🟢 web api
     + 🟢 client
     + 🟢 update unittests
+
++ 🔴 file updates
+    + 🔴 delete files
+    + 🔴 download file methods in sdk/client
+    + 🔴 s3 support
  
 + 🟡 code templating
     + 🔴 db wrappers
