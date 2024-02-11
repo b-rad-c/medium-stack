@@ -1,7 +1,8 @@
 import os
 
 from mcore.db import MongoDB
-from mcore.auth import create_new_user, delete_user, delete_artist
+from mcore.errors import MStackUserError
+from mcore.auth import create_new_user, delete_user
 from mcore.models import *
 
 
@@ -11,8 +12,8 @@ __all__ = [
     'MCore'
 ]
 
-SDK_DEFAULT_OFFSET = os.environ.get('MSTACK_SDK_DEFAULT_LIST_OFFSET', 0)
-SDK_DEFAULT_SIZE = os.environ.get('MSTACK_SDK_DEFAULT_LIST_SIZE', 50)
+SDK_DEFAULT_OFFSET = int(os.environ.get('MSTACK_SDK_DEFAULT_LIST_OFFSET', 0))
+SDK_DEFAULT_SIZE = int(os.environ.get('MSTACK_SDK_DEFAULT_LIST_SIZE', 50))
 
 class MCore:
 
@@ -27,8 +28,8 @@ class MCore:
     def list_user(self, offset:int=SDK_DEFAULT_OFFSET, size:int=SDK_DEFAULT_SIZE) -> list[User]:
         return list(self.db.find(User, offset=offset, size=size))
     
-    def read_user(self, cid: UserCid) -> User:
-        return self.db.read(User, cid=cid)
+    def read_user(self, id:UserId=None, cid: UserCid=None) -> User:
+        return self.db.read(User, id=id, cid=cid)
     
     def delete_user(self, user: User | UserCid) -> None:
         try:
@@ -57,3 +58,47 @@ class MCore:
             id = file_uploader
         self.db.delete(FileUploader, id=id)
 
+    def upload_file(self, uploader: FileUploader, chunk: bytes) -> FileUploader:
+
+        # init upload #
+        
+        if uploader.status != FileUploadStatus.uploading:
+            raise MStackUserError(f'FileUploader {uploader.id} status is not {FileUploadStatus.uploading.value}')
+        
+        if uploader.total_uploaded >= uploader.total_size:
+            raise MStackUserError(f'FileUploader {uploader.id} is already at or over upload size')
+        
+        # touch / create path if doesn't exist #
+
+        path = uploader.local_path()
+
+        try:
+            path.touch()
+        except FileNotFoundError:
+            os.makedirs(path.parent, exist_ok=True)
+            path.touch()
+        
+        # write chunk to disk #
+        
+        with path.open('ab') as f:
+            written = f.write(chunk)
+        
+        uploader.total_uploaded += written
+        uploader.update_timestamp()
+        
+        # file upload error #
+
+        if uploader.total_uploaded > uploader.total_size:
+            uploader.status = FileUploadStatus.error
+            uploader.error = 'file upload is over upload size'
+            self.db.update(uploader)
+            raise MStackUserError(f'FileUploader {uploader.id} is over upload size')
+        
+        # file upload finished, update status #
+
+        if uploader.total_uploaded == uploader.total_size:
+            uploader.status = FileUploadStatus.process_queue
+
+        self.db.update(uploader)
+
+        return uploader

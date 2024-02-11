@@ -7,9 +7,10 @@ from os.path import join
 from mserve.core import core_router
 from mcore.util import utc_now
 from mcore.models import MSERVE_LOCAL_STORAGE_DIRECTORY
-from mcore.errors import NotFoundError, MStackAuthenticationError
+from mcore.errors import NotFoundError, MStackAuthenticationError, MStackUserError
 
 from fastapi import FastAPI, APIRouter, Request, HTTPException, status
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -83,10 +84,13 @@ async def exception_wrapper(request: Request, call_next):
         )
     except HTTPException:
         raise
+    except MStackUserError as e:
+        return JSONResponse(status_code=400, content={'detail': str(e)})
     except NotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        return JSONResponse(status_code=404, content={'detail': str(e)})
     except Exception:
-        raise HTTPException(status_code=500, detail='Internal Server Error')
+        logger.exception('Internal Server Error', exc_info=True)
+        return JSONResponse(status_code=500, content={'detail': 'Internal Server Error'})
 
 if MSERVE_STATIC_FILES:
     app.mount('/files', StaticFiles(directory=MSERVE_LOCAL_STORAGE_DIRECTORY), name='static')

@@ -23,10 +23,10 @@
     + 🔴 delete logic
 
 + 🟡 build out sdk
-    + 🟡 file uploader - move logic from router to sdk
+    + 🟢 file uploader - move logic from router to sdk
     + 🔴 profiles
     + 🔴 each type of file
-    + 🔴 update router to use sdk
+    + 🟡 update router to use sdk
     + 🔴 sdk unittests
 
 + 🔴 update client to have matching sdk api

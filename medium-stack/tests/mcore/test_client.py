@@ -98,7 +98,7 @@ def test_core_file_uploader(client:MStackClient):
     assert client.response.status_code == 201
 
     with pytest.raises(NotFoundError):
-        client.read_user(id=created_uploader.id)
+        client.read_file_uploader(id=created_uploader.id)
 
     reset_collection(FileUploader)
 

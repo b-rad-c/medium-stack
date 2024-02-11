@@ -2,6 +2,10 @@ class MStackCoreError(Exception):
     pass
 
 
+class MStackUserError(MStackCoreError):
+    pass
+
+
 class MStackClientError(MStackCoreError):
     def __init__(self, msg, url, exc, response=None) -> None:
         super().__init__(msg)
