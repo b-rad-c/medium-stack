@@ -18,7 +18,13 @@ from mcore.models import (
     FileUploaderCreator,
     ImageFile,
     ImageRelease,
-    ImageReleaseCreator
+    ImageReleaseCreator,
+    AudioFile,
+    AudioRelease,
+    AudioReleaseCreator,
+    VideoFile,
+    VideoRelease,
+    VideoReleaseCreator
 )
 from mcore.auth import delete_profile
 from mcore.db import MongoDB
@@ -148,7 +154,6 @@ def create_image_release(image_release_creator:ImageReleaseCreator, user:User = 
 async def list_image_releases(offset:int=0, size:int=50):
     return mcore.image_release_list(offset, size)
 
-
 @core_router.get('/image-release/{id_type}/{id}', response_model=ImageRelease, response_model_by_alias=False)
 def read_image_release(id_type:ModelIdType, id:str):
     return mcore.image_release_read(**{id_type.value: id})
@@ -164,3 +169,58 @@ async def list_image_files(offset:int=0, size:int=50):
 def read_image_file(id_type:ModelIdType, id:str):
     return mcore.image_file_read(**{id_type.value: id})
 
+#
+# audio
+#
+
+# audio releases #
+
+@core_router.post('/audio-release', response_model=AudioRelease, response_model_by_alias=False)
+async def create_audio_release(creator:AudioReleaseCreator, user:User = Depends(current_user)):
+    return mcore.audio_release_create(creator, user.cid)
+
+@core_router.get('/audio-release', response_model=List[AudioRelease], response_model_by_alias=False)
+async def list_audio_releases(offset:int=0, size:int=50):
+    return mcore.audio_release_list(offset, size)
+
+@core_router.get('/audio-release/{id_type}/{id}', response_model=AudioRelease, response_model_by_alias=False)
+async def read_audio_release(id_type:ModelIdType, id:str):
+    return mcore.audio_release_read(**{id_type.value: id})
+
+# audio files #
+
+@core_router.get('/audio-files', response_model=List[AudioFile], response_model_by_alias=False)
+async def list_audio_files(offset:int=0, size:int=50):
+    return mcore.audio_file_list(offset, size)
+
+@core_router.get('/audio-files/{id_type}/{id}', response_model=AudioFile, response_model_by_alias=False)
+async def read_audio_file(id_type:ModelIdType, id:str):
+    return mcore.audio_file_read(**{id_type.value: id})
+
+#
+# video
+#
+
+# video releases #
+
+@core_router.post('/video-release', response_model=VideoRelease, response_model_by_alias=False)
+async def create_video_release(creator:VideoReleaseCreator, user:User = Depends(current_user)):
+    return mcore.video_release_create(creator, user.cid)
+
+@core_router.get('/video-release', response_model=List[VideoRelease], response_model_by_alias=False)
+async def list_video_releases(offset:int=0, size:int=50):
+    return mcore.video_release_list(offset, size)
+
+@core_router.get('/video-release/{id_type}/{id}', response_model=VideoRelease, response_model_by_alias=False)
+async def read_video_release(id_type:ModelIdType, id:str):
+    return mcore.video_release_read(**{id_type.value: id})
+
+# video files #
+
+@core_router.get('/video-files', response_model=List[VideoFile], response_model_by_alias=False)
+async def list_video_files(offset:int=0, size:int=50):
+    return mcore.video_file_list(offset, size)
+
+@core_router.get('/video-files/{id_type}/{id}', response_model=VideoFile, response_model_by_alias=False)
+async def read_video_file(id_type:ModelIdType, id:str):
+    return mcore.video_file_read(**{id_type.value: id})

@@ -192,3 +192,75 @@ class MStackClient:
 
     def download_file(cid: ContentIdType):
         raise NotImplementedError('download_file not implemented')
+
+    # images #
+
+    def image_file_list(self, offset:int=0, size:int=50) -> List[ImageFile]:
+        data = self._get('core/image-files', params={'offset': offset, 'size': size})
+        return [ImageFile(**image_file) for image_file in data]
+    
+    def image_file_read(self, id:str = None, cid:str = None) -> ImageFile:
+        url = self._model_id_type_url('core/image-files', id, cid)
+        data = self._get(url)
+        return ImageFile(**data)
+
+    def image_release_create(self, image_release_creator: ImageReleaseCreator) -> ImageRelease:
+        data = self._post('core/image-release', json=image_release_creator.model_dump())
+        return ImageRelease(**data)
+    
+    def image_release_list(self, offset:int=0, size:int=50) -> List[ImageRelease]:
+        data = self._get('core/image-release', params={'offset': offset, 'size': size})
+        return [ImageRelease(**image_release) for image_release in data]
+    
+    def image_release_read(self, id:str = None, cid:str = None) -> ImageRelease:
+        url = self._model_id_type_url('core/image-release', id, cid)
+        data = self._get(url)
+        return ImageRelease(**data)
+    
+    # audio #
+
+    def audio_file_list(self, offset:int=0, size:int=50) -> List[AudioFile]:
+        data = self._get('core/audio-files', params={'offset': offset, 'size': size})
+        return [AudioFile(**audio_file) for audio_file in data]
+    
+    def audio_file_read(self, id:str = None, cid:str = None) -> AudioFile:
+        url = self._model_id_type_url('core/audio-files', id, cid)
+        data = self._get(url)
+        return AudioFile(**data)
+    
+    def audio_release_create(self, audio_release_creator: AudioReleaseCreator) -> AudioRelease:
+        data = self._post('core/audio-release', json=audio_release_creator.model_dump())
+        return AudioRelease(**data)
+    
+    def audio_release_list(self, offset:int=0, size:int=50) -> List[AudioRelease]:
+        data = self._get('core/audio-release', params={'offset': offset, 'size': size})
+        return [AudioRelease(**audio_release) for audio_release in data]
+    
+    def audio_release_read(self, id:str = None, cid:str = None) -> AudioRelease:
+        url = self._model_id_type_url('core/audio-release', id, cid)
+        data = self._get(url)
+        return AudioRelease(**data)
+
+    # video #
+
+    def video_file_list(self, offset:int=0, size:int=50) -> List[VideoFile]:
+        data = self._get('core/video-files', params={'offset': offset, 'size': size})
+        return [VideoFile(**video_file) for video_file in data]
+    
+    def video_file_read(self, id:str = None, cid:str = None) -> VideoFile:
+        url = self._model_id_type_url('core/video-files', id, cid)
+        data = self._get(url)
+        return VideoFile(**data)
+    
+    def video_release_create(self, video_release_creator: VideoReleaseCreator) -> VideoRelease:
+        data = self._post('core/video-release', json=video_release_creator.model_dump())
+        return VideoRelease(**data)
+    
+    def video_release_list(self, offset:int=0, size:int=50) -> List[VideoRelease]:
+        data = self._get('core/video-release', params={'offset': offset, 'size': size})
+        return [VideoRelease(**video_release) for video_release in data]
+    
+    def video_release_read(self, id:str = None, cid:str = None) -> VideoRelease:
+        url = self._model_id_type_url('core/video-release', id, cid)
+        data = self._get(url)
+        return VideoRelease(**data)
