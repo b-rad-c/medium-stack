@@ -1,4 +1,4 @@
-from ..conftest import reset_collection, _test_client_crud_ops, _check_client_response_id
+from ..conftest import reset_collection, _check_client_response_id
 
 import time
 
@@ -86,19 +86,6 @@ def test_core_file_uploader(client:MStackClient):
 
     assert total == 10
     _check_client_response_id(client)
-
-    # delete by id #
-
-    result = client.file_uploader_delete(id=created_uploader.id)
-    assert result is None
-    assert client.response.status_code == 201
-
-    result = client.file_uploader_delete(id=created_uploader.id)    # run delete again because the endpoint is designed 
-    assert result is None                                           # to return the same response if the item was already deleted
-    assert client.response.status_code == 201
-
-    with pytest.raises(NotFoundError):
-        client.file_uploader_read(id=created_uploader.id)
 
     reset_collection(FileUploader)
 

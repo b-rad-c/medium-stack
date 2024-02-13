@@ -410,6 +410,10 @@ def image_file_cid():
 def image_file_payload():
     return ContentId(hash='Wh2aaOSrURBH32Z_Dgg8BgHB_fQllwLo_0arWPH_PQo', size=7103671, ext='jpg')
 
+@pytest.fixture(scope='function')
+def image_release_cid():
+    return ContentId(hash='fY6ohbtzO4XL418lCIr9qfDWresFWAvSR8Uv-XpiV4s', size=207, ext='json')
+
 # audio #
 
 @pytest.fixture(scope='session')
@@ -429,6 +433,10 @@ def audio_file_cid():
 def audio_file_payload():
     return ContentId(hash='SOT7ZsLeQYg6MbcabM049T_DKWbLXl6BR724v3xD9fo', size=2633142, ext='mp3')
 
+@pytest.fixture(scope='function')
+def audio_release_cid():
+    return ContentId(hash='v7YGD93Y_DL6G88kpES_FMKoAVZprDmC37v2O5NGrh8', size=207, ext='json')
+
 # video #
 
 @pytest.fixture(scope='session')
@@ -447,3 +455,7 @@ def video_file_cid():
 @pytest.fixture(scope='function')
 def video_file_payload():
     return ContentId(hash='j_d4uuRMK-Q2LIoT-n6oIT_oE-nriwlp_K8_W8oa1r0', size=11061011, ext='mov')
+
+@pytest.fixture(scope='function')
+def video_release_cid():
+    return ContentId(hash='_ZK5DEHah2hx7E-idgEcgGz4UX4_E5ZL8T6UcdSxvXc', size=207, ext='json')

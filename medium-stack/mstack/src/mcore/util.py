@@ -288,7 +288,7 @@ def random_phone_number() -> str:
 
 def random_tags(number:int=None):
     if number is None:
-        number = random.randint(1, 5)
+        number = random.randint(1, 15)
     tags = []
     for _ in range(number):
         while True:

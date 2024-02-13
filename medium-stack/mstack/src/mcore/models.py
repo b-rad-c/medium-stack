@@ -10,7 +10,7 @@ from datetime import datetime
 
 from mcore.errors import MStackFilePayloadError
 from mcore.types import unique_list_validator, TagList
-from mcore.util import utc_now, random_name, random_email, random_phone_number, example_cid, adjectives, nouns
+from mcore.util import utc_now, random_name, random_email, random_phone_number, example_cid, adjectives, nouns, random_tags
 
 from lorem_text import lorem
 from pymediainfo import MediaInfo
@@ -286,7 +286,7 @@ class Profile(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
-                    'cid': '0SXvy_2EV0Pm6YAmfznDb5nwT4l7RfIXN9RNe9v279vk707.json',
+                    'cid': '0jeuMX19Qe1DAaVIkHGWnFDTN4WuD15geCM_H-aztr3A272.json',
                     'user_cid': str(example_cid(User)),
                     'name': 'Blue Giant Footballer',
                     'short_name': 'Blue Giant',
@@ -377,7 +377,7 @@ class ProfileCreator(ModelCreator):
             abreviated_name=abreviated,
             tag_line=lorem.sentence()[0:300],
             bio=lorem.paragraph()[0:1500],
-            tags=list(set(lorem.words(random.randint(2, 7))))
+            tags=random_tags()
         )
 
 
@@ -526,7 +526,8 @@ class ImageFile(BaseFile):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441', 
-                    'cid': '0O6Q2voNc_yv7ETIlqrLcni9C1BtYYIHSyq4g1AlS8FQ123.json', 
+                    'cid': '0tm9SzLy7lq1usQtHfGiJhznM95YSg9-NEF15WmnBobA173.json', 
+                    'user_cid': str(example_cid(User)),
                     'payload_cid': '0Wh2aaOSrURBH32Z_Dgg8BgHB_fQllwLo_0arWPH_PQo7103671.jpg', 
                     'height': 3584, 
                     'width': 5376
@@ -570,12 +571,37 @@ class ImageRelease(ContentModel):
     master: ImageFileCid
     alt_formats: AltImageFormatList = None
 
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441', 
+                    'cid': '0fY6ohbtzO4XL418lCIr9qfDWresFWAvSR8Uv-XpiV4s207.json', 
+                    'user_cid': str(example_cid(User)),
+                    'master': str(example_cid(ImageFile)),
+                    'alt_formats': [str(example_cid(ImageFile))]
+                }
+            ]
+        }
+    }
+
 
 class ImageReleaseCreator(ModelCreator):
     MODEL: ClassVar[Type[ImageRelease]] = ImageRelease
 
     master: ImageFileCid
     alt_formats: AltImageFormatList = None
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'master': str(example_cid(ImageFile)),
+                    'alt_formats': [str(example_cid(ImageFile))]
+                }
+            ]
+        }
+    }
 
 #
 # audio files
@@ -650,12 +676,37 @@ class AudioRelease(ContentModel):
     master: AudioFileCid
     alt_formats: AltAudioFormatList = None
 
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441', 
+                    'cid': '0v7YGD93Y_DL6G88kpES_FMKoAVZprDmC37v2O5NGrh8207.json', 
+                    'user_cid': str(example_cid(User)),
+                    'master': str(example_cid(AudioFile)),
+                    'alt_formats': [str(example_cid(AudioFile))]
+                }
+            ]
+        }
+    }
+
 
 class AudioReleaseCreator(ModelCreator):
     MODEL: ClassVar[Type[AudioRelease]] = AudioRelease
 
     master: AudioFileCid
     alt_formats: AltAudioFormatList = None
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'master': str(example_cid(AudioFile)),
+                    'alt_formats': [str(example_cid(AudioFile))]
+                }
+            ]
+        }
+    }
 
 
 VideoFileId = Annotated[MongoId, id_schema('a string representing a video file id')]
@@ -735,12 +786,37 @@ class VideoRelease(ContentModel):
     master: VideoFileCid
     alt_formats: AltVideoFormatList = None
 
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'id': '6546a5cd1a209851b7136441', 
+                    'cid': '0_ZK5DEHah2hx7E-idgEcgGz4UX4_E5ZL8T6UcdSxvXc207.json', 
+                    'user_cid': str(example_cid(User)),
+                    'master': str(example_cid(VideoFile)),
+                    'alt_formats': [str(example_cid(VideoFile))]
+                }
+            ]
+        }
+    }
+
 
 class VideoReleaseCreator(ModelCreator):
     MODEL: ClassVar[Type[VideoRelease]] = VideoRelease
 
     master: VideoFileCid
     alt_formats: AltVideoFormatList = None
+
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'master': str(example_cid(VideoFile)),
+                    'alt_formats': [str(example_cid(VideoFile))]
+                }
+            ]
+        }
+    }
 
 #
 # text files
