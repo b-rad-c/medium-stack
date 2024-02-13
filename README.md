@@ -68,6 +68,7 @@
 + 🟡 file updates
     + 🟢 delete files
     + 🔴 file delete unittests
+    + 🔴 file/upload background process unittests
     + 🔴 download file methods in sdk/client
     + 🔴 s3 support
  

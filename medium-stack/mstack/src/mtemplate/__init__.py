@@ -164,8 +164,8 @@ class MTemplateProject:
         if not 'env_var_prefix' in self.jinja_env.globals:
             raise KeyError(f'env_var_prefix must be defined in global_template_variables in mtemplate config file')
         
-        if not 'sdk_class_name' in self.jinja_env.globals:
-            raise KeyError(f'sdk_class_name must be defined in global_template_variables in mtemplate config file')
+        if not 'ops_class_name' in self.jinja_env.globals:
+            raise KeyError(f'ops_class_name must be defined in global_template_variables in mtemplate config file')
         
         if not 'client_class_name' in self.jinja_env.globals:
             raise KeyError(f'client_class_name must be defined in global_template_variables in mtemplate config file')

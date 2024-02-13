@@ -1,19 +1,19 @@
 import os
 
-from mcore.sdk import MCore
+from mcore.ops import MCoreOps
 from mcore.models import *
 from mart.models import *
 
 __all__ = [
     '{{ env_var_prefix }}_SDK_DEFAULT_LIST_OFFSET',
     '{{ env_var_prefix }}_SDK_DEFAULT_LIST_SIZE',
-    '{{ sdk_class_name }}'
+    '{{ ops_class_name }}'
 ]
 
 {{ env_var_prefix }}_SDK_DEFAULT_LIST_OFFSET = os.environ.get('{{ env_var_prefix }}_SDK_DEFAULT_LIST_OFFSET', 0)
 {{ env_var_prefix }}_SDK_DEFAULT_LIST_SIZE = os.environ.get('{{ env_var_prefix }}_SDK_DEFAULT_LIST_SIZE', 50)
 
-class {{ sdk_class_name }}(MCore):
+class {{ ops_class_name }}(MCoreOps):
 {% for model in models %}
     # {{ model.lower_case }}
 

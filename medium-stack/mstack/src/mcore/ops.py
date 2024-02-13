@@ -28,13 +28,13 @@ while keeping the code application logic simple.
 __all__ = [
     'SDK_DEFAULT_OFFSET',
     'SDK_DEFAULT_SIZE',
-    'MCore'
+    'MCoreOps'
 ]
 
 SDK_DEFAULT_OFFSET = int(os.environ.get('MSTACK_SDK_DEFAULT_LIST_OFFSET', 0))
 SDK_DEFAULT_SIZE = int(os.environ.get('MSTACK_SDK_DEFAULT_LIST_SIZE', 50))
 
-class MCore:
+class MCoreOps:
 
     def __init__(self) -> None:
         self.db = MongoDB.from_cache()
@@ -50,13 +50,13 @@ class MCore:
     def user_read(self, id:UserId=None, cid: UserCid=None) -> User:
         return self.db.read(User, id=id, cid=cid)
     
-    def user_delete(self, user: User) -> None:
-        delete_user(user)
+    def user_delete(self, logged_in_user: User) -> None:
+        delete_user(logged_in_user)
 
     # profiles #
         
-    def profile_create(self, creator:ProfileCreator, user_cid:UserCid) -> Profile:
-        profile = creator.create_model(user_cid=user_cid)
+    def profile_create(self, creator:ProfileCreator, logged_in_user:User) -> Profile:
+        profile = creator.create_model(user_cid=logged_in_user.cid)
         self.db.create(profile)
         return profile
     
@@ -71,8 +71,8 @@ class MCore:
 
     # file uploader #
 
-    def file_uploader_create(self, creator:FileUploaderCreator, user_cid:UserCid) -> FileUploader:
-        uploader:FileUploader = creator.create_model(user_cid=user_cid)
+    def file_uploader_create(self, creator:FileUploaderCreator, logged_in_user:User) -> FileUploader:
+        uploader:FileUploader = creator.create_model(user_cid=logged_in_user.cid)
         self.db.create(uploader)
         return uploader
     
@@ -184,11 +184,14 @@ class MCore:
     def image_file_read(self, id:ImageFileId, cid:ImageFileCid) -> ImageFile:
         return self.db.read(ImageFile, id=id, cid=cid)
     
-    def image_file_delete(self, id:ImageFileId, cid:ImageFileCid) -> None:
+    def image_file_delete(self, id:ImageFileId, cid:ImageFileCid, logged_in_user:User) -> None:
 
         # see note on file deletions at the top of this file
 
         image_file = self.image_file_read(id, cid)
+
+        if image_file.user_cid != logged_in_user.cid:
+            raise MStackUserError(f'User {logged_in_user.cid} does not have permission to delete image file {image_file.cid}')
 
         logging.info(f'deleting image file {image_file.cid}')
 
@@ -203,8 +206,16 @@ class MCore:
 
         logging.info(f'deleted image file {image_file.cid}')
     
-    def image_release_create(self, creator:ImageReleaseCreator, user_cid:UserCid) -> ImageRelease:
-        image_release = creator.create_model(user_cid=user_cid)
+    def image_release_create(self, creator:ImageReleaseCreator, logged_in_user:User) -> ImageRelease:
+
+        master = self.image_file_read(cid=creator.master)
+        alt_formats = [self.image_file_read(cid=cid) for cid in creator.alt_formats]
+
+        for image_file in [master] + alt_formats:
+            if image_file.user_cid != logged_in_user.cid:
+                raise MStackUserError(f'User {logged_in_user.cid} does not have permission to create image release with file {image_file.cid}')
+
+        image_release = creator.create_model(user_cid=logged_in_user.cid)
         self.db.create(image_release)
         return image_release
     
@@ -214,11 +225,14 @@ class MCore:
     def image_release_read(self, id:ImageReleaseId, cid:ImageReleaseCid) -> ImageRelease:
         return self.db.read(ImageRelease, id=id, cid=cid)
     
-    def image_release_delete(self, id:ImageReleaseId, cid:ImageReleaseCid, delete_files:bool = False) -> None:
+    def image_release_delete(self, id:ImageReleaseId, cid:ImageReleaseCid, logged_in_user:User, delete_files:bool = False) -> None:
 
         # see note on file deletions at the top of this file
 
         image_release = self.image_release_read(id, cid)
+
+        if image_release.user_cid != logged_in_user.cid:
+            raise MStackUserError(f'User {logged_in_user.cid} does not have permission to delete image release {image_release.cid}')
 
         logging.info(f'deleting image release {image_release.cid} delete_files={delete_files}')
         
@@ -262,11 +276,14 @@ class MCore:
     def audio_file_read(self, id:AudioFileId, cid:AudioFileCid) -> AudioFile:
         return self.db.read(AudioFile, id=id, cid=cid)
     
-    def audio_file_delete(self, id:AudioFileId, cid:AudioFileCid) -> None:
+    def audio_file_delete(self, id:AudioFileId, cid:AudioFileCid, logged_in_user:User) -> None:
 
         # see note on file deletions at the top of this file
 
         audio_file = self.audio_file_read(id, cid)
+
+        if audio_file.user_cid != logged_in_user.cid:
+            raise MStackUserError(f'User {logged_in_user.cid} does not have permission to delete audio file {audio_file.cid}')
 
         logging.info(f'deleting audio file {audio_file.cid}')
 
@@ -281,8 +298,16 @@ class MCore:
 
         logging.info(f'deleted audio file {audio_file.cid}')
     
-    def audio_release_create(self, creator:AudioReleaseCreator, user_cid:UserCid) -> AudioRelease:
-        audio_release = creator.create_model(user_cid=user_cid)
+    def audio_release_create(self, creator:AudioReleaseCreator, logged_in_user:User) -> AudioRelease:
+
+        master = self.audio_file_read(cid=creator.master)
+        alt_formats = [self.audio_file_read(cid=cid) for cid in creator.alt_formats]
+
+        for audio_file in [master] + alt_formats:
+            if audio_file.user_cid != logged_in_user.cid:
+                raise MStackUserError(f'User {logged_in_user.cid} does not have permission to create audio release with file {audio_file.cid}')
+
+        audio_release = creator.create_model(user_cid=logged_in_user.cid)
         self.db.create(audio_release)
         return audio_release
     
@@ -292,46 +317,48 @@ class MCore:
     def audio_release_read(self, id:AudioReleaseId, cid:AudioReleaseCid) -> AudioRelease:
         return self.db.read(AudioRelease, id=id, cid=cid)
     
-    def audio_release_delete(self, id:AudioReleaseId, cid:AudioReleaseCid, delete_files:bool = False) -> None:
+    def audio_release_delete(self, id:AudioReleaseId, cid:AudioReleaseCid, logged_in_user:User, delete_files:bool = False) -> None:
             
-            # see note on file deletions at the top of this file
-    
-            audio_release = self.audio_release_read(id, cid)
+        # see note on file deletions at the top of this file
 
-            logging.info(f'deleting audio release {audio_release.cid} delete_files={delete_files}')
+        audio_release = self.audio_release_read(id, cid)
+
+        if audio_release.user_cid != logged_in_user.cid:
+            raise MStackUserError(f'User {logged_in_user.cid} does not have permission to delete audio release {audio_release.cid}')
+
+        logging.info(f'deleting audio release {audio_release.cid} delete_files={delete_files}')
+        
+        if delete_files:
             
-            if delete_files:
-                
-                # get files from db #
-    
-                audio_files:List[AudioFile] = [self.audio_file_read(cid=cid) for cid in audio_release.alt_formats]
-                audio_files.append(self.audio_file_read(cid=audio_release.master))
-    
-                # delete files and release in transaction #
-    
-                audio_file_collection = self.db.get_collection(AudioFile)
-                audio_release_collection = self.db.get_collection(AudioRelease)
-    
-                with self.db.start_session() as session:
-                    with session.start_transaction():
-                        audio_file_collection.delete_many({'cid': {'$in': [audio.cid for audio in audio_files]}}, session=session)
-                        audio_release_collection.delete_one({'cid': audio_release.cid}, session=session)
-    
-                # delete files from disk #
-                        
-                for audio_file in audio_files:
-                    try:
-                        audio_file.local_path.unlink()
-                    except FileNotFoundError:
-                        pass
-                    except Exception as e:
-                        logging.warning(f'error deleting audio file cid={audio_file.cid} path={audio_file.local_path.as_posix()}: {e}', exc_info=True)
-    
-            else:
-                self.db.delete(AudioRelease, cid=audio_release.cid)
+            # get files from db #
 
-            logging.info(f'deleted audio release {audio_release.cid} delete_files={delete_files}')
+            audio_files:List[AudioFile] = [self.audio_file_read(cid=cid) for cid in audio_release.alt_formats]
+            audio_files.append(self.audio_file_read(cid=audio_release.master))
 
+            # delete files and release in transaction #
+
+            audio_file_collection = self.db.get_collection(AudioFile)
+            audio_release_collection = self.db.get_collection(AudioRelease)
+
+            with self.db.start_session() as session:
+                with session.start_transaction():
+                    audio_file_collection.delete_many({'cid': {'$in': [audio.cid for audio in audio_files]}}, session=session)
+                    audio_release_collection.delete_one({'cid': audio_release.cid}, session=session)
+
+            # delete files from disk #
+                    
+            for audio_file in audio_files:
+                try:
+                    audio_file.local_path.unlink()
+                except FileNotFoundError:
+                    pass
+                except Exception as e:
+                    logging.warning(f'error deleting audio file cid={audio_file.cid} path={audio_file.local_path.as_posix()}: {e}', exc_info=True)
+
+        else:
+            self.db.delete(AudioRelease, cid=audio_release.cid)
+
+        logging.info(f'deleted audio release {audio_release.cid} delete_files={delete_files}')
 
     # video #
 
@@ -341,27 +368,30 @@ class MCore:
     def video_file_read(self, id:VideoFileId, cid:VideoFileCid) -> VideoFile:
         return self.db.read(VideoFile, id=id, cid=cid)
     
-    def video_file_delete(self, id:VideoFileId, cid:VideoFileCid) -> None:
+    def video_file_delete(self, id:VideoFileId, cid:VideoFileCid, logged_in_user:User) -> None:
             
-            # see note on file deletions at the top of this file
-    
-            video_file = self.video_file_read(id, cid)
+        # see note on file deletions at the top of this file
 
-            logging.info(f'deleting video file {video_file.cid}')
+        video_file = self.video_file_read(id, cid)
 
-            self.db.delete(VideoFile, id=id, cid=cid)
-    
-            try:
-                video_file.local_path.unlink()
-            except FileNotFoundError:
-                pass
-            except Exception as e:
-                logging.warning(f'error deleting video file cid={video_file.cid} path={video_file.local_path.as_posix()}: {e}', exc_info=True)
+        if video_file.user_cid != logged_in_user.cid:
+            raise MStackUserError(f'User {logged_in_user.cid} does not have permission to delete video file {video_file.cid}')
+        
+        logging.info(f'deleting video file {video_file.cid}')
 
-            logging.info(f'deleted video file {video_file.cid}')
+        self.db.delete(VideoFile, id=id, cid=cid)
 
-    def video_release_create(self, creator:VideoReleaseCreator, user_cid:UserCid) -> VideoRelease:
-        video_release = creator.create_model(user_cid=user_cid)
+        try:
+            video_file.local_path.unlink()
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            logging.warning(f'error deleting video file cid={video_file.cid} path={video_file.local_path.as_posix()}: {e}', exc_info=True)
+
+        logging.info(f'deleted video file {video_file.cid}')
+
+    def video_release_create(self, creator:VideoReleaseCreator, logged_in_user:User) -> VideoRelease:
+        video_release = creator.create_model(user_cid=logged_in_user.cid)
         self.db.create(video_release)
         return video_release
     
@@ -371,42 +401,45 @@ class MCore:
     def video_release_read(self, id:VideoReleaseId, cid:VideoReleaseCid) -> VideoRelease:
         return self.db.read(VideoRelease, id=id, cid=cid)
 
-    def video_release_delete(self, id:VideoReleaseId, cid:VideoReleaseCid, delete_files:bool = False) -> None:
+    def video_release_delete(self, id:VideoReleaseId, cid:VideoReleaseCid, logged_in_user:User, delete_files:bool = False) -> None:
             
-            # see note on file deletions at the top of this file
-    
-            video_release = self.video_release_read(id, cid)
+        # see note on file deletions at the top of this file
 
-            logging.info(f'deleting video release {video_release.cid} delete_files={delete_files}')
+        video_release = self.video_release_read(id, cid)
+
+        if video_release.user_cid != logged_in_user.cid:
+            raise MStackUserError(f'User {logged_in_user.cid} does not have permission to delete video release {video_release.cid}')
+
+        logging.info(f'deleting video release {video_release.cid} delete_files={delete_files}')
+        
+        if delete_files:
             
-            if delete_files:
-                
-                # get files from db #
-    
-                video_files:List[VideoFile] = [self.video_file_read(cid=cid) for cid in video_release.alt_formats]
-                video_files.append(self.video_file_read(cid=video_release.master))
-    
-                # delete files and release in transaction #
-    
-                video_file_collection = self.db.get_collection(VideoFile)
-                video_release_collection = self.db.get_collection(VideoRelease)
-    
-                with self.db.start_session() as session:
-                    with session.start_transaction():
-                        video_file_collection.delete_many({'cid': {'$in': [video.cid for video in video_files]}}, session=session)
-                        video_release_collection.delete_one({'cid': video_release.cid}, session=session)
-    
-                # delete files from disk #
-                        
-                for video_file in video_files:
-                    try:
-                        video_file.local_path.unlink()
-                    except FileNotFoundError:
-                        pass
-                    except Exception as e:
-                        logging.warning(f'error deleting video file cid={video_file.cid} path={video_file.local_path.as_posix()}: {e}', exc_info=True)
-    
-            else:
-                self.db.delete(VideoRelease, cid=video_release.cid)
+            # get files from db #
 
-            logging.info(f'deleted video release {video_release.cid} delete_files={delete_files}')
+            video_files:List[VideoFile] = [self.video_file_read(cid=cid) for cid in video_release.alt_formats]
+            video_files.append(self.video_file_read(cid=video_release.master))
+
+            # delete files and release in transaction #
+
+            video_file_collection = self.db.get_collection(VideoFile)
+            video_release_collection = self.db.get_collection(VideoRelease)
+
+            with self.db.start_session() as session:
+                with session.start_transaction():
+                    video_file_collection.delete_many({'cid': {'$in': [video.cid for video in video_files]}}, session=session)
+                    video_release_collection.delete_one({'cid': video_release.cid}, session=session)
+
+            # delete files from disk #
+                    
+            for video_file in video_files:
+                try:
+                    video_file.local_path.unlink()
+                except FileNotFoundError:
+                    pass
+                except Exception as e:
+                    logging.warning(f'error deleting video file cid={video_file.cid} path={video_file.local_path.as_posix()}: {e}', exc_info=True)
+
+        else:
+            self.db.delete(VideoRelease, cid=video_release.cid)
+
+        logging.info(f'deleted video release {video_release.cid} delete_files={delete_files}')

@@ -74,7 +74,6 @@ def test_unique_list():
     with pytest.raises(ValidationError):
         TestModel(names=['alice', 'bob', 'alice'])
 
-
 def test_tag_list():
 
     class TestModel(BaseModel):
