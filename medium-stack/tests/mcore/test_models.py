@@ -149,6 +149,7 @@ def test_video_release(video_release_cid):
     _test_model_dump(video_release, video_release_cid, VideoRelease)
     _test_model_json_str(video_release, video_release_cid, VideoRelease)
 
+
 def test_text_file():
     pass
 

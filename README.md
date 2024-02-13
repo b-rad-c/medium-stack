@@ -17,19 +17,19 @@
 
 + 🟡 implement profiles
     + 🟢 router
-    + 🟢 sdk
+    + 🟢 ops
     + 🟢 client
-    + 🔴 unittests
+    + 🟡 unittests
 
-+ 🟡 build out sdk
-    + 🟢 file uploader - move logic from router to sdk
++ 🟡 build out ops
+    + 🟢 file uploader - move logic from router to ops
     + 🟢 profiles
     + 🟢 each type of file
-    + 🟢 update router to use sdk
-    + 🔴 sdk unittests
+    + 🟢 update router to use ops
+    + 🔴 ops unittests
 
-+ 🟡 update client to have matching sdk api
-    + 🔴 update client unittests
++ 🟡 update client to have matching ops api
+    + 🟡 update client unittests
 
 + 🟢 update unittests for users
     + 🟢 unique emails for users
@@ -69,15 +69,15 @@
     + 🟢 delete files
     + 🔴 file delete unittests
     + 🔴 file/upload background process unittests
-    + 🔴 download file methods in sdk/client
+    + 🔴 download file methods in ops/client
     + 🔴 s3 support
  
 + 🟡 code templating
     + 🔴 db wrappers
-    + 🟡 sdk -> wrap calls like delete because they need to be different for users/files/models with just data
+    + 🟡 ops -> wrap calls like delete because they need to be different for users/files/models with just data
     + 🟡 client
-    + 🔴 api routes -> uses above sdk
-    + 🔴 cli -> uses above sdk
+    + 🔴 api routes -> uses above ops
+    + 🔴 cli -> uses above ops
     + 🔴 model_config example(s) -> use lorem ipsom gen and hardcode correct cid
     + 🔴 generator function
     + 🔴 unittests              -> retain hard coded CIDs for data+files for testing CID type
@@ -97,7 +97,7 @@
 
         ** generated **
             
-            mart/sdk/
+            mart/ops/
                 still_image_types.py            ** copied from original
                 still_image_model.py            ** copied from original
                 still_image_template.py         ** generated template code
@@ -118,7 +118,7 @@
 
                 still_image.py                  ** a generated module that creates aliases enabling the following imports to work
 
-                    from mart.sdk import *
+                    from mart.ops import *
 
                     still_image
                     still_image.model

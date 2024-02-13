@@ -266,7 +266,7 @@ class UserCreator(ModelCreator):
     
 class Profile(ContentModel):
     SNAKE_CASE: ClassVar[str] = 'profile'
-    DB_NAME: ClassVar[str] = True
+    DB_NAME: ClassVar[str] = 'profiles'
     ENDPOINT: ClassVar[str] = True
 
     id: ProfileId = Field(**db_id_kwargs)
