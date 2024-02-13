@@ -65,8 +65,9 @@
     + 🟢 client
     + 🟢 update unittests
 
-+ 🔴 file updates
-    + 🔴 delete files
++ 🟡 file updates
+    + 🟢 delete files
+    + 🔴 file delete unittests
     + 🔴 download file methods in sdk/client
     + 🔴 s3 support
  

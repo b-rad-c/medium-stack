@@ -203,6 +203,10 @@ class MStackClient:
         url = self._model_id_type_url('core/image-files', id, cid)
         data = self._get(url)
         return ImageFile(**data)
+    
+    def image_file_delete(self, id:str = None, cid:str = None) -> None:
+        url = self._model_id_type_url('core/image-files', id, cid)
+        self._delete(url)
 
     def image_release_create(self, image_release_creator: ImageReleaseCreator) -> ImageRelease:
         data = self._post('core/image-release', json=image_release_creator.model_dump())
@@ -217,6 +221,10 @@ class MStackClient:
         data = self._get(url)
         return ImageRelease(**data)
     
+    def image_release_delete(self, id:str = None, cid:str = None) -> None:
+        url = self._model_id_type_url('core/image-release', id, cid)
+        self._delete(url)
+
     # audio #
 
     def audio_file_list(self, offset:int=0, size:int=50) -> List[AudioFile]:
@@ -228,6 +236,10 @@ class MStackClient:
         data = self._get(url)
         return AudioFile(**data)
     
+    def audio_file_delete(self, id:str = None, cid:str = None) -> None:
+        url = self._model_id_type_url('core/audio-files', id, cid)
+        self._delete(url)
+
     def audio_release_create(self, audio_release_creator: AudioReleaseCreator) -> AudioRelease:
         data = self._post('core/audio-release', json=audio_release_creator.model_dump())
         return AudioRelease(**data)
@@ -241,6 +253,10 @@ class MStackClient:
         data = self._get(url)
         return AudioRelease(**data)
 
+    def audio_release_delete(self, id:str = None, cid:str = None) -> None:
+        url = self._model_id_type_url('core/audio-release', id, cid)
+        self._delete(url)
+
     # video #
 
     def video_file_list(self, offset:int=0, size:int=50) -> List[VideoFile]:
@@ -252,6 +268,10 @@ class MStackClient:
         data = self._get(url)
         return VideoFile(**data)
     
+    def video_file_delete(self, id:str = None, cid:str = None) -> None:
+        url = self._model_id_type_url('core/video-files', id, cid)
+        self._delete(url)
+
     def video_release_create(self, video_release_creator: VideoReleaseCreator) -> VideoRelease:
         data = self._post('core/video-release', json=video_release_creator.model_dump())
         return VideoRelease(**data)
@@ -264,3 +284,7 @@ class MStackClient:
         url = self._model_id_type_url('core/video-release', id, cid)
         data = self._get(url)
         return VideoRelease(**data)
+
+    def video_release_delete(self, id:str = None, cid:str = None) -> None:
+        url = self._model_id_type_url('core/video-release', id, cid)
+        self._delete(url)

@@ -1,9 +1,12 @@
 import os
 import sys
 import logging
+import time
 
 from hashlib import md5
 from socket import gethostname
+from pathlib import Path
+from mimetypes import guess_type
 
 from mcore.models import (
     FileUploader,
@@ -11,10 +14,11 @@ from mcore.models import (
     FileUploadStatus,
     ImageFile,
     AudioFile,
-    VideoFile
+    VideoFile,
+    MSERVE_LOCAL_STORAGE_DIRECTORY
 )
 from mcore.db import MongoDB
-from mcore.errors import MStackFilePayloadError
+from mcore.errors import MStackFilePayloadError, NotFoundError
 from mcore.util import DaemonController, utc_now
 
 
@@ -150,7 +154,7 @@ def timeout_upload(uploader:FileUploader):
     db.update(uploader)
 
 
-def cleanup_process():
+def clean_uploads():
     """
     a scheduled process that:
         * looks for uploads with status (error|complete) and modifed date > MSERVE_UPLOAD_CLEANUP_THRESHOLD
@@ -158,12 +162,14 @@ def cleanup_process():
         * looks for uploads with status (uploading|processing|pending) and modifed data > TIMEOUT_THRESHOLD 
             -> sets status to error with timeout message and deletes file but keeps db entry
     """
-    
-    logging.info('begin cleanup process')
+    start = time.time()
+    logging.info('begin clean uploads process')
 
     #
     # clean up finished and errored uploads
     #
+
+    logging.info('cleaning finished and errored uploads')
 
     try:
         query = {
@@ -181,6 +187,8 @@ def cleanup_process():
     #
     # mark stale uploads as timeout out
     #
+    
+    logging.info(f'timing out uploads')
         
     try:
         query = {
@@ -188,30 +196,75 @@ def cleanup_process():
             'modified': {'$lt': utc_now() - MSERVE_UPLOAD_TIMEOUT_THRESHOLD}
         }
         for uploader in db.find(FileUploader, filter=query):
-            uploader.error = 'upload timeout'
-            uploader.status = FileUploadStatus.error
             try:
-                uploader.local_storage_path().unlink()
-            except FileNotFoundError:
-                pass
-            db.update(uploader)
+                timeout_upload(uploader)
+            except Exception as e:
+                logging.error(f'error timing out file: {e}', exc_info=True)
 
     except Exception as e:
         logging.error(f'error timing out uploads: {e}', exc_info=True)
-        
-    logging.info('exiting cleanup process')
+
+    elapsed = round(time.time() - start, 1)
+    logging.info(f'end clean uploads process - elapsed: {elapsed}')
+
+
+def clean_files():
+
+    #
+    # clean up dangling files
+    #
+
+    start = time.time()
+    logging.info('begin clean files process')
+
+    storage_dir = Path(MSERVE_LOCAL_STORAGE_DIRECTORY)
+
+    for path in storage_dir.iterdir():
+        if path.is_file():
+            file_type = guess_type(path.name)[0]
+
+            if file_type is None or file_type.startswith('image'):
+                try:
+                    db.find_one(ImageFile, filter={'payload_cid': str(path.name)})
+                    continue
+                except NotFoundError:
+                    pass
+            
+            if file_type is None or file_type.startswith('audio'):
+                try:
+                    db.find_one(AudioFile, filter={'payload_cid': str(path.name)})
+                    continue
+                except NotFoundError:
+                    pass
+
+            if file_type is None or file_type.startswith('video'):
+                try:
+                    db.find_one(VideoFile, filter={'payload_cid': str(path.name)})
+                    continue
+                except NotFoundError:
+                    pass
+
+            try:
+                path.unlink()
+            except Exception as e:
+                logging.error(f'error cleaning up dangling file: {path} - {e}', exc_info=True)
+    
+    elapsed = round(time.time() - start, 1)
+    logging.info(f'end clean files process - elapsed: {elapsed}')
 
 
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('command', choices=['ingest', 'cleanup'])
+    parser.add_argument('command', choices=['ingest', 'clean-uploads', 'clean-files'])
     args = parser.parse_args()
 
     match args.command:
         case 'ingest':
             ingest_daemon()
-        case 'cleanup':
-            cleanup_process()
+        case 'clean-uploads':
+            clean_uploads()
+        case 'clean-files':
+            clean_files()
         case _:
             raise ValueError(f'invalid command: {args.command}')

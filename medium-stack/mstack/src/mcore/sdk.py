@@ -1,12 +1,28 @@
 import os
+import logging
 
-from typing import Callable, BinaryIO
+from typing import Callable, BinaryIO, List
 from pathlib import Path
 
 from mcore.db import MongoDB
 from mcore.errors import MStackUserError
 from mcore.auth import create_new_user, delete_user, delete_profile
 from mcore.models import *
+
+"""
+Note on file deletions:
+
+Delete processes for files and releases delete the db entry first, then the file on disk.
+
+If the db delete succeeds but the file delete fails, the errors will be logged as a warning but the method will still return success.
+It will leave dangling file(s) which will be cleaned up by a background process. 
+
+In the case of releases, if files are requested to be deleted, all of the db entries will be deleted in a transaction and then the 
+files will be deleted.
+
+Doing it this way allows us to maintain a consistent user experience while also ensuring that we don't have dangling files in the system
+while keeping the code application logic simple.
+"""
 
 
 __all__ = [
@@ -168,6 +184,25 @@ class MCore:
     def image_file_read(self, id:ImageFileId, cid:ImageFileCid) -> ImageFile:
         return self.db.read(ImageFile, id=id, cid=cid)
     
+    def image_file_delete(self, id:ImageFileId, cid:ImageFileCid) -> None:
+
+        # see note on file deletions at the top of this file
+
+        image_file = self.image_file_read(id, cid)
+
+        logging.info(f'deleting image file {image_file.cid}')
+
+        self.db.delete(ImageFile, id=id, cid=cid)
+
+        try:
+            image_file.local_path.unlink()
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            logging.warning(f'error deleting image file cid={image_file.cid} path={image_file.local_path.as_posix()}: {e}', exc_info=True)
+
+        logging.info(f'deleted image file {image_file.cid}')
+    
     def image_release_create(self, creator:ImageReleaseCreator, user_cid:UserCid) -> ImageRelease:
         image_release = creator.create_model(user_cid=user_cid)
         self.db.create(image_release)
@@ -179,6 +214,46 @@ class MCore:
     def image_release_read(self, id:ImageReleaseId, cid:ImageReleaseCid) -> ImageRelease:
         return self.db.read(ImageRelease, id=id, cid=cid)
     
+    def image_release_delete(self, id:ImageReleaseId, cid:ImageReleaseCid, delete_files:bool = False) -> None:
+
+        # see note on file deletions at the top of this file
+
+        image_release = self.image_release_read(id, cid)
+
+        logging.info(f'deleting image release {image_release.cid} delete_files={delete_files}')
+        
+        if delete_files:
+            
+            # get files from db #
+
+            image_files:List[ImageFile] = [self.image_file_read(cid=cid) for cid in image_release.alt_formats]
+            image_files.append(self.image_file_read(cid=image_release.master))
+
+            # delete files and release in transaction #
+
+            img_file_collection = self.db.get_collection(ImageFile)
+            img_release_collection = self.db.get_collection(ImageRelease)
+
+            with self.db.start_session() as session:
+                with session.start_transaction():
+                    img_file_collection.delete_many({'cid': {'$in': [img.cid for img in image_files]}}, session=session)
+                    img_release_collection.delete_one({'cid': image_release.cid}, session=session)
+
+            # delete files from disk #
+                    
+            for img_file in image_files:
+                try:
+                    img_file.local_path.unlink()
+                except FileNotFoundError:
+                    pass
+                except Exception as e:
+                    logging.warning(f'error deleting image file cid={img_file.cid} path={img_file.local_path.as_posix()}: {e}', exc_info=True)
+
+        else:
+            self.db.delete(ImageRelease, cid=image_release.cid)
+
+        logging.info(f'deleted image release {image_release.cid} delete_files={delete_files}')
+    
     # audio #
 
     def audio_file_list(self, offset:int=SDK_DEFAULT_OFFSET, size:int=SDK_DEFAULT_SIZE) -> list[AudioFile]:
@@ -186,6 +261,25 @@ class MCore:
     
     def audio_file_read(self, id:AudioFileId, cid:AudioFileCid) -> AudioFile:
         return self.db.read(AudioFile, id=id, cid=cid)
+    
+    def audio_file_delete(self, id:AudioFileId, cid:AudioFileCid) -> None:
+
+        # see note on file deletions at the top of this file
+
+        audio_file = self.audio_file_read(id, cid)
+
+        logging.info(f'deleting audio file {audio_file.cid}')
+
+        self.db.delete(AudioFile, id=id, cid=cid)
+
+        try:
+            audio_file.local_path.unlink()
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            logging.warning(f'error deleting audio file cid={audio_file.cid} path={audio_file.local_path.as_posix()}: {e}', exc_info=True)
+
+        logging.info(f'deleted audio file {audio_file.cid}')
     
     def audio_release_create(self, creator:AudioReleaseCreator, user_cid:UserCid) -> AudioRelease:
         audio_release = creator.create_model(user_cid=user_cid)
@@ -198,6 +292,47 @@ class MCore:
     def audio_release_read(self, id:AudioReleaseId, cid:AudioReleaseCid) -> AudioRelease:
         return self.db.read(AudioRelease, id=id, cid=cid)
     
+    def audio_release_delete(self, id:AudioReleaseId, cid:AudioReleaseCid, delete_files:bool = False) -> None:
+            
+            # see note on file deletions at the top of this file
+    
+            audio_release = self.audio_release_read(id, cid)
+
+            logging.info(f'deleting audio release {audio_release.cid} delete_files={delete_files}')
+            
+            if delete_files:
+                
+                # get files from db #
+    
+                audio_files:List[AudioFile] = [self.audio_file_read(cid=cid) for cid in audio_release.alt_formats]
+                audio_files.append(self.audio_file_read(cid=audio_release.master))
+    
+                # delete files and release in transaction #
+    
+                audio_file_collection = self.db.get_collection(AudioFile)
+                audio_release_collection = self.db.get_collection(AudioRelease)
+    
+                with self.db.start_session() as session:
+                    with session.start_transaction():
+                        audio_file_collection.delete_many({'cid': {'$in': [audio.cid for audio in audio_files]}}, session=session)
+                        audio_release_collection.delete_one({'cid': audio_release.cid}, session=session)
+    
+                # delete files from disk #
+                        
+                for audio_file in audio_files:
+                    try:
+                        audio_file.local_path.unlink()
+                    except FileNotFoundError:
+                        pass
+                    except Exception as e:
+                        logging.warning(f'error deleting audio file cid={audio_file.cid} path={audio_file.local_path.as_posix()}: {e}', exc_info=True)
+    
+            else:
+                self.db.delete(AudioRelease, cid=audio_release.cid)
+
+            logging.info(f'deleted audio release {audio_release.cid} delete_files={delete_files}')
+
+
     # video #
 
     def video_file_list(self, offset:int=SDK_DEFAULT_OFFSET, size:int=SDK_DEFAULT_SIZE) -> list[VideoFile]:
@@ -206,6 +341,25 @@ class MCore:
     def video_file_read(self, id:VideoFileId, cid:VideoFileCid) -> VideoFile:
         return self.db.read(VideoFile, id=id, cid=cid)
     
+    def video_file_delete(self, id:VideoFileId, cid:VideoFileCid) -> None:
+            
+            # see note on file deletions at the top of this file
+    
+            video_file = self.video_file_read(id, cid)
+
+            logging.info(f'deleting video file {video_file.cid}')
+
+            self.db.delete(VideoFile, id=id, cid=cid)
+    
+            try:
+                video_file.local_path.unlink()
+            except FileNotFoundError:
+                pass
+            except Exception as e:
+                logging.warning(f'error deleting video file cid={video_file.cid} path={video_file.local_path.as_posix()}: {e}', exc_info=True)
+
+            logging.info(f'deleted video file {video_file.cid}')
+
     def video_release_create(self, creator:VideoReleaseCreator, user_cid:UserCid) -> VideoRelease:
         video_release = creator.create_model(user_cid=user_cid)
         self.db.create(video_release)
@@ -216,3 +370,43 @@ class MCore:
     
     def video_release_read(self, id:VideoReleaseId, cid:VideoReleaseCid) -> VideoRelease:
         return self.db.read(VideoRelease, id=id, cid=cid)
+
+    def video_release_delete(self, id:VideoReleaseId, cid:VideoReleaseCid, delete_files:bool = False) -> None:
+            
+            # see note on file deletions at the top of this file
+    
+            video_release = self.video_release_read(id, cid)
+
+            logging.info(f'deleting video release {video_release.cid} delete_files={delete_files}')
+            
+            if delete_files:
+                
+                # get files from db #
+    
+                video_files:List[VideoFile] = [self.video_file_read(cid=cid) for cid in video_release.alt_formats]
+                video_files.append(self.video_file_read(cid=video_release.master))
+    
+                # delete files and release in transaction #
+    
+                video_file_collection = self.db.get_collection(VideoFile)
+                video_release_collection = self.db.get_collection(VideoRelease)
+    
+                with self.db.start_session() as session:
+                    with session.start_transaction():
+                        video_file_collection.delete_many({'cid': {'$in': [video.cid for video in video_files]}}, session=session)
+                        video_release_collection.delete_one({'cid': video_release.cid}, session=session)
+    
+                # delete files from disk #
+                        
+                for video_file in video_files:
+                    try:
+                        video_file.local_path.unlink()
+                    except FileNotFoundError:
+                        pass
+                    except Exception as e:
+                        logging.warning(f'error deleting video file cid={video_file.cid} path={video_file.local_path.as_posix()}: {e}', exc_info=True)
+    
+            else:
+                self.db.delete(VideoRelease, cid=video_release.cid)
+
+            logging.info(f'deleted video release {video_release.cid} delete_files={delete_files}')
