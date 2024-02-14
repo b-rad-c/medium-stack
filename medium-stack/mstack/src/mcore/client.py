@@ -34,6 +34,8 @@ class MStackClient:
         self.session = requests.Session()
         self.url_base = join(MSTACK_API_HOST, MSTACK_API_PREFIX)
         self.response = None
+        self.username:str | None = None
+        self.user:User | None = None
 
     def _call(self, method:str, endpoint:str, *args, **kwargs) -> dict:
         url = join(self.url_base, endpoint)
@@ -85,11 +87,17 @@ class MStackClient:
         return IndexResponse(**self._get(''))
 
     def login(self, username:str, password:str) -> str:
+        self.username = username
         data = self._post('core/auth/login', data={'username': username, 'password': password})
         self.session.headers.update({'Authorization': f'Bearer {data["access_token"]}'})
 
 
     # users #
+        
+    def user_me(self) -> User:
+        data = self._get('core/users/me')
+        self.user = User(**data)
+        return self.user
 
     def user_create(self, user_creator: UserCreator) -> User:
         data = self._post('core/users', json=user_creator.model_dump())

@@ -1,16 +1,20 @@
-from ..conftest import reset_collection, _check_client_response_id
+from ..conftest import reset_collection, _check_client_response_id, _test_client_crud_ops
 
 import time
 
 from typing import List
+from pathlib import Path
 
 from mcore.types import ContentId
+from mcore.db import MongoDB
 from mcore.client import *
 from mcore.models import *
 from mcore.errors import NotFoundError
 from mserve import IndexResponse
 
 import pytest
+
+db = MongoDB.from_cache()
 
 #
 # main + core
@@ -21,10 +25,13 @@ def test_main(client):
     assert client.response.status_code == 200
     assert isinstance(data, IndexResponse)
 
-def test_core_users(client:MStackClient):
+def test_users(client:MStackClient):
     pass
 
-def test_core_file_uploader(client:MStackClient):
+def test_profiles(client:MStackClient):
+    pass
+
+def test_file_uploader(client:MStackClient):
 
     # init #
 
@@ -89,7 +96,8 @@ def test_core_file_uploader(client:MStackClient):
 
     reset_collection(FileUploader)
 
-def test_core_file_upload_process(image_file_path, client:MStackClient):
+
+def test_file_upload_process(image_file_path, client:MStackClient):
     updates:List[FileUploader] = []
 
     def progress(uploader:FileUploader):
@@ -120,3 +128,54 @@ def test_core_file_upload_process(image_file_path, client:MStackClient):
     assert uploader.status == FileUploadStatus.complete
     assert uploader.result_cid is not None
     assert isinstance(uploader.result_cid, ContentId)
+
+def test_image_file(image_file, client:MStackClient):
+    pass
+
+def test_image_release(client:MStackClient, image_file_path:Path):
+    image_file = ImageFile.ingest(image_file_path, client.user.cid, leave_original=True)
+    db.create(image_file)
+
+    _test_client_crud_ops(
+        client, 
+        ImageRelease, 
+        ImageReleaseCreator, 
+        client.image_release_create,
+        client.image_release_list,
+        client.image_release_read,
+        client.image_release_delete
+    )
+
+def test_audio_file(audio_file, client:MStackClient):
+    pass
+
+def test_audio_release(client:MStackClient, audio_file_path:Path):
+    audio_file = AudioFile.ingest(audio_file_path, client.user.cid, leave_original=True)
+    db.create(audio_file)
+
+    _test_client_crud_ops(
+        client, 
+        AudioRelease, 
+        AudioReleaseCreator, 
+        client.audio_release_create,
+        client.audio_release_list,
+        client.audio_release_read,
+        client.audio_release_delete
+    )
+
+def test_video_file(video_file, client:MStackClient):
+    pass
+
+def test_video_release(client:MStackClient, video_file_path:Path):
+    video_file = VideoFile.ingest(video_file_path, client.user.cid, leave_original=True)
+    db.create(video_file)
+
+    _test_client_crud_ops(
+        client, 
+        VideoRelease, 
+        VideoReleaseCreator, 
+        client.video_release_create,
+        client.video_release_list,
+        client.video_release_read,
+        client.video_release_delete
+    )

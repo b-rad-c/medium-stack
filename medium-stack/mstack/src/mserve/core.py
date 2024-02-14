@@ -150,8 +150,8 @@ async def read_image_release(id_type:ModelIdType, id:str):
     return ops.image_release_read(**{id_type.value: id})
 
 @core_router.delete('/image-release/{id_type}/{id}', status_code=201)
-async def delete_image_release(id_type:ModelIdType, id:str):
-    return ops.image_release_delete(**{id_type.value: id})
+async def delete_image_release(id_type:ModelIdType, id:str, user:User = Depends(current_user)):
+    return ops.image_release_delete(user, **{id_type.value: id})
 
 # image files #
 
@@ -187,8 +187,8 @@ async def read_audio_release(id_type:ModelIdType, id:str):
     return ops.audio_release_read(**{id_type.value: id})
 
 @core_router.delete('/audio-release/{id_type}/{id}', status_code=201)
-async def delete_audio_release(id_type:ModelIdType, id:str):
-    return ops.audio_release_delete(**{id_type.value: id})
+async def delete_audio_release(id_type:ModelIdType, id:str, user:User = Depends(current_user)):
+    return ops.audio_release_delete(user, **{id_type.value: id})
 
 # audio files #
 
@@ -201,8 +201,8 @@ async def read_audio_file(id_type:ModelIdType, id:str):
     return ops.audio_file_read(**{id_type.value: id})
 
 @core_router.delete('/audio-files/{id_type}/{id}', status_code=201)
-async def delete_audio_file(id_type:ModelIdType, id:str):
-    return ops.audio_file_delete(**{id_type.value: id})
+async def delete_audio_file(id_type:ModelIdType, id:str, user:User = Depends(current_user)):
+    return ops.audio_file_delete(user, **{id_type.value: id})
 
 #
 # video
@@ -223,8 +223,8 @@ async def read_video_release(id_type:ModelIdType, id:str):
     return ops.video_release_read(**{id_type.value: id})
 
 @core_router.delete('/video-release/{id_type}/{id}', status_code=201)
-async def delete_video_release(id_type:ModelIdType, id:str):
-    return ops.video_release_delete(**{id_type.value: id})
+async def delete_video_release(id_type:ModelIdType, id:str, user:User = Depends(current_user)):
+    return ops.video_release_delete(user, **{id_type.value: id})
 
 # video files #
 
@@ -237,5 +237,5 @@ async def read_video_file(id_type:ModelIdType, id:str):
     return ops.video_file_read(**{id_type.value: id})
 
 @core_router.delete('/video-files/{id_type}/{id}', status_code=201)
-async def delete_video_file(id_type:ModelIdType, id:str):
-    return ops.video_file_delete(**{id_type.value: id})
+async def delete_video_file(id_type:ModelIdType, id:str, user:User = Depends(current_user)):
+    return ops.video_file_delete(user, **{id_type.value: id})

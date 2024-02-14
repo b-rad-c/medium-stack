@@ -83,8 +83,10 @@ async def exception_wrapper(request: Request, call_next):
             headers={'WWW-Authenticate': 'Bearer'},
         )
     except HTTPException:
+        logger.exception('HTTPException', exc_info=True)
         raise
     except MStackUserError as e:
+        logger.exception('MStackUserError', exc_info=True)
         return JSONResponse(status_code=400, content={'detail': str(e)})
     except NotFoundError as e:
         return JSONResponse(status_code=404, content={'detail': str(e)})

@@ -376,19 +376,19 @@ def _test_client_crud_ops(
 # fixtures
 #
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def client() -> MStackClient:
     reset_collection(User)
     reset_collection(UserPasswordHash)
 
-    user_creator = UserCreator.generate()
+    user_creator:UserCreator = example_model(UserCreator)
     create_new_user(user_creator)
 
     mstack = MStackClient()
     mstack.login(user_creator.email, user_creator.password1)
+    mstack.user_me()
 
     return mstack
-
 
 
 # image #
@@ -435,7 +435,7 @@ def audio_file_payload():
 
 @pytest.fixture(scope='function')
 def audio_release_cid():
-    return ContentId(hash='v7YGD93Y_DL6G88kpES_FMKoAVZprDmC37v2O5NGrh8', size=207, ext='json')
+    return ContentId(hash='askEBQ19fAYiv8CWgyVD7xAN-RePWN0iNdL2PhAHIG8', size=207, ext='json')
 
 # video #
 
@@ -458,4 +458,4 @@ def video_file_payload():
 
 @pytest.fixture(scope='function')
 def video_release_cid():
-    return ContentId(hash='_ZK5DEHah2hx7E-idgEcgGz4UX4_E5ZL8T6UcdSxvXc', size=207, ext='json')
+    return ContentId(hash='QnlcprIQs_ZHBaqgEc9PgJus35xS684iOqR6AILBOGE', size=207, ext='json')

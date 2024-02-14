@@ -630,7 +630,8 @@ class AudioFile(BaseFile):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441', 
-                    'cid': '0LDHxLDdQ-4eZd0CiuftNik-8nhUEuzHdo6VV0dmnaQw132.json', 
+                    'cid': '07BD1o8gwFLTaqr0S_QKk93iYcuFG1ZzCOKafaaPYiI4182.json', 
+                    'user_cid': str(example_cid(User)),
                     'payload_cid': '0SOT7ZsLeQYg6MbcabM049T_DKWbLXl6BR724v3xD9fo2633142.mp3', 
                     'duration': 65.828, 
                     'bit_rate': 320000
@@ -681,7 +682,7 @@ class AudioRelease(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441', 
-                    'cid': '0v7YGD93Y_DL6G88kpES_FMKoAVZprDmC37v2O5NGrh8207.json', 
+                    'cid': '0askEBQ19fAYiv8CWgyVD7xAN-RePWN0iNdL2PhAHIG8207.json', 
                     'user_cid': str(example_cid(User)),
                     'master': str(example_cid(AudioFile)),
                     'alt_formats': [str(example_cid(AudioFile))]
@@ -733,7 +734,8 @@ class VideoFile(BaseFile):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441', 
-                    'cid': '0onyDuzj4DGrq4uIbipGKkS51gACr4z9WYW_-Np_9bgI182.json', 
+                    'cid': '0ixiuws1Ouxe9Vw1-IarCNYwvWdUZBhZOaR_IlngkiEk232.json', 
+                    'user_cid': str(example_cid(User)),
                     'payload_cid': '0j_d4uuRMK-Q2LIoT-n6oIT_oE-nriwlp_K8_W8oa1r011061011.mov', 
                     'height': 480, 
                     'width': 853, 
@@ -791,7 +793,7 @@ class VideoRelease(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441', 
-                    'cid': '0_ZK5DEHah2hx7E-idgEcgGz4UX4_E5ZL8T6UcdSxvXc207.json', 
+                    'cid': '0QnlcprIQs_ZHBaqgEc9PgJus35xS684iOqR6AILBOGE207.json', 
                     'user_cid': str(example_cid(User)),
                     'master': str(example_cid(VideoFile)),
                     'alt_formats': [str(example_cid(VideoFile))]

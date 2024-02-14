@@ -1,8 +1,10 @@
-from mcore.models import User, UserCreator
+from mcore.models import User, UserCreator, UserPasswordHash
 from mcore.errors import MStackAuthenticationError, NotFoundError
 from mcore.auth import *
 from mcore.util import example_model
 from mcore.db import MongoDB
+
+from ..conftest import reset_collection
 
 import pytest
 
@@ -62,6 +64,9 @@ def test_password_verification():
 
 def test_user_create_procedure():
     user_creator:UserCreator = example_model(UserCreator)
+
+    reset_collection(User)
+    reset_collection(UserPasswordHash)
 
     user = create_new_user(user_creator)
     assert user.id is not None

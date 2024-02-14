@@ -5,7 +5,7 @@ from typing import Callable, BinaryIO, List
 from pathlib import Path
 
 from mcore.db import MongoDB
-from mcore.errors import MStackUserError
+from mcore.errors import MStackUserError, NotFoundError
 from mcore.auth import create_new_user, delete_user, delete_profile
 from mcore.models import *
 
@@ -181,14 +181,17 @@ class MCoreOps:
     def image_file_list(self, offset:int=SDK_DEFAULT_OFFSET, size:int=SDK_DEFAULT_SIZE) -> list[ImageFile]:
         return list(self.db.find(ImageFile, offset=offset, size=size))
     
-    def image_file_read(self, id:ImageFileId, cid:ImageFileCid) -> ImageFile:
+    def image_file_read(self, id:ImageFileId=None, cid:ImageFileCid=None) -> ImageFile:
         return self.db.read(ImageFile, id=id, cid=cid)
     
-    def image_file_delete(self, id:ImageFileId, cid:ImageFileCid, logged_in_user:User) -> None:
+    def image_file_delete(self, logged_in_user:User, id:ImageFileId=None, cid:ImageFileCid=None) -> None:
 
         # see note on file deletions at the top of this file
 
-        image_file = self.image_file_read(id, cid)
+        try:
+            image_file = self.image_file_read(id, cid)
+        except NotFoundError:
+            return
 
         if image_file.user_cid != logged_in_user.cid:
             raise MStackUserError(f'User {logged_in_user.cid} does not have permission to delete image file {image_file.cid}')
@@ -207,9 +210,12 @@ class MCoreOps:
         logging.info(f'deleted image file {image_file.cid}')
     
     def image_release_create(self, creator:ImageReleaseCreator, logged_in_user:User) -> ImageRelease:
-
-        master = self.image_file_read(cid=creator.master)
-        alt_formats = [self.image_file_read(cid=cid) for cid in creator.alt_formats]
+        
+        try:
+            master = self.image_file_read(cid=creator.master)
+            alt_formats = [self.image_file_read(cid=cid) for cid in creator.alt_formats]
+        except NotFoundError as e:
+            raise MStackUserError(f'Error creating image release: {e}')
 
         for image_file in [master] + alt_formats:
             if image_file.user_cid != logged_in_user.cid:
@@ -222,14 +228,17 @@ class MCoreOps:
     def image_release_list(self, offset:int=SDK_DEFAULT_OFFSET, size:int=SDK_DEFAULT_SIZE) -> list[ImageRelease]:
         return list(self.db.find(ImageRelease, offset=offset, size=size))
     
-    def image_release_read(self, id:ImageReleaseId, cid:ImageReleaseCid) -> ImageRelease:
+    def image_release_read(self, id:ImageReleaseId=None, cid:ImageReleaseCid=None) -> ImageRelease:
         return self.db.read(ImageRelease, id=id, cid=cid)
     
-    def image_release_delete(self, id:ImageReleaseId, cid:ImageReleaseCid, logged_in_user:User, delete_files:bool = False) -> None:
+    def image_release_delete(self, logged_in_user:User, id:ImageReleaseId=None, cid:ImageReleaseCid=None, delete_files:bool = False) -> None:
 
         # see note on file deletions at the top of this file
 
-        image_release = self.image_release_read(id, cid)
+        try:
+            image_release = self.image_release_read(id, cid)
+        except NotFoundError:
+            return
 
         if image_release.user_cid != logged_in_user.cid:
             raise MStackUserError(f'User {logged_in_user.cid} does not have permission to delete image release {image_release.cid}')
@@ -238,10 +247,20 @@ class MCoreOps:
         
         if delete_files:
             
-            # get files from db #
+            # get files from db - ignoring not found errors #
 
-            image_files:List[ImageFile] = [self.image_file_read(cid=cid) for cid in image_release.alt_formats]
-            image_files.append(self.image_file_read(cid=image_release.master))
+            image_files:List[ImageFile] = []
+            
+            for cid in image_release.alt_formats:
+                try:
+                    image_files.append(self.image_file_read(cid=cid))
+                except NotFoundError:
+                    pass
+
+            try:
+                image_files.append(self.image_file_read(cid=image_release.master))
+            except NotFoundError:
+                pass
 
             # delete files and release in transaction #
 
@@ -273,14 +292,17 @@ class MCoreOps:
     def audio_file_list(self, offset:int=SDK_DEFAULT_OFFSET, size:int=SDK_DEFAULT_SIZE) -> list[AudioFile]:
         return list(self.db.find(AudioFile, offset=offset, size=size))
     
-    def audio_file_read(self, id:AudioFileId, cid:AudioFileCid) -> AudioFile:
+    def audio_file_read(self, id:AudioFileId=None, cid:AudioFileCid=None) -> AudioFile:
         return self.db.read(AudioFile, id=id, cid=cid)
     
-    def audio_file_delete(self, id:AudioFileId, cid:AudioFileCid, logged_in_user:User) -> None:
+    def audio_file_delete(self, logged_in_user:User, id:AudioFileId=None, cid:AudioFileCid=None) -> None:
 
         # see note on file deletions at the top of this file
 
-        audio_file = self.audio_file_read(id, cid)
+        try:
+            audio_file = self.audio_file_read(id, cid)
+        except NotFoundError:
+            return
 
         if audio_file.user_cid != logged_in_user.cid:
             raise MStackUserError(f'User {logged_in_user.cid} does not have permission to delete audio file {audio_file.cid}')
@@ -299,9 +321,12 @@ class MCoreOps:
         logging.info(f'deleted audio file {audio_file.cid}')
     
     def audio_release_create(self, creator:AudioReleaseCreator, logged_in_user:User) -> AudioRelease:
-
-        master = self.audio_file_read(cid=creator.master)
-        alt_formats = [self.audio_file_read(cid=cid) for cid in creator.alt_formats]
+        
+        try:
+            master = self.audio_file_read(cid=creator.master)
+            alt_formats = [self.audio_file_read(cid=cid) for cid in creator.alt_formats]
+        except NotFoundError as e:
+            raise MStackUserError(f'Error creating audio release: {e}')
 
         for audio_file in [master] + alt_formats:
             if audio_file.user_cid != logged_in_user.cid:
@@ -314,15 +339,18 @@ class MCoreOps:
     def audio_release_list(self, offset:int=SDK_DEFAULT_OFFSET, size:int=SDK_DEFAULT_SIZE) -> list[AudioRelease]:
         return list(self.db.find(AudioRelease, offset=offset, size=size))
     
-    def audio_release_read(self, id:AudioReleaseId, cid:AudioReleaseCid) -> AudioRelease:
+    def audio_release_read(self, id:AudioReleaseId=None, cid:AudioReleaseCid=None) -> AudioRelease:
         return self.db.read(AudioRelease, id=id, cid=cid)
     
-    def audio_release_delete(self, id:AudioReleaseId, cid:AudioReleaseCid, logged_in_user:User, delete_files:bool = False) -> None:
+    def audio_release_delete(self, logged_in_user:User, id:AudioReleaseId=None, cid:AudioReleaseCid=None, delete_files:bool = False) -> None:
             
         # see note on file deletions at the top of this file
 
-        audio_release = self.audio_release_read(id, cid)
-
+        try:
+            audio_release = self.audio_release_read(id, cid)
+        except NotFoundError:
+            return
+        
         if audio_release.user_cid != logged_in_user.cid:
             raise MStackUserError(f'User {logged_in_user.cid} does not have permission to delete audio release {audio_release.cid}')
 
@@ -330,10 +358,20 @@ class MCoreOps:
         
         if delete_files:
             
-            # get files from db #
+            # get files from db - ignoring not found errors #
 
-            audio_files:List[AudioFile] = [self.audio_file_read(cid=cid) for cid in audio_release.alt_formats]
-            audio_files.append(self.audio_file_read(cid=audio_release.master))
+            audio_files:List[AudioFile] = []
+
+            for cid in audio_release.alt_formats:
+                try:
+                    audio_files.append(self.audio_file_read(cid=cid))
+                except NotFoundError:
+                    pass
+
+            try:
+                audio_files.append(self.audio_file_read(cid=audio_release.master))
+            except NotFoundError:
+                pass
 
             # delete files and release in transaction #
 
@@ -365,15 +403,18 @@ class MCoreOps:
     def video_file_list(self, offset:int=SDK_DEFAULT_OFFSET, size:int=SDK_DEFAULT_SIZE) -> list[VideoFile]:
         return list(self.db.find(VideoFile, offset=offset, size=size))
     
-    def video_file_read(self, id:VideoFileId, cid:VideoFileCid) -> VideoFile:
+    def video_file_read(self, id:VideoFileId=None, cid:VideoFileCid=None) -> VideoFile:
         return self.db.read(VideoFile, id=id, cid=cid)
     
-    def video_file_delete(self, id:VideoFileId, cid:VideoFileCid, logged_in_user:User) -> None:
+    def video_file_delete(self, logged_in_user:User, id:VideoFileId=None, cid:VideoFileCid=None) -> None:
             
         # see note on file deletions at the top of this file
 
-        video_file = self.video_file_read(id, cid)
-
+        try:
+            video_file = self.video_file_read(id, cid)
+        except NotFoundError:
+            return
+        
         if video_file.user_cid != logged_in_user.cid:
             raise MStackUserError(f'User {logged_in_user.cid} does not have permission to delete video file {video_file.cid}')
         
@@ -391,6 +432,17 @@ class MCoreOps:
         logging.info(f'deleted video file {video_file.cid}')
 
     def video_release_create(self, creator:VideoReleaseCreator, logged_in_user:User) -> VideoRelease:
+
+        try:
+            master = self.video_file_read(cid=creator.master)
+            alt_formats = [self.video_file_read(cid=cid) for cid in creator.alt_formats]
+        except NotFoundError as e:
+            raise MStackUserError(f'Error creating video release: {e}')
+        
+        for video_file in [master] + alt_formats:
+            if video_file.user_cid != logged_in_user.cid:
+                raise MStackUserError(f'User {logged_in_user.cid} does not have permission to create video release with file {video_file.cid}')
+
         video_release = creator.create_model(user_cid=logged_in_user.cid)
         self.db.create(video_release)
         return video_release
@@ -398,15 +450,18 @@ class MCoreOps:
     def video_release_list(self, offset:int=SDK_DEFAULT_OFFSET, size:int=SDK_DEFAULT_SIZE) -> list[VideoRelease]:
         return list(self.db.find(VideoRelease, offset=offset, size=size))
     
-    def video_release_read(self, id:VideoReleaseId, cid:VideoReleaseCid) -> VideoRelease:
+    def video_release_read(self, id:VideoReleaseId=None, cid:VideoReleaseCid=None) -> VideoRelease:
         return self.db.read(VideoRelease, id=id, cid=cid)
 
-    def video_release_delete(self, id:VideoReleaseId, cid:VideoReleaseCid, logged_in_user:User, delete_files:bool = False) -> None:
+    def video_release_delete(self, logged_in_user:User, id:VideoReleaseId=None, cid:VideoReleaseCid=None, delete_files:bool = False) -> None:
             
         # see note on file deletions at the top of this file
 
-        video_release = self.video_release_read(id, cid)
-
+        try:
+            video_release = self.video_release_read(id, cid)
+        except NotFoundError:
+            return
+        
         if video_release.user_cid != logged_in_user.cid:
             raise MStackUserError(f'User {logged_in_user.cid} does not have permission to delete video release {video_release.cid}')
 
@@ -416,8 +471,17 @@ class MCoreOps:
             
             # get files from db #
 
-            video_files:List[VideoFile] = [self.video_file_read(cid=cid) for cid in video_release.alt_formats]
-            video_files.append(self.video_file_read(cid=video_release.master))
+            video_files:List[VideoFile] = []
+            for cid in video_release.alt_formats:
+                try:
+                    video_files.append(self.video_file_read(cid=cid))
+                except NotFoundError:
+                    pass
+            
+            try:
+                video_files.append(self.video_file_read(cid=video_release.master))
+            except NotFoundError:
+                pass
 
             # delete files and release in transaction #
 

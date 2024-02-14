@@ -37,7 +37,7 @@ class MongoDB:
         except TypeError:
             pass
 
-    def get_collection(self, model: InstanceOrType):
+    def get_collection(self, model: InstanceOrType) -> Collection:
         try:
             name = model.__class__.DB_NAME
         except AttributeError:
@@ -71,9 +71,12 @@ class MongoDB:
         if '_id' not in query and 'cid' not in query:
             raise MStackDBError('must supply id and or cid to read method')
 
-        document = self.get_collection(model).find_one(query)
+        collection = self.get_collection(model)
+        document = collection.find_one(query)
+
         if document is None:
-            raise NotFoundError(f'Item not found in database')
+            item = ' '.join([f'{k}: {v}' for k, v in query.items()]).replace('_', '')
+            raise NotFoundError(f'item not found: {collection.name}: {item}')
         else:
             try:
                 return model(**document)
