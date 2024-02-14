@@ -106,7 +106,7 @@ async def read_profile(id_type:ModelIdType, id:str):
     
 @core_router.delete('/profiles/{id_type}/{id}', status_code=201)
 async def delete_profile(id_type:ModelIdType, id:str, user:User = Depends(current_user)):
-    ops.profile_delete(ops.profile_read(**{id_type.value: id}), user)
+    ops.profile_delete(user, **{id_type.value: id})
 
 #
 # file uploads

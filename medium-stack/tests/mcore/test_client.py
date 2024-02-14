@@ -9,10 +9,7 @@ from mcore.types import ContentId
 from mcore.db import MongoDB
 from mcore.client import *
 from mcore.models import *
-from mcore.errors import NotFoundError
 from mserve import IndexResponse
-
-import pytest
 
 db = MongoDB.from_cache()
 
@@ -29,7 +26,15 @@ def test_users(client:MStackClient):
     pass
 
 def test_profiles(client:MStackClient):
-    pass
+    _test_client_crud_ops(
+        client,
+        Profile,
+        ProfileCreator,
+        client.profile_create,
+        client.profile_list,
+        client.profile_read,
+        client.profile_delete
+    )
 
 def test_file_uploader(client:MStackClient):
 

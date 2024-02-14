@@ -66,8 +66,12 @@ class MCoreOps:
     def profile_read(self, id:ProfileId=None, cid:ProfileCid=None) -> Profile:
         return self.db.read(Profile, id=id, cid=cid)
     
-    def profile_delete(self, profile: Profile, logged_in_user:User) -> None:
-        delete_profile(profile, logged_in_user)
+    def profile_delete(self, logged_in_user:User, id:ProfileId=None, cid:ProfileCid=None) -> None:
+        try:
+            profile = self.profile_read(id, cid)
+            delete_profile(profile, logged_in_user)
+        except NotFoundError:
+            return
 
     # file uploader #
 
