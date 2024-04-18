@@ -101,7 +101,6 @@ def test_file_uploader(client:MStackClient):
 
     reset_collection(FileUploader)
 
-
 def test_file_upload_process(image_file_path, client:MStackClient):
     updates:List[FileUploader] = []
 

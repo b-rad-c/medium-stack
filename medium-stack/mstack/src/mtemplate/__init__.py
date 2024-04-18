@@ -1,4 +1,5 @@
 import os
+import shutil
 import importlib
 
 from pathlib import Path
@@ -12,8 +13,12 @@ from pydantic import BaseModel
 from bson import ObjectId
 
 __all__ = [
+    'MTemplateError',
     'MTemplateProject'
 ]
+
+class MTemplateError(Exception):
+    pass
 
 class SourceModel(BaseModel):
     type:str
@@ -77,7 +82,9 @@ class SourceModel(BaseModel):
 class SourceModelList:
 
     def __init__(self, module_name:str) -> None:
+        self.module_name = module_name
         self.module = importlib.import_module(module_name)
+        self.module_file = Path(self.module.__file__)
         self.models: list[SourceModel] = []
         self._load()
 
@@ -143,13 +150,30 @@ class SourceModelList:
 class MTemplateProject:
 
     def __init__(self, config_path:Path | str) -> None:
+
+        # load conf #
+
         self.config_path = Path(config_path)
-        with open(self.config_path, 'r') as f:
-            self.config = ConfigParser()
-            self.config.read_file(f)
+        try:
+            with open(self.config_path, 'r') as f:
+                self.config = ConfigParser()
+                self.config.read_file(f)
+        except FileNotFoundError:
+            raise MTemplateError(f'Config file not found: {config_path}')
+        
+        # set conf attribute #
 
         self.models = SourceModelList(self.config['mtemplate']['models'])
+        self.models = SourceModelList(self.config['mtemplate']['models'])
         self.dist_directory = Path(self.config['mtemplate']['output'])
+        package_name = self.config['global_template_variables']['package_name']
+        self.dist_package = self.dist_directory / 'src' / package_name
+
+        # reset dist #
+
+        shutil.rmtree(self.dist_directory, ignore_errors=True)
+
+        # jinja env #
 
         self.jinja_env = Environment(
             autoescape=False,
@@ -171,23 +195,52 @@ class MTemplateProject:
             raise KeyError(f'client_class_name must be defined in global_template_variables in mtemplate config file')
     
     
-    def _output_file(self, name:str, output:str):
-        output_path = self.dist_directory / name
-        os.makedirs(output_path.parent, exist_ok=True)
+    def _output_file(self, path:Path, output:str):
+        os.makedirs(path.parent, exist_ok=True)
 
-        with open(output_path, 'w+') as f:
+        with open(path, 'w+') as f:
             f.write(output)
+
+    def render_models(self):
+        src = self.models.module_file
+        shutil.copy(src, self.dist_package / src.name)
 
     def render_client(self):
         template = self.jinja_env.get_template('client.py.jinja2')
         output = template.render(models=self.models.with_db())
-        self._output_file('client.py', output)
+        self._output_file(self.dist_package / 'client.py', output)
 
     def render_sdk(self):
         template = self.jinja_env.get_template('sdk.py.jinja2')
         output = template.render(models=self.models.with_endpoint())
-        self._output_file('sdk.py', output)
+        self._output_file(self.dist_package / 'sdk.py', output)
 
-    def render(self):
+    def render_pyproject_toml(self):
+        template = self.jinja_env.get_template('pyproject.toml.jinja2')
+        output = template.render()
+        self._output_file(self.dist_directory / 'pyproject.toml', output)
+
+    def render_readme(self):
+        template = self.jinja_env.get_template('readme.md.jinja2')
+        output = template.render()
+        self._output_file(self.dist_directory / 'README.md', output)
+
+    def render_package(self):
+        init_file = self.dist_package / '__init__.py'
+        os.makedirs(self.dist_package, exist_ok=True)
+        init_file.touch()
+
+        self.render_pyproject_toml()
+        self.render_models()
         self.render_client()
         self.render_sdk()
+
+    def render_entry_script(self):
+        template = self.jinja_env.get_template('entry.py.jinja2')
+        output = template.render(models=self.models.with_endpoint())
+        self._output_file(self.dist_directory / 'entry.py', output)
+
+    def render(self):
+        self.render_readme()
+        self.render_package()
+        self.render_entry_script()

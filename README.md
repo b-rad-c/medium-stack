@@ -28,6 +28,8 @@
     + 🟢 update router to use ops
     + 🔴 ops unittests
 
++ 🔴 migrate to yaml config
+
 + 🟡 update client to have matching ops api
     + 🟡 update client unittests
 
