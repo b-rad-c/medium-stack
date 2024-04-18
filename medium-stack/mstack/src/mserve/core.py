@@ -24,7 +24,7 @@ from mcore.models import (
     VideoRelease,
     VideoReleaseCreator
 )
-\
+
 from mcore.types import ModelIdType
 from mserve.dependencies import current_user
 from mcore.ops import MCoreOps

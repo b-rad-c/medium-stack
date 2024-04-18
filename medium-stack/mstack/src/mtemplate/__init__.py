@@ -178,6 +178,7 @@ class MTemplateProject:
         self.jinja_env = Environment(
             autoescape=False,
             loader=PackageLoader('mtemplate', 'templates')
+            # loader=FileSystemLoader(self.config_path.parent / 'templates')
         )
 
         try:
@@ -206,14 +207,19 @@ class MTemplateProject:
         shutil.copy(src, self.dist_package / src.name)
 
     def render_client(self):
-        template = self.jinja_env.get_template('client.py.jinja2')
+        template = self.jinja_env.get_template('src/app/client.py.jinja2')
         output = template.render(models=self.models.with_db())
         self._output_file(self.dist_package / 'client.py', output)
 
-    def render_sdk(self):
-        template = self.jinja_env.get_template('sdk.py.jinja2')
+    def render_ops(self):
+        template = self.jinja_env.get_template('src/app/ops.py.jinja2')
         output = template.render(models=self.models.with_endpoint())
-        self._output_file(self.dist_package / 'sdk.py', output)
+        self._output_file(self.dist_package / 'ops.py', output)
+
+    def render_serve(self):
+        template = self.jinja_env.get_template('src/app/serve.py.jinja2')
+        output = template.render(models=self.models.with_endpoint())
+        self._output_file(self.dist_package / 'serve.py', output)
 
     def render_pyproject_toml(self):
         template = self.jinja_env.get_template('pyproject.toml.jinja2')
@@ -233,14 +239,19 @@ class MTemplateProject:
         self.render_pyproject_toml()
         self.render_models()
         self.render_client()
-        self.render_sdk()
+        self.render_ops()
+        self.render_serve()
 
-    def render_entry_script(self):
-        template = self.jinja_env.get_template('entry.py.jinja2')
-        output = template.render(models=self.models.with_endpoint())
-        self._output_file(self.dist_directory / 'entry.py', output)
+    def render_entry_scripts(self):
+        entry_py_template = self.jinja_env.get_template('entry.py.jinja2')
+        entry_py_output = entry_py_template.render(models=self.models.with_endpoint())
+        self._output_file(self.dist_directory / 'entry.py', entry_py_output)
+
+        web_sh_template = self.jinja_env.get_template('web.sh.jinja2')
+        web_sh_output = web_sh_template.render()
+        self._output_file(self.dist_directory / 'web.sh', web_sh_output)
 
     def render(self):
         self.render_readme()
         self.render_package()
-        self.render_entry_script()
+        self.render_entry_scripts()

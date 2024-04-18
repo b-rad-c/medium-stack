@@ -1,0 +1,34 @@
+from mcore.models import User
+from mcore.types import ModelIdType
+from mserve import app
+from mserve.dependencies import current_user
+
+from {{ package_name }}.models import *
+from {{ package_name }}.ops import {{ ops_class_name }} as ops
+
+from fastapi import APIRouter, Depends
+from typing import List
+
+{{ package_name }}_router = APIRouter(tags=['{{ package_name }} server'])
+
+{% for model in models %}
+# {{ model.lower_case }} #
+
+@{{ package_name }}_router.post('/{{ model.kebab_case }}', response_model={{ model.pascal_case }}, response_model_by_alias=False)
+async def create_{{ model.snake_case }}(creator:{{ model.pascal_case }}Creator, user:User = Depends(current_user)):
+    return ops.{{ model.snake_case }}_create(creator, user)
+
+@{{ package_name }}_router.get('/{{ model.kebab_case }}', response_model=List[{{ model.pascal_case }}], response_model_by_alias=False)
+async def list_{{ model.snake_case }}(offset:int=0, size:int=50):
+    return ops.{{ model.snake_case }}_list(offset, size)
+
+@{{ package_name }}_router.get('/{{ model.kebab_case }}/{id_type}/{id}', response_model={{ model.pascal_case }}, response_model_by_alias=False)
+async def read_{{ model.snake_case }}(id_type:ModelIdType, id:str):
+    return ops.{{ model.snake_case }}_read(**{id_type.value: id})
+
+@{{ package_name }}_router.delete('/{{ model.kebab_case }}/{id_type}/{id}', status_code=201)
+async def delete_{{ model.snake_case }}(id_type:ModelIdType, id:str, user:User = Depends(current_user)):
+    return ops.{{ model.snake_case }}_delete(user, **{id_type.value: id})
+{% endfor %}
+
+app.include_router({{ package_name }}_router, prefix='{{ api_prefix }}')
