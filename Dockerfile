@@ -7,8 +7,6 @@ WORKDIR /app
 RUN apk add mediainfo
 # https://stackoverflow.com/a/72600944
 RUN apk add --virtual .tmp-build-deps build-base gcc python3-dev musl-dev libffi-dev openssl-dev
-RUN python -m venv .venv --upgrade-deps --prompt "(mstack)"
-RUN source .venv/bin/activate 
 
 #
 # mstack
