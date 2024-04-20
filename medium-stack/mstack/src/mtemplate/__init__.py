@@ -242,6 +242,32 @@ class MTemplateProject:
         self.render_ops()
         self.render_serve()
 
+    def render_tests(self):
+        template_test_directory = Path(__file__).parent.parent.parent.parent / 'tests'
+        shutil.copytree(template_test_directory, self.dist_directory / 'tests')
+
+    def render_env(self):
+        template = self.jinja_env.get_template('.env.jinja2')
+        output = template.render()
+        self._output_file(self.dist_directory / '.env', output)
+
+        template = self.jinja_env.get_template('.gitignore.jinja2')
+        output = template.render()
+        self._output_file(self.dist_directory / '.gitignore', output)
+
+    def render_dockerfiles(self):
+        template = self.jinja_env.get_template('Dockerfile.jinja2')
+        output = template.render()
+        self._output_file(self.dist_directory / 'Dockerfile', output)
+
+        template = self.jinja_env.get_template('docker-compose.yml.jinja2')
+        output = template.render()
+        self._output_file(self.dist_directory / 'docker-compose.yml', output)
+
+        template = self.jinja_env.get_template('.dockerignore.jinja2')
+        output = template.render()
+        self._output_file(self.dist_directory / '.dockerignore', output)
+
     def render_entry_scripts(self):
         entry_py_template = self.jinja_env.get_template('entry.py.jinja2')
         entry_py_output = entry_py_template.render(models=self.models.with_endpoint())
@@ -254,4 +280,7 @@ class MTemplateProject:
     def render(self):
         self.render_readme()
         self.render_package()
+        self.render_tests()
         self.render_entry_scripts()
+        self.render_env()
+        self.render_dockerfiles()

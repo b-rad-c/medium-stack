@@ -31,4 +31,4 @@ async def delete_{{ model.snake_case }}(id_type:ModelIdType, id:str, user:User =
     return ops.{{ model.snake_case }}_delete(user, **{id_type.value: id})
 {% endfor %}
 
-app.include_router({{ package_name }}_router, prefix='{{ api_prefix }}')
+app.include_router({{ package_name }}_router, prefix='/{{ api_prefix }}')
