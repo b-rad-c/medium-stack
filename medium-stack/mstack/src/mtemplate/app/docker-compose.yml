@@ -1,0 +1,47 @@
+version: '3.8'
+name: sample_app
+
+services:
+  mserve:
+    image: sample_app/latest
+    container_name: web
+    volumes:
+      - ./samples:/app/samples/
+      - ./lstack:/app/data/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - MONGO_DB_URI
+      - MSTACK_AUTH_SECRET_KEY
+
+  db:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - db-data:/data/db
+
+  uploader:
+    image: sample_app/latest
+    container_name: uploader
+    volumes:
+      - ./samples:/app/samples/
+      - ./lstack:/app/data/
+    command: python3 -m mserve.uploads ingest
+    depends_on:
+      - db
+    environment:
+      - MONGO_DB_URI
+
+  admin:
+    image: sample_app/latest
+    container_name: admin
+    volumes:
+      - ./samples:/app/samples/
+      - ./lstack:/app/data/
+    command: top
+
+volumes:
+  db-data:

@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   mserve:
-    build: .
+    image: mstack/mserve:latest
     container_name: mserve
     volumes:
       - ./medium-stack:/app/medium-stack/
@@ -16,15 +16,8 @@ services:
       - MONGO_DB_URI
       - MSTACK_AUTH_SECRET_KEY
 
-  db:
-    image: mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - db-data:/data/db
-
   uploader:
-    build: .
+    image: mstack/mserve:latest
     container_name: uploader
     volumes:
       - ./medium-stack:/app/medium-stack/
@@ -35,6 +28,25 @@ services:
       - db
     environment:
       - MONGO_DB_URI
+  
+  admin:
+    image: mstack/mserve:latest
+    container_name: admin
+    volumes:
+      - ./medium-stack:/app/medium-stack/
+      - ./samples:/app/samples/
+      - ./lstack:/app/data/
+    command: top
+    environment:
+      - MONGO_DB_URI
+
+  db:
+    image: mongo
+    container_name: db
+    ports:
+      - "27017:27017"
+    volumes:
+      - db-data:/data/db
 
 volumes:
   db-data:
