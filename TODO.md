@@ -11,9 +11,19 @@
 1. 🟡 rewrite templates to be extracted from actual code
     * 🟢 GENERATE new minimal test project called 'sample_app'
     * 🟢 integrate into mstack module, app+docker+tests should work w/o generating code
-    * 🔴 restructure folders, verify tests works
-    * 🔴 use this as source to extract templates from
-1. 🔴 
+    * 🟡 restructure folders, verify tests works
+        * 🟢 restructure folders
+        * 🔴 create `./medium-stack/medium-stack/Dockerfile-builder`
+            * is used to test app which is used for template extraction
+            * is different than the dockerfile in mapplication/mtemplate/app
+        * 🔴 create `docker-compose.yml`
+        * 🔴 get environment working
+        * 🔴 create `sample_app` specific unittests
+        * 🔴 testing workflow for `mcore` and `sample_app`
+            * 🔴 tests are passing
+    * 🔴 template extraction
+        * 🔴 add extractor to mtemplate package
+        * 🔴 generates unittests are passing
 
 
 # RESTRUCTURE
