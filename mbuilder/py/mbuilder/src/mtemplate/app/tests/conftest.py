@@ -1,12 +1,13 @@
 from typing import Type, Callable
 
 from mcore.auth import create_new_user
-from mcore.client import *
 from mcore.types import ContentId
 from mcore.models import *
 from mcore.db import MongoDB
 from mcore.errors import NotFoundError, MStackDBError
 from mcore.util import example_model, example_cid
+
+from sample_app.client import SampClient
 
 from pathlib import Path
 
@@ -258,8 +259,8 @@ def _test_db_pagination(model:BaseModel, model_type:Type):
 # reusable client tests
 #
 
-def _check_client_response_id(mstack:MStackClient):
-    data = mstack.response.json()
+def _check_client_response_id(client:SampClient):
+    data = client.response.json()
     if isinstance(data, list):
         for item in data:
             assert '_id' not in item
@@ -271,7 +272,7 @@ def _check_client_response_id(mstack:MStackClient):
         raise Exception('Invalid response type')
 
 def _test_client_crud_ops(
-        mstack:MStackClient,
+        client:SampClient,
         model_type:ContentModel, 
         model_creator:ModelCreator, 
         create_op:Callable, 
@@ -289,7 +290,7 @@ def _test_client_crud_ops(
     for _ in range(10):
         created_model = create_op(example_model(model_creator))
         assert isinstance(created_model, model_type)
-        _check_client_response_id(mstack)
+        _check_client_response_id(client)
 
     # list #
 
@@ -298,12 +299,12 @@ def _test_client_crud_ops(
     for model in model_list:
         assert isinstance(model, model_type)
     
-    _check_client_response_id(mstack)
+    _check_client_response_id(client)
 
     # pagination by 10 #
 
     assert len(list_op(offset=0, size=10)) == 10
-    _check_client_response_id(mstack)
+    _check_client_response_id(client)
 
     # pagination by 5 #
 
@@ -314,7 +315,7 @@ def _test_client_crud_ops(
             total += 1
 
     assert total == 10
-    _check_client_response_id(mstack)
+    _check_client_response_id(client)
 
     # pagination by 3 #
 
@@ -325,7 +326,7 @@ def _test_client_crud_ops(
             total += 1
 
     assert total == 10
-    _check_client_response_id(mstack)
+    _check_client_response_id(client)
 
     # read #
 
@@ -335,21 +336,21 @@ def _test_client_crud_ops(
 
     read_by_id = read_op(id=model.id)
     assert read_by_id == model
-    _check_client_response_id(mstack)
+    _check_client_response_id(client)
 
     read_by_cid = read_op(cid=model.cid)
     assert read_by_cid == model
-    _check_client_response_id(mstack)
+    _check_client_response_id(client)
 
     # delete by id #
 
     result = delete_op(id=model.id)
     assert result is None
-    assert mstack.response.status_code == 201
+    assert client.response.status_code == 201
 
     result = delete_op(id=model.id)             # run delete again because the endpoint is designed 
     assert result is None                       # to return the same response if the item was already deleted
-    assert mstack.response.status_code == 201
+    assert client.response.status_code == 201
 
     with pytest.raises(NotFoundError):
         read_op(id=model.id)
@@ -360,11 +361,11 @@ def _test_client_crud_ops(
 
     result = delete_op(cid=model.cid)
     assert result is None
-    assert mstack.response.status_code == 201
+    assert client.response.status_code == 201
 
     result = delete_op(cid=model.cid)
     assert result is None
-    assert mstack.response.status_code == 201
+    assert client.response.status_code == 201
 
     with pytest.raises(NotFoundError):
         read_op(cid=model.cid)
@@ -377,18 +378,18 @@ def _test_client_crud_ops(
 #
 
 @pytest.fixture(scope='module')
-def client() -> MStackClient:
+def client() -> SampClient:
     reset_collection(User)
     reset_collection(UserPasswordHash)
 
     user_creator:UserCreator = example_model(UserCreator)
     create_new_user(user_creator)
 
-    mstack = MStackClient()
-    mstack.login(user_creator.email, user_creator.password1)
-    mstack.user_me()
+    client = SampClient()
+    client.login(user_creator.email, user_creator.password1)
+    client.user_me()
 
-    return mstack
+    return client
 
 
 # image #

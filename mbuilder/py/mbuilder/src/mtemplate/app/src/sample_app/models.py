@@ -9,6 +9,7 @@ from mcore.models import (
     ContentModel, 
     ContentIdType, 
     ModelCreator,
+    UserCid,
 
     db_id_kwargs, 
     cid_kwargs,
@@ -28,11 +29,12 @@ SampleItemCid = Annotated[ContentIdType, id_schema('a string representing a samp
 
 class SampleItem(ContentModel):
     LOWER_CASE: ClassVar[str] = 'sample item'
-    DB: ClassVar[bool] = True
+    DB_NAME: ClassVar[str] = 'profiles'
     ENDPOINT: ClassVar[bool] = True
 
     id: SampleItemId = Field(**db_id_kwargs)
     cid: SampleItemCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
 
     message: str = Field(default='hello.world', min_length=1, max_length=300)
     num: int = Field(default=42, ge=0, le=100)

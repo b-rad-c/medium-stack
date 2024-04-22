@@ -16,7 +16,8 @@
         * 🟢 rework `./medium-stack/` docker files and scripts to be for the builder
             * is used to test app which is used for template extraction
             * is different than the dockerfile in mapplication/mtemplate/app
-        * 🔴 create `sample_app` specific unittests
+        * 🟡 create `sample_app` specific unittests
+        * 🔴 upgrade dockerfile(s) to python 3.12.3
     * 🔴 template extraction
         * 🔴 add extractor to mtemplate package
         * 🔴 generated app + unittests are passing
