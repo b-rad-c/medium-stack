@@ -2,10 +2,10 @@ version: '3.8'
 
 services:
   mserve:
-    image: mstack/mserve:latest
+    image: mstack/mbuilder:latest
     container_name: mserve
     volumes:
-      - ./medium-stack:/app/medium-stack/
+      - ./mbuilder:/app/mbuilder
       - ./samples:/app/samples/
       - ./lstack:/app/data/
     ports:
@@ -17,10 +17,10 @@ services:
       - MSTACK_AUTH_SECRET_KEY
 
   uploader:
-    image: mstack/mserve:latest
+    image: mstack/mbuilder:latest
     container_name: uploader
     volumes:
-      - ./medium-stack:/app/medium-stack/
+      - ./mbuilder:/app/mbuilder
       - ./samples:/app/samples/
       - ./lstack:/app/data/
     command: python3 -m mserve.uploads ingest
@@ -30,10 +30,10 @@ services:
       - MONGO_DB_URI
   
   admin:
-    image: mstack/mserve:latest
+    image: mstack/mbuilder:latest
     container_name: admin
     volumes:
-      - ./medium-stack:/app/medium-stack/
+      - ./mbuilder:/app/mbuilder
       - ./samples:/app/samples/
       - ./lstack:/app/data/
     command: top

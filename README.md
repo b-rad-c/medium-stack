@@ -30,6 +30,13 @@
 
 + 🔴 migrate to yaml config
 
++ 🔴 update apis (urls, client/ops method calls, etc) to use `cid` by default, but allow database `id` optionally
+    + 🔴 for URLs
+        + `/url/base/model/<cid>`
+        + `/url/base/model/<id>?db_id=true`
+    + 🔴 for methods
+        + `id:str = None, cid:str = None` --> `id:str, db_id=False`
+
 + 🟡 update client to have matching ops api
     + 🟡 update client unittests
 

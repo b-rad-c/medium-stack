@@ -1,1 +1,1 @@
-docker build --build-arg="DEVELOPMENT_MODE=true" . -t mstack/mserve:latest
+docker build . -t mstack/mbuilder:latest

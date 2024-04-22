@@ -9,7 +9,7 @@ from sample_app.ops import SampOps as ops
 from fastapi import APIRouter, Depends
 from typing import List
 
-sample_app_router = APIRouter(tags=['sample_app server'])
+sample_app_router = APIRouter(tags=['Sample App'])
 
 
 # sample item #

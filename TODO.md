@@ -13,17 +13,13 @@
     * 🟢 integrate into mstack module, app+docker+tests should work w/o generating code
     * 🟡 restructure folders, verify tests works
         * 🟢 restructure folders
-        * 🔴 create `./medium-stack/medium-stack/Dockerfile-builder`
+        * 🟢 rework `./medium-stack/` docker files and scripts to be for the builder
             * is used to test app which is used for template extraction
             * is different than the dockerfile in mapplication/mtemplate/app
-        * 🔴 create `docker-compose.yml`
-        * 🔴 get environment working
         * 🔴 create `sample_app` specific unittests
-        * 🔴 testing workflow for `mcore` and `sample_app`
-            * 🔴 tests are passing
     * 🔴 template extraction
         * 🔴 add extractor to mtemplate package
-        * 🔴 generates unittests are passing
+        * 🔴 generated app + unittests are passing
 
 
 # RESTRUCTURE
