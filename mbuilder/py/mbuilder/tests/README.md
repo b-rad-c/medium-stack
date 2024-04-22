@@ -1,0 +1,1 @@
+These tests to verify example apps can be built and pass their tests

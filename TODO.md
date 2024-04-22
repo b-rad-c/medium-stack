@@ -20,7 +20,7 @@
     * 🔴 template extraction
         * 🔴 add extractor to mtemplate package
         * 🔴 generated app + unittests are passing
-    * 🔴 refactor unittesting?
+    * 🔴 refactor unittests?
 
 
 # RESTRUCTURE
