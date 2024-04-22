@@ -28,6 +28,8 @@
     + 🟢 update router to use ops
     + 🔴 ops unittests
 
+* 🔴 upgrade dockerfile(s) to python 3.12.3
+
 + 🟡 update client to have matching ops api
     + 🟡 update client unittests
 

@@ -44,7 +44,8 @@ class SampleItem(ContentModel):
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
-                    'cid': '01iEnTt6YHwLaaKTVu3zTWCvn54gXkWfpuSyDoVn68Nw613.json',
+                    'cid': '0bWjvPsoa7b236p5w2pUF2GUuE1kYtgEbYDh72jB7RZk106.json',
+                    'user_cid': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
                     'message': 'Hello World!',
                     'num': 33
                 }
