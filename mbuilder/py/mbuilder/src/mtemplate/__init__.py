@@ -1,4 +1,5 @@
 import os
+import json
 import shutil
 import importlib
 
@@ -8,13 +9,15 @@ from configparser import ConfigParser
 from mcore.types import ContentId
 from mcore.models import ContentModel
 
-from jinja2 import Environment, PackageLoader
+from jinja2 import Environment, FunctionLoader
+from jinja2.exceptions import TemplateSyntaxError, UndefinedError
 from pydantic import BaseModel
 from bson import ObjectId
 
 __all__ = [
     'MTemplateError',
-    'MTemplateProject'
+    'MTemplateProject',
+    'MTemplateExtractor'
 ]
 
 class MTemplateError(Exception):
@@ -164,7 +167,6 @@ class MTemplateProject:
         # set conf attribute #
 
         self.models = SourceModelList(self.config['mtemplate']['models'])
-        self.models = SourceModelList(self.config['mtemplate']['models'])
         self.dist_directory = Path(self.config['mtemplate']['output'])
         package_name = self.config['global_template_variables']['package_name']
         self.dist_package = self.dist_directory / 'src' / package_name
@@ -175,9 +177,14 @@ class MTemplateProject:
 
         # jinja env #
 
+        template_root = Path(__file__).parent / 'app'
+
+        loader = lambda template_name: MTemplateExtractor.template_from_file(template_root / template_name)
+
         self.jinja_env = Environment(
             autoescape=False,
-            loader=PackageLoader('mtemplate', 'templates')
+            loader=FunctionLoader(loader)
+            # loader=PackageLoader('mtemplate', 'templates')
             # loader=FileSystemLoader(self.config_path.parent / 'templates')
         )
 
@@ -207,27 +214,27 @@ class MTemplateProject:
         shutil.copy(src, self.dist_package / src.name)
 
     def render_client(self):
-        template = self.jinja_env.get_template('src/app/client.py.jinja2')
+        template = self.jinja_env.get_template('src/sample_app/client.py')
         output = template.render(models=self.models.with_db())
         self._output_file(self.dist_package / 'client.py', output)
 
     def render_ops(self):
-        template = self.jinja_env.get_template('src/app/ops.py.jinja2')
+        template = self.jinja_env.get_template('src/sample_app/ops.py')
         output = template.render(models=self.models.with_endpoint())
         self._output_file(self.dist_package / 'ops.py', output)
 
     def render_serve(self):
-        template = self.jinja_env.get_template('src/app/serve.py.jinja2')
+        template = self.jinja_env.get_template('src/sample_app/serve.py')
         output = template.render(models=self.models.with_endpoint())
         self._output_file(self.dist_package / 'serve.py', output)
 
     def render_pyproject_toml(self):
-        template = self.jinja_env.get_template('pyproject.toml.jinja2')
+        template = self.jinja_env.get_template('pyproject.toml')
         output = template.render()
         self._output_file(self.dist_directory / 'pyproject.toml', output)
 
     def render_readme(self):
-        template = self.jinja_env.get_template('readme.md.jinja2')
+        template = self.jinja_env.get_template('readme.md')
         output = template.render()
         self._output_file(self.dist_directory / 'README.md', output)
 
@@ -247,40 +254,172 @@ class MTemplateProject:
         shutil.copytree(template_test_directory, self.dist_directory / 'tests')
 
     def render_env(self):
-        template = self.jinja_env.get_template('.env.jinja2')
+        template = self.jinja_env.get_template('.env')
         output = template.render()
         self._output_file(self.dist_directory / '.env', output)
 
-        template = self.jinja_env.get_template('.gitignore.jinja2')
+        template = self.jinja_env.get_template('.gitignore')
         output = template.render()
         self._output_file(self.dist_directory / '.gitignore', output)
 
     def render_dockerfiles(self):
-        template = self.jinja_env.get_template('Dockerfile.jinja2')
+        template = self.jinja_env.get_template('Dockerfile')
         output = template.render()
         self._output_file(self.dist_directory / 'Dockerfile', output)
 
-        template = self.jinja_env.get_template('docker-compose.yml.jinja2')
+        template = self.jinja_env.get_template('docker-compose.yml')
         output = template.render()
         self._output_file(self.dist_directory / 'docker-compose.yml', output)
 
-        template = self.jinja_env.get_template('.dockerignore.jinja2')
+        template = self.jinja_env.get_template('.dockerignore')
         output = template.render()
         self._output_file(self.dist_directory / '.dockerignore', output)
 
     def render_entry_scripts(self):
-        entry_py_template = self.jinja_env.get_template('entry.py.jinja2')
-        entry_py_output = entry_py_template.render(models=self.models.with_endpoint())
-        self._output_file(self.dist_directory / 'entry.py', entry_py_output)
+        # entry_py_template = self.jinja_env.get_template('entry.py')
+        # entry_py_output = entry_py_template.render(models=self.models.with_endpoint())
+        # self._output_file(self.dist_directory / 'entry.py', entry_py_output)
 
-        web_sh_template = self.jinja_env.get_template('web.sh.jinja2')
+        web_sh_template = self.jinja_env.get_template('web.sh')
         web_sh_output = web_sh_template.render()
         self._output_file(self.dist_directory / 'web.sh', web_sh_output)
 
     def render(self):
-        self.render_readme()
-        self.render_package()
-        self.render_tests()
-        self.render_entry_scripts()
-        self.render_env()
-        self.render_dockerfiles()
+        try:
+            self.render_readme()
+            self.render_package()
+            self.render_tests()
+            self.render_entry_scripts()
+            self.render_env()
+            self.render_dockerfiles()
+        except (TemplateSyntaxError) as e:
+            breakpoint()
+            debug_path = e.name.replace('/', '-') + '.jinja2'
+            print(f'Jinja2 template error: {e}')
+            print(f'debug file written: {debug_path}')
+            with open(debug_path, 'w+') as f:
+                f.write(e.source)
+            raise e
+            raise SystemExit(1)
+
+
+class MTemplateExtractor:
+
+    def __init__(self, path:str|Path) -> None:
+        self.path = Path(path)
+        self.template = ''
+        self.template_lines = []
+        self.template_vars = {}
+
+    def _parse_vars_line(self, line:str, line_no:int):
+        try:
+            vars_str = line.split('::')[1].strip()
+            vars_decoded = json.loads(vars_str)
+            if not isinstance(vars_decoded, dict):
+                raise MTemplateError(f'vars must be a json object not "{type(vars_decoded).__name__}" on line {line_no}')
+            
+            self.template_vars.update(vars_decoded)
+
+        except json.JSONDecodeError as e:
+            raise MTemplateError(f'caught JSONDecodeError in vars definition on line {line_no} | {e}')
+
+    def _parse_for_lines(self, definition_line:str, lines:list[str], start_line_no:int):
+
+        # parse for loop definition #
+
+        try:
+            definition_split = definition_line.split('::')
+            jinja_line = definition_split[1]
+
+        except IndexError:
+            raise MTemplateError(f'for loop definition mmissing jinja loop syntax on {start_line_no}')
+        
+        # parse block vars #
+
+        try:
+            block_vars = json.loads(definition_split[2].strip())
+            if not isinstance(block_vars, dict):
+                raise MTemplateError(f'vars must be a json object not "{type(block_vars).__name__}" on line {start_line_no}')
+            
+            self.template_vars.update(block_vars)
+
+        except IndexError:
+            """no vars defined for block, ignore exception"""
+
+        except json.JSONDecodeError as e:
+            raise MTemplateError(f'caught JSONDecodeError in vars definition on line {start_line_no} | {e}')
+        
+        # append lines to template #
+
+        self.template_lines.append(jinja_line.strip() + '\n')
+
+        for line in lines:
+            new_line = line 
+            for key, value in block_vars.items():
+                new_line = new_line.replace(key, '{{ ' + value + ' }}')
+            self.template_lines.append(new_line)
+        
+        self.template_lines.append('{% endfor %}\n')
+
+    def create_template(self) -> str:
+        template = ''.join(self.template_lines)
+        for key, value in self.template_vars.items():
+            template = template.replace(key, '{{ ' + value + ' }}')
+        return template
+
+    def write(self, path:str|Path):
+        with open(path, 'w+') as f:
+            f.write(self.create_template())
+
+    def parse(self):
+
+        with open(self.path, 'r') as f:
+            line_no = 0
+
+            # iter over each line of file #
+
+            for line in f:
+                line_no += 1
+                line_stripped = line.strip()
+
+                # vars line #
+
+                if line_stripped.startswith('# vars :: '):
+                    self._parse_vars_line(line_stripped, line_no)
+
+                # for loop #
+
+                elif line_stripped.startswith('# for :: '):
+                    for_lines = []
+                    start_line_no = line_no
+
+                    while True:
+
+                        # seek ahead to each line in for loop #
+
+                        next_line = next(f)
+                        next_line_strippped = next_line.strip()
+                        line_no += 1
+
+                        if next_line == '':
+                            raise MTemplateError(f'Unterminated for loop starting on line {start_line_no}')
+                        
+                        if next_line_strippped == '# endfor ::':
+                            break
+
+                        for_lines.append(next_line)
+                    
+                    self._parse_for_lines(line_stripped, for_lines, start_line_no)
+
+                # end for #
+                
+                elif line_stripped.startswith('# endfor ::'):
+                    raise MTemplateError(f'endfor without beginning for statement on line {line_no}')
+            
+                else:
+                    self.template_lines.append(line)
+    @classmethod
+    def template_from_file(cls, path:str|Path) -> str:
+        instance = cls(path)
+        instance.parse()
+        return instance.create_template()

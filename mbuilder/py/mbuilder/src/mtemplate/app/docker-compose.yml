@@ -1,3 +1,4 @@
+# vars :: {"sample_app":"package_name"}
 version: '3.8'
 name: sample_app
 

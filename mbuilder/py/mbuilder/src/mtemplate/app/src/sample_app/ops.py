@@ -5,6 +5,8 @@ from mcore.models import *
 from mcore.errors import MStackUserError, NotFoundError
 from sample_app.models import *
 
+# vars :: {"sample_app":"package_name", "SAMP": "env_var_prefix", "SampOps": "ops_class_name"}
+
 __all__ = [
     'SAMP_SDK_DEFAULT_LIST_OFFSET',
     'SAMP_SDK_DEFAULT_LIST_SIZE',
@@ -16,6 +18,7 @@ SAMP_SDK_DEFAULT_LIST_SIZE = os.environ.get('SAMP_SDK_DEFAULT_LIST_SIZE', 50)
 
 class SampOps(MCoreOps):
 
+    # for :: {% for model in models %} :: {"sample_item": "model.snake_case", "sample item": "model.lower_case"}
     # sample item
 
     def create_sample_item(self, creator:SampleItemCreator, logged_in_user:User) -> SampleItem:
@@ -37,6 +40,7 @@ class SampOps(MCoreOps):
             return
 
         if sample_item.user_cid != logged_in_user.cid:
-            raise MStackUserError(f'User {logged_in_user.cid} does not have permission to delete sample item {sample_item.cid}')
+            raise MStackUserError(f'User {logged_in_user.cid} does not have permission to delete sample item ' + sample_item.cid)
         
         self.db.delete(SampleItem, id=id, cid=cid)
+    # endfor ::

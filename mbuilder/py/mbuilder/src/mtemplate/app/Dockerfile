@@ -1,4 +1,4 @@
-# hello.world
+# vars :: {"sample_app":"package_name"}
 FROM python:3.12.0-alpine3.18
 
 WORKDIR /app
@@ -11,6 +11,7 @@ RUN pip install --upgrade pip
 
 # mstack
 COPY ./samples /app/samples/
+# replace the below with a git clone, eventually to be replaced with a pip install
 COPY ./medium-stack /app/medium-stack/
 COPY ./pytest.ini /app/
 

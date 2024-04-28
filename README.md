@@ -29,6 +29,8 @@
     + 🔴 ops unittests
 
 * 🔴 upgrade dockerfile(s) to python 3.12.3
+    * 🔴 check if deps still needed
+    * 🔴 check pytest warnings
 
 + 🟡 update client to have matching ops api
     + 🟡 update client unittests

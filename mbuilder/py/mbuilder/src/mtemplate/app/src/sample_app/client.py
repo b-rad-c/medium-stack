@@ -9,6 +9,8 @@ from sample_app.models import *
 
 import requests
 
+# vars :: {"sample_app":"package_name", "SAMP": "env_var_prefix", "SampClient": "client_class_name"}
+
 
 __all__ = [
     'SampClient',
@@ -23,7 +25,7 @@ SAMP_API_PREFIX = os.environ.get('SAMP_API_PREFIX', 'api/v0')
 class SampClientError(MStackClientError):
     pass
 
-    
+
 class SampClient(MStackClient):
 
     def __init__(self):
@@ -37,6 +39,7 @@ class SampClient(MStackClient):
         except MStackClientError as e:
             raise SampClientError(str(e), e.url, e.exc, e.response)
 
+    # for :: {% for model in models %} :: {"sample_item": "model.snake_case", "sample item": "model.lower_case"}
     # sample item #
 
     def create_sample_item(self, creator: SampleItemCreator) -> SampleItem:
@@ -54,3 +57,4 @@ class SampClient(MStackClient):
     def list_sample_items(self, offset:int=0, size:int=50) -> List[SampleItem]:
         data = self._get('samp/sample-item', params={'offset': offset, 'size': size})
         return [SampleItem(**sample_item) for sample_item in data]
+    # endfor ::

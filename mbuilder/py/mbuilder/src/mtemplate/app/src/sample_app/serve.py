@@ -10,9 +10,12 @@ from fastapi import APIRouter, Depends
 from typing import List
 from os.path import join
 
-sample_app_router = APIRouter(tags=['Sample App'])
+# vars :: {"sample_app":"package_name", "sample app": "model.lower_case", "SampOps": "ops_class_name"}
+
+sample_app_router = APIRouter(tags=['sample app'])
 ops = SampOps()
 
+# for :: {% for model in models %} :: {"sample_item": "model.snake_case", "sample item": "model.lower_case"}
 # sample item #
 
 @sample_app_router.post('/sample-item', response_model=SampleItem, response_model_by_alias=False)
@@ -30,5 +33,6 @@ async def read_sample_item(id_type:ModelIdType, id:str):
 @sample_app_router.delete('/sample-item/{id_type}/{id}', status_code=201)
 async def delete_sample_item(id_type:ModelIdType, id:str, user:User = Depends(current_user)):
     return ops.delete_sample_item(user, **{id_type.value: id})
+# endfor ::
 
 app.include_router(sample_app_router, prefix=join(MSERVE_API_PREFIX, 'samp'))
