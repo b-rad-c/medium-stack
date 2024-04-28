@@ -2,9 +2,12 @@
 import argparse
 from mtemplate import *
 
-def render(config_path:str):
+def render(config_path:str, debug:bool=False):
     project = MTemplateProject(config_path)
-    project.render()
+    if debug:
+        project.render_debug()
+    else:
+        project.render()
 
 def extract(source:str, output:str):
     extractor = MTemplateExtractor(source)
@@ -22,6 +25,7 @@ parser = argparse.ArgumentParser(description='Medium Stack templating engine')
 parser.add_argument('command', choices=['render', 'extract'], help='Which command to run')
 
 _default_config_path = './mtemplate.conf'
+parser.add_argument('--debug', '-d', help='Debug mode', action='store_true')
 parser.add_argument('--config', '-c', help=f'Path to project config file: {_default_config_path}', default=_default_config_path, type=str)
 parser.add_argument('--source', '-s', help='Supply source path', default='.', type=str)
 parser.add_argument('--output', '-o', help='Supply path for output or - for stdout', default='-', type=str)
@@ -31,7 +35,7 @@ args = parser.parse_args()
 match args.command:
     case 'render':
         try:
-            render(args.config)
+            render(args.config, args.debug)
         except MTemplateError as e:
             print(e)
             raise SystemExit(1)

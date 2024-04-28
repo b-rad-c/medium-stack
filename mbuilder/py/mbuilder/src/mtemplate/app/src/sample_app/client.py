@@ -39,7 +39,7 @@ class SampClient(MStackClient):
         except MStackClientError as e:
             raise SampClientError(str(e), e.url, e.exc, e.response)
 
-    # for :: {% for model in models %} :: {"sample_item": "model.snake_case", "sample item": "model.lower_case"}
+    # for :: {% for model in models %} :: {"sample_item": "model.snake_case", "sample item": "model.lower_case", "SampleItem": "model.pascal_case"}
     # sample item #
 
     def create_sample_item(self, creator: SampleItemCreator) -> SampleItem:

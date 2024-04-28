@@ -18,7 +18,7 @@
             * is different than the dockerfile in mapplication/mtemplate/app
         * 🟢 create `sample_app` specific unittests
     * 🟡 template extraction
-        * 🟡 add extractor to mtemplate package
+        * 🟢 add extractor to mtemplate package
         * 🟡 update generator to use extracted templates
         * 🔴 generated app + unittests are passing
     * 🔴 refactor unittests?

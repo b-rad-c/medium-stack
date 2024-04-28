@@ -5,12 +5,12 @@ import importlib
 
 from pathlib import Path
 from configparser import ConfigParser
+from typing import Generator
 
 from mcore.types import ContentId
 from mcore.models import ContentModel
 
 from jinja2 import Environment, FunctionLoader
-from jinja2.exceptions import TemplateSyntaxError, UndefinedError
 from pydantic import BaseModel
 from bson import ObjectId
 
@@ -152,6 +152,8 @@ class SourceModelList:
 
 class MTemplateProject:
 
+    template_root = Path(__file__).parent / 'app'
+
     def __init__(self, config_path:Path | str) -> None:
 
         # load conf #
@@ -177,9 +179,7 @@ class MTemplateProject:
 
         # jinja env #
 
-        template_root = Path(__file__).parent / 'app'
-
-        loader = lambda template_name: MTemplateExtractor.template_from_file(template_root / template_name)
+        loader = lambda name: MTemplateExtractor.template_from_file(self.template_root / name)
 
         self.jinja_env = Environment(
             autoescape=False,
@@ -202,12 +202,24 @@ class MTemplateProject:
         if not 'client_class_name' in self.jinja_env.globals:
             raise KeyError(f'client_class_name must be defined in global_template_variables in mtemplate config file')
     
-    
     def _output_file(self, path:Path, output:str):
         os.makedirs(path.parent, exist_ok=True)
 
         with open(path, 'w+') as f:
             f.write(output)
+
+    def template_files(self) -> Generator[Path, None, None]:
+        template_dirs = [
+            self.template_root,
+            self.template_root / 'src' / 'sample_app',
+        ]
+
+        for template_dir in template_dirs:
+            for path in os.scandir(template_dir):
+                if path.is_file():
+                    if path.name == '.DS_Store':
+                        continue
+                    yield Path(path.path).relative_to(self.template_root)
 
     def render_models(self):
         src = self.models.module_file
@@ -234,7 +246,7 @@ class MTemplateProject:
         self._output_file(self.dist_directory / 'pyproject.toml', output)
 
     def render_readme(self):
-        template = self.jinja_env.get_template('readme.md')
+        template = self.jinja_env.get_template('README.md')
         output = template.render()
         self._output_file(self.dist_directory / 'README.md', output)
 
@@ -250,7 +262,7 @@ class MTemplateProject:
         self.render_serve()
 
     def render_tests(self):
-        template_test_directory = Path(__file__).parent.parent.parent.parent / 'tests'
+        template_test_directory = self.template_root / 'tests'
         shutil.copytree(template_test_directory, self.dist_directory / 'tests')
 
     def render_env(self):
@@ -284,23 +296,19 @@ class MTemplateProject:
         web_sh_output = web_sh_template.render()
         self._output_file(self.dist_directory / 'web.sh', web_sh_output)
 
+    def render_debug(self):
+        for path in self.template_files():
+            jinja_template = MTemplateExtractor.template_from_file(self.template_root / path)
+            output_path = self.dist_directory / path.with_name(path.name + '.jinja2')
+            self._output_file(output_path, jinja_template)
+
     def render(self):
-        try:
-            self.render_readme()
-            self.render_package()
-            self.render_tests()
-            self.render_entry_scripts()
-            self.render_env()
-            self.render_dockerfiles()
-        except (TemplateSyntaxError) as e:
-            breakpoint()
-            debug_path = e.name.replace('/', '-') + '.jinja2'
-            print(f'Jinja2 template error: {e}')
-            print(f'debug file written: {debug_path}')
-            with open(debug_path, 'w+') as f:
-                f.write(e.source)
-            raise e
-            raise SystemExit(1)
+        self.render_readme()
+        self.render_package()
+        self.render_tests()
+        self.render_entry_scripts()
+        self.render_env()
+        self.render_dockerfiles()
 
 
 class MTemplateExtractor:

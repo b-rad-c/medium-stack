@@ -18,7 +18,7 @@ SAMP_SDK_DEFAULT_LIST_SIZE = os.environ.get('SAMP_SDK_DEFAULT_LIST_SIZE', 50)
 
 class SampOps(MCoreOps):
 
-    # for :: {% for model in models %} :: {"sample_item": "model.snake_case", "sample item": "model.lower_case"}
+    # for :: {% for model in models %} :: {"sample_item": "model.snake_case", "sample item": "model.lower_case", "SampleItem": "model.pascal_case"}
     # sample item
 
     def create_sample_item(self, creator:SampleItemCreator, logged_in_user:User) -> SampleItem:
