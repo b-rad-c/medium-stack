@@ -1,1 +1,1 @@
-These tests to verify example apps can be built and pass their tests
+Create tests to verify example app(s) can be generated and pass tests

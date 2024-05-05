@@ -20,6 +20,7 @@
     * 🟡 template extraction
         * 🟢 add extractor to mtemplate package
         * 🟡 update generator to use extracted templates
+            * move samples to mbuilder/app, update root level docker file
         * 🔴 generated app + unittests are passing
     * 🔴 refactor unittests?
 
