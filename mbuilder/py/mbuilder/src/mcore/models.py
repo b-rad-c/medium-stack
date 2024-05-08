@@ -27,6 +27,7 @@ from pydantic import (
 from mcore.types import ContentId, MongoId, id_schema, db_id_kwargs, cid_kwargs, ContentIdType
 
 __all__ = [
+    'init_storage_directories',
     'mediainfo',
 
     'ContentModel',
@@ -109,6 +110,11 @@ ProfileCid = Annotated[ContentIdType, id_schema('a string representing a profile
 MEDIAINFO_LIB_PATH = os.environ.get('MEDIAINFO_LIB_PATH', '')   # '/opt/homebrew/Cellar/libmediainfo/23.09/lib/libmediainfo.dylib'
 MSERVE_LOCAL_STORAGE_DIRECTORY = os.environ.get('MSERVE_LOCAL_STORAGE_DIRECTORY', '/app/data/files')
 MSERVE_LOCAL_UPLOAD_DIRECTORY = os.environ.get('MSERVE_LOCAL_UPLOAD_DIRECTORY', '/app/data/uploads')
+
+def init_storage_directories():
+    for directory in [MSERVE_LOCAL_STORAGE_DIRECTORY, MSERVE_LOCAL_UPLOAD_DIRECTORY]:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
 def mediainfo(path: Union[str, Path]) -> MediaInfo:
     library_file = None if MEDIAINFO_LIB_PATH == '' else MEDIAINFO_LIB_PATH

@@ -6,7 +6,7 @@ from os.path import join
 
 from mserve.core import core_router
 from mcore.util import utc_now
-from mcore.models import MSERVE_LOCAL_STORAGE_DIRECTORY
+from mcore.models import MSERVE_LOCAL_STORAGE_DIRECTORY, init_storage_directories
 from mcore.errors import NotFoundError, MStackAuthenticationError, MStackUserError
 
 from fastapi import FastAPI, APIRouter, Request, HTTPException, status
@@ -95,6 +95,7 @@ async def exception_wrapper(request: Request, call_next):
         return JSONResponse(status_code=500, content={'detail': 'Internal Server Error'})
 
 if MSERVE_STATIC_FILES:
+    init_storage_directories()
     app.mount('/files', StaticFiles(directory=MSERVE_LOCAL_STORAGE_DIRECTORY), name='static')
 
 if MSERVE_INCLUDE_MAIN:
