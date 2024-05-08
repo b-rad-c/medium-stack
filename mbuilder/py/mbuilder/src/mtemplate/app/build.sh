@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# vars :: {"sample_app/latest":"docker_image_tag"}
+# vars :: {"sample_img/latest":"docker_image_tag"}
 
 git clone https://github.com/b-rad-c/medium-stack.git
 
@@ -21,6 +21,6 @@ fi
 
 cd ..
 
-docker build . -t sample_app/latest --no-cache
+docker build . -t sample_img/latest --no-cache
 
 exit $?
