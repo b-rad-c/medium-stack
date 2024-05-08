@@ -10,19 +10,18 @@ RUN apk add --virtual .tmp-build-deps build-base gcc python3-dev musl-dev libffi
 RUN pip install --upgrade pip
 
 # mstack
-COPY ./samples /app/samples/
-# replace the below with a git clone, eventually to be replaced with a pip install
-COPY ./medium-stack /app/medium-stack/
-COPY ./pytest.ini /app/
+COPY ./medium-stack/samples /app/samples/
+COPY ./medium-stack/pytest.ini /app/
+COPY ./medium-stack/mbuilder/py/mbuilder /app/mbuilder
 
-RUN pip install -e ./medium-stack/mstack
-RUN pip install -r medium-stack/requirements-dev.txt
+WORKDIR /app/mbuilder
+RUN pip install -r requirements-dev.txt
 
 # delete temp deps
 RUN apk del .tmp-build-deps
 
-COPY ./sample_app/dist /app/sample_app
-RUN pip install -e /app/sample_app
+COPY ./src/sample_app /app/sample_app
+RUN pip install -e .
 
 # run
 EXPOSE 8000

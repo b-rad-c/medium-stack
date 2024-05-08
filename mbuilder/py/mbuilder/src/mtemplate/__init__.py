@@ -173,10 +173,6 @@ class MTemplateProject:
         package_name = self.config['global_template_variables']['package_name']
         self.dist_package = self.dist_directory / 'src' / package_name
 
-        # reset dist #
-
-        shutil.rmtree(self.dist_directory, ignore_errors=True)
-
         # jinja env #
 
         loader = lambda name: MTemplateExtractor.template_from_file(self.template_root / name)
@@ -201,6 +197,9 @@ class MTemplateProject:
         
         if not 'client_class_name' in self.jinja_env.globals:
             raise KeyError(f'client_class_name must be defined in global_template_variables in mtemplate config file')
+        
+    def _reset_output(self):
+        shutil.rmtree(self.dist_directory, ignore_errors=True)
     
     def _output_file(self, path:Path, output:str):
         os.makedirs(path.parent, exist_ok=True)
@@ -275,6 +274,10 @@ class MTemplateProject:
         self._output_file(self.dist_directory / '.gitignore', output)
 
     def render_dockerfiles(self):
+        template = self.jinja_env.get_template('build.sh')
+        output = template.render()
+        self._output_file(self.dist_directory / 'build.sh', output)
+
         template = self.jinja_env.get_template('Dockerfile')
         output = template.render()
         self._output_file(self.dist_directory / 'Dockerfile', output)
@@ -297,12 +300,14 @@ class MTemplateProject:
         self._output_file(self.dist_directory / 'web.sh', web_sh_output)
 
     def render_debug(self):
+        self._reset_output()
         for path in self.template_files():
             jinja_template = MTemplateExtractor.template_from_file(self.template_root / path)
             output_path = self.dist_directory / path.with_name(path.name + '.jinja2')
             self._output_file(output_path, jinja_template)
 
     def render(self):
+        self._reset_output()
         self.render_readme()
         self.render_package()
         self.render_tests()

@@ -1,4 +1,4 @@
-# vars :: {"sample_app":"package_name"}
+# vars :: {"sample_app":"package_name", "sample_app/latest":"docker_image_tag"}
 version: '3.8'
 name: sample_app
 
