@@ -21,6 +21,6 @@ fi
 
 cd ..
 
-docker build . -t sample_app/latest
+docker build . -t sample_app/latest --no-cache
 
 exit $?

@@ -170,8 +170,8 @@ class MTemplateProject:
 
         self.models = SourceModelList(self.config['mtemplate']['models'])
         self.dist_directory = Path(self.config['mtemplate']['output'])
-        package_name = self.config['global_template_variables']['package_name']
-        self.dist_package = self.dist_directory / 'src' / package_name
+        self.package_name = self.config['global_template_variables']['package_name']
+        self.dist_package = self.dist_directory / 'src' / self.package_name
 
         # jinja env #
 
@@ -180,8 +180,6 @@ class MTemplateProject:
         self.jinja_env = Environment(
             autoescape=False,
             loader=FunctionLoader(loader)
-            # loader=PackageLoader('mtemplate', 'templates')
-            # loader=FileSystemLoader(self.config_path.parent / 'templates')
         )
 
         try:
@@ -189,14 +187,21 @@ class MTemplateProject:
         except KeyError:
             raise KeyError(f'global_template_variables must be defined in mtemplate config file')
         
-        if not 'env_var_prefix' in self.jinja_env.globals:
-            raise KeyError(f'env_var_prefix must be defined in global_template_variables in mtemplate config file')
+        required_globals = [
+            'package_name',
+            'env_var_prefix',
+            'ops_class_name',
+            'client_class_name',
+            'api_prefix',
+            'docker_image_tag',
+            'author_name',
+            'author_email',
+        ]
+
+        for required_global in required_globals:
+            if not required_global in self.jinja_env.globals:
+                raise KeyError(f'"{required_global}" must be defined in "global_template_variables" in mtemplate config file')
         
-        if not 'ops_class_name' in self.jinja_env.globals:
-            raise KeyError(f'ops_class_name must be defined in global_template_variables in mtemplate config file')
-        
-        if not 'client_class_name' in self.jinja_env.globals:
-            raise KeyError(f'client_class_name must be defined in global_template_variables in mtemplate config file')
         
     def _reset_output(self):
         shutil.rmtree(self.dist_directory, ignore_errors=True)
@@ -207,18 +212,69 @@ class MTemplateProject:
         with open(path, 'w+') as f:
             f.write(output)
 
+    def render2(self, debug:bool=False):
+        self._reset_output()
+
+        # copy source models file #
+        
+        models_file_src = self.models.module_file
+        models_file_dest = self.dist_package / models_file_src.name
+
+        os.makedirs(models_file_dest.parent, exist_ok=True)
+        shutil.copy(models_file_src, models_file_dest)
+
+        # render template files #
+
+        for template_file in self.template_files():
+            template_src_path = self.template_root / template_file
+
+            replaced_path = Path(template_file.as_posix().replace('sample_app', self.package_name))
+            template_out_path = self.dist_directory / replaced_path
+            
+            if debug:
+                debug_output_path = template_out_path.with_name(template_out_path.name + '.jinja2')
+                jinja_template = MTemplateExtractor.template_from_file(template_src_path)
+                self._output_file(debug_output_path, jinja_template)
+
+            else:
+                jinja_template = self.jinja_env.get_template(template_file.as_posix())
+                rendered_template = jinja_template.render()
+                self._output_file(template_out_path, rendered_template)
+
+        # copy binary files #
+            
+        for binary_file in self.binary_files():
+            src_path = self.template_root / binary_file
+            out_path = self.dist_directory / binary_file
+            os.makedirs(out_path.parent, exist_ok=True)
+            shutil.copy(src_path, out_path)
+
+    def _file_ls(self, path:Path):
+        for entry in os.scandir(path):
+            if entry.is_file():
+                if entry.name == '.DS_Store':
+                    continue
+                yield Path(entry.path).relative_to(self.template_root)
+
     def template_files(self) -> Generator[Path, None, None]:
         template_dirs = [
             self.template_root,
             self.template_root / 'src' / 'sample_app',
+            self.template_root / 'tests' / 'mcore',
+            self.template_root / 'tests' / 'sample_app',
         ]
 
+        # models file should be ignored bc its not a template, 
+        # it will be replaced by the useres models file
+        ignore = Path('src/sample_app/models.py')
+
         for template_dir in template_dirs:
-            for path in os.scandir(template_dir):
-                if path.is_file():
-                    if path.name == '.DS_Store':
-                        continue
-                    yield Path(path.path).relative_to(self.template_root)
+            for entry in self._file_ls(template_dir):
+                if entry != ignore:
+                    yield entry
+    
+    def binary_files(self):
+        yield from self._file_ls(self.template_root / 'tests' / 'samples')
 
     def render_models(self):
         src = self.models.module_file
@@ -410,13 +466,14 @@ class MTemplateExtractor:
 
                         # seek ahead to each line in for loop #
 
-                        next_line = next(f)
+                        try:
+                            next_line = next(f)
+                        except StopIteration:
+                            raise MTemplateError(f'Unterminated for loop starting on line {start_line_no} of {self.path}')
+                        
                         next_line_strippped = next_line.strip()
                         line_no += 1
-
-                        if next_line == '':
-                            raise MTemplateError(f'Unterminated for loop starting on line {start_line_no}')
-                        
+                            
                         if next_line_strippped == '# endfor ::':
                             break
 

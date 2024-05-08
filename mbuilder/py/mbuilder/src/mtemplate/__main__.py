@@ -9,6 +9,10 @@ def render(config_path:str, debug:bool=False):
     else:
         project.render()
 
+def render2(config_path:str, debug:bool=False):
+    project = MTemplateProject(config_path)
+    project.render2(debug)
+
 def extract(source:str, output:str):
     extractor = MTemplateExtractor(source)
     extractor.parse()
@@ -22,7 +26,7 @@ def extract(source:str, output:str):
 #
 
 parser = argparse.ArgumentParser(description='Medium Stack templating engine')
-parser.add_argument('command', choices=['render', 'extract'], help='Which command to run')
+parser.add_argument('command', choices=['render', 'extract', 'render2'], help='Which command to run')
 
 _default_config_path = './mtemplate.conf'
 parser.add_argument('--debug', '-d', help='Debug mode', action='store_true')
@@ -36,6 +40,12 @@ match args.command:
     case 'render':
         try:
             render(args.config, args.debug)
+        except MTemplateError as e:
+            print(e)
+            raise SystemExit(1)
+    case 'render2':
+        try:
+            render2(args.config, args.debug)
         except MTemplateError as e:
             print(e)
             raise SystemExit(1)
