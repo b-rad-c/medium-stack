@@ -9,7 +9,7 @@ RUN apk add mediainfo
 RUN apk add --virtual .tmp-build-deps build-base gcc python3-dev musl-dev libffi-dev openssl-dev  
 RUN pip install --upgrade pip
 
-# mstack
+# install mstack
 COPY ./medium-stack/samples /app/samples/
 COPY ./medium-stack/pytest.ini /app/
 COPY ./medium-stack/mbuilder/py/mbuilder /app/mbuilder
@@ -23,7 +23,12 @@ RUN apk del .tmp-build-deps
 COPY ./src/sample_app /app/sample_app
 RUN pip install -e .
 
+# install  sample_app
+
+COPY . /app/sample_app
+WORKDIR /app/sample_app
+RUN pip install -e .
+
 # run
 EXPOSE 8000
-WORKDIR /app/sample_app
 CMD ["/bin/sh", "web.sh"]
