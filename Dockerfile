@@ -18,6 +18,7 @@ COPY ./pytest.ini /app
 
 WORKDIR /app/mbuilder/py/mbuilder/
 RUN pip install -r requirements-dev.txt
+RUN pip install -e ./src/mtemplate/app
 
 # delete temp deps
 RUN apk del .tmp-build-deps
