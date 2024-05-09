@@ -1,5 +1,6 @@
 import os
 import json
+import stat
 import shutil
 import importlib
 
@@ -7,11 +8,12 @@ from pathlib import Path
 from configparser import ConfigParser
 from typing import Generator
 
+from mcore.util import example_model, example_cid
 from mcore.types import ContentId
 from mcore.models import ContentModel
 
-from jinja2 import Environment, FunctionLoader
-from pydantic import BaseModel
+from jinja2 import Environment, FunctionLoader, StrictUndefined, UndefinedError
+from pydantic import BaseModel, ValidationError
 from bson import ObjectId
 
 __all__ = [
@@ -38,6 +40,8 @@ class SourceModel(BaseModel):
     pascal_case:str
     lower_case:str
 
+    example_cid_hash:str
+    example_cid_size:int
 
     @classmethod
     def from_model_type(cls, model_type:BaseModel | ContentModel) -> 'SourceModel':
@@ -50,19 +54,17 @@ class SourceModel(BaseModel):
         if pascal_case != model_type.__name__:
             raise ValueError(f'model name must be in pascal case, expected: {pascal_case} got: {model_type.__name__}')
         
-        if model_type.ENDPOINT is True:
-            endpoint = f'/{kebab_case}'
-        elif isinstance(model_type.ENDPOINT, str):
+        try:
             endpoint = model_type.ENDPOINT
-        else:
+        except AttributeError:
             endpoint = None
 
-        if model_type.DB is True:
-            db_name = snake_case
-        elif isinstance(model_type.DB, str):
-            db_name = model_type.DB
-        else:
+        try:
+            db_name = model_type.DB_NAME
+        except AttributeError:
             db_name = None
+
+        cid = example_cid(model_type)
 
         kwargs = {
             'type': pascal_case,
@@ -78,6 +80,9 @@ class SourceModel(BaseModel):
             'camel_case': camel_case,
             'pascal_case': pascal_case,
             'lower_case': model_type.LOWER_CASE,
+
+            'example_cid_hash': cid.hash,
+            'example_cid_size': cid.size,
         }
         return cls(**kwargs)
 
@@ -113,7 +118,10 @@ class SourceModelList:
             # print(is_base_model, is_content_model, name)
 
             if is_base_model and is_content_model:
-                source_model = SourceModel.from_model_type(model)
+                try:
+                    source_model = SourceModel.from_model_type(model)
+                except ValidationError as e:
+                    raise ValueError(f'error creating source model from {name} | {e}')
 
                 # verify cid type #
 
@@ -143,9 +151,11 @@ class SourceModelList:
                 
                 self.models.append(source_model)
 
+    @property
     def with_endpoint(self) -> list[SourceModel]:
         return filter(lambda model: model.endpoint is not None, self.models)
     
+    @property
     def with_db(self) -> list[SourceModel]:
         return filter(lambda model: model.db_name is not None, self.models)
 
@@ -179,11 +189,13 @@ class MTemplateProject:
 
         self.jinja_env = Environment(
             autoescape=False,
-            loader=FunctionLoader(loader)
+            loader=FunctionLoader(loader),
+            undefined=StrictUndefined
         )
 
         try:
             self.jinja_env.globals = dict(self.config['global_template_variables'])
+            self.jinja_env.globals['models'] = self.models
         except KeyError:
             raise KeyError(f'global_template_variables must be defined in mtemplate config file')
         
@@ -201,8 +213,7 @@ class MTemplateProject:
         for required_global in required_globals:
             if not required_global in self.jinja_env.globals:
                 raise KeyError(f'"{required_global}" must be defined in "global_template_variables" in mtemplate config file')
-        
-        
+             
     def _reset_output(self):
         shutil.rmtree(self.dist_directory, ignore_errors=True)
     
@@ -212,11 +223,39 @@ class MTemplateProject:
         with open(path, 'w+') as f:
             f.write(output)
 
-    def render2(self, debug:bool=False):
+    def _file_ls(self, path:Path):
+        for entry in os.scandir(path):
+            if entry.is_file():
+                if entry.name == '.DS_Store':
+                    continue
+                yield Path(entry.path).relative_to(self.template_root)
+
+    def template_files(self) -> Generator[Path, None, None]:
+        template_dirs = [
+            self.template_root,
+            self.template_root / 'src' / 'sample_app',
+            self.template_root / 'tests',
+            self.template_root / 'tests' / 'mcore',
+            self.template_root / 'tests' / 'sample_app',
+        ]
+
+        # models file should be ignored bc its not a template, 
+        # it will be replaced by the useres models file
+        ignore = Path('src/sample_app/models.py')
+
+        for template_dir in template_dirs:
+            for entry in self._file_ls(template_dir):
+                if entry != ignore:
+                    yield entry
+    
+    def binary_files(self):
+        yield from self._file_ls(self.template_root / 'tests' / 'samples')
+
+    def render(self, debug:bool=False):
         self._reset_output()
 
         # copy source models file #
-        
+
         models_file_src = self.models.module_file
         models_file_dest = self.dist_package / models_file_src.name
 
@@ -238,7 +277,11 @@ class MTemplateProject:
 
             else:
                 jinja_template = self.jinja_env.get_template(template_file.as_posix())
-                rendered_template = jinja_template.render()
+                try:
+                    rendered_template = jinja_template.render()
+                except UndefinedError as e:
+                    raise UndefinedError(f'{e} in template {template_file}')
+                
                 self._output_file(template_out_path, rendered_template)
 
         # copy binary files #
@@ -249,129 +292,12 @@ class MTemplateProject:
             os.makedirs(out_path.parent, exist_ok=True)
             shutil.copy(src_path, out_path)
 
-    def _file_ls(self, path:Path):
-        for entry in os.scandir(path):
-            if entry.is_file():
-                if entry.name == '.DS_Store':
-                    continue
-                yield Path(entry.path).relative_to(self.template_root)
+        # make build script executable #
+        
+        build_script = self.dist_directory / 'build.sh'
+        os.chmod(build_script, os.stat(build_script).st_mode | stat.S_IXUSR)
 
-    def template_files(self) -> Generator[Path, None, None]:
-        template_dirs = [
-            self.template_root,
-            self.template_root / 'src' / 'sample_app',
-            self.template_root / 'tests' / 'mcore',
-            self.template_root / 'tests' / 'sample_app',
-        ]
-
-        # models file should be ignored bc its not a template, 
-        # it will be replaced by the useres models file
-        ignore = Path('src/sample_app/models.py')
-
-        for template_dir in template_dirs:
-            for entry in self._file_ls(template_dir):
-                if entry != ignore:
-                    yield entry
     
-    def binary_files(self):
-        yield from self._file_ls(self.template_root / 'tests' / 'samples')
-
-    def render_models(self):
-        src = self.models.module_file
-        shutil.copy(src, self.dist_package / src.name)
-
-    def render_client(self):
-        template = self.jinja_env.get_template('src/sample_app/client.py')
-        output = template.render(models=self.models.with_db())
-        self._output_file(self.dist_package / 'client.py', output)
-
-    def render_ops(self):
-        template = self.jinja_env.get_template('src/sample_app/ops.py')
-        output = template.render(models=self.models.with_endpoint())
-        self._output_file(self.dist_package / 'ops.py', output)
-
-    def render_serve(self):
-        template = self.jinja_env.get_template('src/sample_app/serve.py')
-        output = template.render(models=self.models.with_endpoint())
-        self._output_file(self.dist_package / 'serve.py', output)
-
-    def render_pyproject_toml(self):
-        template = self.jinja_env.get_template('pyproject.toml')
-        output = template.render()
-        self._output_file(self.dist_directory / 'pyproject.toml', output)
-
-    def render_readme(self):
-        template = self.jinja_env.get_template('README.md')
-        output = template.render()
-        self._output_file(self.dist_directory / 'README.md', output)
-
-    def render_package(self):
-        init_file = self.dist_package / '__init__.py'
-        os.makedirs(self.dist_package, exist_ok=True)
-        init_file.touch()
-
-        self.render_pyproject_toml()
-        self.render_models()
-        self.render_client()
-        self.render_ops()
-        self.render_serve()
-
-    def render_tests(self):
-        template_test_directory = self.template_root / 'tests'
-        shutil.copytree(template_test_directory, self.dist_directory / 'tests')
-
-    def render_env(self):
-        template = self.jinja_env.get_template('.env')
-        output = template.render()
-        self._output_file(self.dist_directory / '.env', output)
-
-        template = self.jinja_env.get_template('.gitignore')
-        output = template.render()
-        self._output_file(self.dist_directory / '.gitignore', output)
-
-    def render_dockerfiles(self):
-        template = self.jinja_env.get_template('build.sh')
-        output = template.render()
-        self._output_file(self.dist_directory / 'build.sh', output)
-
-        template = self.jinja_env.get_template('Dockerfile')
-        output = template.render()
-        self._output_file(self.dist_directory / 'Dockerfile', output)
-
-        template = self.jinja_env.get_template('docker-compose.yml')
-        output = template.render()
-        self._output_file(self.dist_directory / 'docker-compose.yml', output)
-
-        template = self.jinja_env.get_template('.dockerignore')
-        output = template.render()
-        self._output_file(self.dist_directory / '.dockerignore', output)
-
-    def render_entry_scripts(self):
-        # entry_py_template = self.jinja_env.get_template('entry.py')
-        # entry_py_output = entry_py_template.render(models=self.models.with_endpoint())
-        # self._output_file(self.dist_directory / 'entry.py', entry_py_output)
-
-        web_sh_template = self.jinja_env.get_template('web.sh')
-        web_sh_output = web_sh_template.render()
-        self._output_file(self.dist_directory / 'web.sh', web_sh_output)
-
-    def render_debug(self):
-        self._reset_output()
-        for path in self.template_files():
-            jinja_template = MTemplateExtractor.template_from_file(self.template_root / path)
-            output_path = self.dist_directory / path.with_name(path.name + '.jinja2')
-            self._output_file(output_path, jinja_template)
-
-    def render(self):
-        self._reset_output()
-        self.render_readme()
-        self.render_package()
-        self.render_tests()
-        self.render_entry_scripts()
-        self.render_env()
-        self.render_dockerfiles()
-
-
 class MTemplateExtractor:
 
     def __init__(self, path:str|Path) -> None:

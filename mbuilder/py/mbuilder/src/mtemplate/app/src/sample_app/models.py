@@ -29,8 +29,8 @@ SampleItemCid = Annotated[ContentIdType, id_schema('a string representing a samp
 
 class SampleItem(ContentModel):
     LOWER_CASE: ClassVar[str] = 'sample item'
-    DB_NAME: ClassVar[str] = 'profiles'
-    ENDPOINT: ClassVar[bool] = True
+    DB_NAME: ClassVar[str] = 'sample_items'
+    ENDPOINT: ClassVar[str] = 'sample-items'
 
     id: SampleItemId = Field(**db_id_kwargs)
     cid: SampleItemCid = Field(**cid_kwargs)

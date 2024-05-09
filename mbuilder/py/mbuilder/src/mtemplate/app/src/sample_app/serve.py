@@ -15,7 +15,7 @@ from os.path import join
 sample_app_router = APIRouter(tags=['sample_app'])
 ops = SampOps()
 
-# for :: {% for model in models %} :: {"sample_item": "model.snake_case", "sample item": "model.lower_case", "SampleItem": "model.pascal_case", "sample-item": "model.kebab_case"}
+# for :: {% for model in models.with_endpoint %} :: {"sample_item": "model.snake_case", "sample item": "model.lower_case", "SampleItem": "model.pascal_case", "sample-item": "model.kebab_case"}
 # sample item #
 
 @sample_app_router.post('/sample-item', response_model=SampleItem, response_model_by_alias=False)

@@ -4,7 +4,7 @@ from sample_app.models import *
 
 # vars :: {"sample_app":"package_name", "SampClient": "client_class_name"}
 
-# for :: {% for model in models %} :: {"sample_item": "model.snake_case", "SampleItem": "model.pascal_case"}
+# for :: {% for model in models.with_endpoint %} :: {"sample_item": "model.snake_case", "SampleItem": "model.pascal_case"}
 def test_sample_item(client:SampClient):
     _test_client_crud_ops(
         client, 

@@ -1,4 +1,9 @@
+import pytest
+from pydantic import BaseModel
+from bson import ObjectId
+
 from typing import Type, Callable
+from pathlib import Path
 
 from mcore.auth import create_new_user
 from mcore.types import ContentId
@@ -7,14 +12,9 @@ from mcore.db import MongoDB
 from mcore.errors import NotFoundError, MStackDBError
 from mcore.util import example_model, example_cid
 
+# vars :: {"sample_app": "package_name", "SampClient": "client_class_name"}
+
 from sample_app.client import SampClient
-
-from pathlib import Path
-
-import pytest
-
-from pydantic import BaseModel
-from bson import ObjectId
 
 
 __all__ = [

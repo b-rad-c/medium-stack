@@ -4,7 +4,7 @@ from sample_app.models import *
 
 # vars :: {"sample_app":"package_name", "SampleItem": "model.pascal_case"}
 
-# for :: {% for model in models %} :: {"sample_item": "model.snake_case", "bWjvPsoa7b236p5w2pUF2GUuE1kYtgEbYDh72jB7RZk": "model.example_cid", "106": "model.example_size"}
+# for :: {% for model in models %} :: {"sample_item": "model.snake_case", "bWjvPsoa7b236p5w2pUF2GUuE1kYtgEbYDh72jB7RZk": "model.example_cid_hash", "106": "model.example_cid_size"}
 def test_sample_item():
     sample_item = example_model(SampleItem)
     sample_item_cid = ContentId(hash='bWjvPsoa7b236p5w2pUF2GUuE1kYtgEbYDh72jB7RZk', size=106, ext='json')
