@@ -9,6 +9,7 @@ services:
     volumes:
       - ./samples:/app/samples/
       - ./lstack:/app/data/
+      - ./:/app/sample_app
     ports:
       - "8000:8000"
     depends_on:
@@ -30,6 +31,7 @@ services:
     volumes:
       - ./samples:/app/samples/
       - ./lstack:/app/data/
+      - ./:/app/sample_app
     command: python3 -m mserve.uploads ingest
     depends_on:
       - db
@@ -42,6 +44,7 @@ services:
     volumes:
       - ./samples:/app/samples/
       - ./lstack:/app/data/
+      - ./:/app/sample_app
     command: top
 
 volumes:

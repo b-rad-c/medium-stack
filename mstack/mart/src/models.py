@@ -531,8 +531,7 @@ class StillImageAlbum(ContentModel):
 
     id: StillImageAlbumId = Field(**db_id_kwargs)
     cid: StillImageAlbumCid = Field(**cid_kwargs)
-
-    creator_id: AnyArtistCid
+    user_cid: UserCid = Field(**cid_kwargs)
 
     title: TitleData
     credits: Credit
@@ -545,7 +544,7 @@ class StillImageAlbum(ContentModel):
                 {
                     'id': '6546a5cd1a209851b7136441',
                     'cid': '0FmUG7qtOMsnXZmePvg0SeI9ybzHgY2FUhxUFTRBmhw4425.json',
-                    'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                    'user_cid': str(example_cid(User)),
                     'title': {
                         'title': 'Old west photography'
                     },
@@ -564,8 +563,6 @@ class StillImageAlbum(ContentModel):
 class StillImageAlbumCreator(ModelCreator):
     MODEL: ClassVar[Type[StillImageAlbum]] = StillImageAlbum
 
-    creator_id: AnyArtistCid
-
     title: TitleData
     credits: Credit
     genres: GenreList
@@ -575,7 +572,6 @@ class StillImageAlbumCreator(ModelCreator):
         'json_schema_extra': {
             'examples': [
                 {
-                    'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'title': {
                         'title': 'Old west photography'
                     },
@@ -598,8 +594,7 @@ class StillImage(ContentModel):
 
     id: StillImageId = Field(**db_id_kwargs)
     cid: StillImageCid = Field(**cid_kwargs)
-
-    creator_id: ArtistCid
+    user_cid: UserCid = Field(**cid_kwargs)
 
     release: ImageReleaseCid
 
@@ -617,7 +612,7 @@ class StillImage(ContentModel):
                 {
                     'id': '6546a5cd1a209851b7136441',
                     'cid': '0VWImoAL2-xX9uHQtRrV6mr715UxoQxcgwMbfIWqeFK0578.json',
-                    'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
+                    'user_cid': str(example_cid(User)),
                     'release': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'title': {
                         'title': 'My cool Painting'
@@ -641,8 +636,6 @@ class StillImage(ContentModel):
 class StillImageCreator(ModelCreator):
     MODEL: ClassVar[Type[StillImage]] = StillImage
 
-    creator_id: ArtistCid
-
     release: ImageReleaseCid
 
     title: Optional[TitleData] = None
@@ -657,7 +650,6 @@ class StillImageCreator(ModelCreator):
         'json_schema_extra': {
             'examples': [
                 {
-                    'creator_id': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'release': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
                     'title': {
                         'title': 'My cool Painting'
@@ -699,6 +691,7 @@ class VideoProgram(ContentModel):
 
     id: VideoProgramId = Field(**db_id_kwargs)
     cid: VideoProgramCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
 
     title: TitleData
     type: VideoProgramType
@@ -717,6 +710,7 @@ class VideoProgram(ContentModel):
                 {
                     'id': '6546a5cd1a209851b7136441',
                     'cid': '03aVCqkWiBKUrvhELCXDYPaZmsptLZ8uGxDGbWDK4SiM639.json',
+                    'user_cid': str(example_cid(User)),
                     'title': {
                         'title': 'My cool Movie'
                     },
@@ -793,6 +787,7 @@ class VideoSeason(ContentModel):
 
     id: VideoSeasonId = Field(**db_id_kwargs)
     cid: VideoSeasonCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
 
     title: TitleData
     episodes: VideoEpisodeList
@@ -808,6 +803,7 @@ class VideoSeason(ContentModel):
                 {
                     'id': '6546a5cd1a209851b7136441',
                     'cid': '0x7m9XjJQ_xlvhBmmwu2ylYr_3SZTBW4taBsBumhHb6U670.json',
+                    'user_cid': str(example_cid(User)),
                     'title': {
                         'title': 'My cool Season'
                     },
@@ -877,12 +873,17 @@ class VideoMiniSeries(VideoSeason):
     DB_NAME: ClassVar[str] = 'video_mini_series'
     ENDPOINT: ClassVar[str] = 'video-mini-series'
 
+    id: VideoMiniSeriesId = Field(**db_id_kwargs)
+    cid: VideoMiniSeriesCid = Field(**cid_kwargs)
+    # user_cid: defined by parent class
+
     model_config = {
         'json_schema_extra': {
             'examples': [
                 {
                     'id': '6546a5cd1a209851b7136441',
                     'cid': '0-UqowlTPqw00LvKaoeFT7kwJiiyzH_0SBZ-FMAqkN1k687.json',
+                    'user_cid': str(example_cid(User)),
                     'title': {
                         'title': 'My Docuseries'
                     },
@@ -952,6 +953,7 @@ class VideoSeries(ContentModel):
 
     id: VideoSeriesId = Field(**db_id_kwargs)
     cid: VideoSeriesCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
 
     title: TitleData
     seasons: VideoSeasonList
@@ -967,6 +969,7 @@ class VideoSeries(ContentModel):
                 {
                     'id': '6546a5cd1a209851b7136441',
                     'cid': '0jJ1CqRH89rLHILbeG_W8GvZ3l4GB7gzEkfnZYHuo97Y546.json',
+                    'user_cid': str(example_cid(User)),
                     'title': {
                         'title': 'My Sitcom'
                     },
@@ -1038,6 +1041,7 @@ class Song(ContentModel):
 
     id: SongId = Field(**db_id_kwargs)
     cid: SongCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
 
     title: TitleData
     release: AudioReleaseCid
@@ -1054,6 +1058,7 @@ class Song(ContentModel):
                 {
                     'id': '6546a5cd1a209851b7136441',
                     'cid': '01iEnTt6YHwLaaKTVu3zTWCvn54gXkWfpuSyDoVn68Nw613.json',
+                    'user_cid': str(example_cid(User)),
                     'title': {
                         'title': 'My cool Song'
                     },
@@ -1125,6 +1130,7 @@ class MusicAlbum(ContentModel):
 
     id: MusicAlbumId = Field(**db_id_kwargs)
     cid: MusicAlbumCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
 
     title: TitleData
     type: MusicAlbumType
@@ -1140,6 +1146,7 @@ class MusicAlbum(ContentModel):
                 {
                     'id': '6546a5cd1a209851b7136441',
                     'cid': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
+                    'user_cid': str(example_cid(User)),
                     'title': {
                         'title': 'My cool Album'
                     },
@@ -1211,6 +1218,7 @@ class PodcastEpisode(ContentModel):
 
     id: PodcastEpisodeId = Field(**db_id_kwargs)
     cid: PodcastEpisodeCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
 
     title: TitleData
     podcast: PodcastCid
@@ -1236,6 +1244,7 @@ class PodcastEpisode(ContentModel):
                 {
                     'id': '6546a5cd1a209851b7136441',
                     'cid': '0hx6NJx4sZqTRra4aaOIvAacQHsHFXYWKd27F3CmXZ_c633.json',
+                    'user_cid': str(example_cid(User)),
                     'title': {
                         'title': 'My cool Episode'
                     },
@@ -1317,6 +1326,7 @@ class PodcastSeason(ContentModel):
 
     id: PodcastSeasonId = Field(**db_id_kwargs)
     cid: PodcastSeasonCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
 
     title: TitleData
     episodes: PodcastEpisodeList = None
@@ -1331,6 +1341,7 @@ class PodcastSeason(ContentModel):
                 {
                     'id': '6546a5cd1a209851b7136441',
                     'cid': '0cLJq23m8Vpag8kWVW3CBYF1VfKqbu6Cr94lSEDDCGYw457.json',
+                    'user_cid': str(example_cid(User)),
                     'title': {
                         'title': 'My cool Season'
                     },
@@ -1399,6 +1410,7 @@ class Podcast(ContentModel):
 
     id: PodcastId = Field(**db_id_kwargs)
     cid: PodcastCid = Field(**cid_kwargs)
+    user_cid: UserCid = Field(**cid_kwargs)
 
     title: TitleData
     seasons: PodcastSeasonList = None
@@ -1413,6 +1425,7 @@ class Podcast(ContentModel):
                 {
                     'id': '6546a5cd1a209851b7136441',
                     'cid': '0AZzUOZfdK0gdYoOjfQ2l4EFJ1Q-lLlrCX68-xzD-n_8457.json',
+                    'user_cid': str(example_cid(User)),
                     'title': {
                         'title': 'My cool Podcast'
                     },

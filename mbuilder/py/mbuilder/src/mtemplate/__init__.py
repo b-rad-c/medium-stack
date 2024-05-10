@@ -251,6 +251,12 @@ class MTemplateProject:
     def binary_files(self):
         yield from self._file_ls(self.template_root / 'tests' / 'samples')
 
+    def executable_files(self):
+        return [
+            'build.sh',
+            'web.sh'
+        ]
+
     def render(self, debug:bool=False):
         self._reset_output()
 
@@ -292,10 +298,11 @@ class MTemplateProject:
             os.makedirs(out_path.parent, exist_ok=True)
             shutil.copy(src_path, out_path)
 
-        # make build script executable #
-        
-        build_script = self.dist_directory / 'build.sh'
-        os.chmod(build_script, os.stat(build_script).st_mode | stat.S_IXUSR)
+        # add execute perms #
+
+        for executable_file in self.executable_files():
+            executable_path = self.dist_directory / executable_file
+            os.chmod(executable_path, os.stat(executable_path).st_mode | stat.S_IXUSR)
 
     
 class MTemplateExtractor:
