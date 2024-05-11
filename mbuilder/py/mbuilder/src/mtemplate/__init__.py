@@ -11,7 +11,7 @@ from typing import Generator
 
 from mcore.util import example_model, example_cid
 from mcore.types import ContentId
-from mcore.models import ContentModel, ModelCreator
+from mcore.models import ContentModel, ModelCreator, User
 
 from jinja2 import Environment, FunctionLoader, StrictUndefined, UndefinedError
 from pydantic import BaseModel, ValidationError
@@ -69,7 +69,7 @@ class SourceModel(BaseModel):
             db_name = None
 
         example_creator:ModelCreator = example_model(model_type_creator)
-        example = example_creator.create_model()
+        example = example_creator.create_model(user_cid=example_cid(User))
 
         kwargs = {
             'type': pascal_case,

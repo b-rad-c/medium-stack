@@ -1,4 +1,5 @@
 {
     "python.analysis.extraPaths": [
+        "mstack/mart/dist/src"
     ]
 }

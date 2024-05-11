@@ -19,9 +19,10 @@
         * 🟢 create `sample_app` specific unittests
     * 🟡 template extraction
         * 🟢 add extractor to mtemplate package
-        * 🟡 update generator to use extracted templates
-            * 🟡 make repo public, update `mtemplate/app/Dockerfile` to clone repo
-        * 🔴 sample app + generated app can be built off template app docker files
+        * 🟢 update generator to use extracted templates
+            * 🟢 make repo public, update `mtemplate/app/Dockerfile` to clone repo
+        * 🟢 generate app is building passing unittests
+            * 🔴 confirm sample_app build, developement and testing works
             * 🔴 delete unneeded docker files at root of repo
     * 🔴 refactor unittests?
 
