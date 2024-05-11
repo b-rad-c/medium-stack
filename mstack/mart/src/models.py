@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, conlist, model_validator
 from lorem_text import lorem
 
 from mcore.types import TagList, unique_list_validator
-from mcore.util import example_cid, adjectives, nouns, art_genres, content_model_json_schema
+from mcore.util import adjectives, nouns, art_genres, content_model_json_schema
 
 from mcore.models import (
     MongoId, 
@@ -202,7 +202,7 @@ class Artist(ContentModel):
     mediums: ArtMediumList
     tags: TagList = None
 
-    model_config = content_model_json_schema('artist')
+    model_config = content_model_json_schema('Artist')
 
 
 class ArtistCreator(ModelCreator):
@@ -324,31 +324,7 @@ class ArtistGroup(ContentModel):
 
     artists: ArtistList
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0DuHIdrOYrCcHt2WMuBQP7-9xI6mp8sdeWRu8RnBjdTI752.json',
-                    'user_cid': str(example_cid(User)),
-                    'name': 'The Beatles',
-                    'short_name': 'The Beatles',
-                    'abreviated_name': 'TB',
-                    'summary': 'English rock band formed in Liverpool in 1960.',
-                    'description': 'The Beatles were an English rock band formed in Liverpool in 1960. With a line-up comprising John Lennon, '
-                                   'Paul McCartney, George Harrison and Ringo Starr, they are regarded as the most influential band of all time.',
-                    'mediums': ['audio', 'video'],
-                    'tags': ['rock', 'pop', 'british invasion'],
-                    'artists': [
-                        '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json', 
-                        '0Ve5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                        '0We5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                        '0Xe5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
-                    ]
-                }
-            ]
-        }
-    }
+    model_config = content_model_json_schema('ArtistGroup')
 
 
 class ArtistGroupCreator(ModelCreator):
@@ -519,26 +495,7 @@ class StillImageAlbum(ContentModel):
     genres: GenreList
     tags: TagList
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0FmUG7qtOMsnXZmePvg0SeI9ybzHgY2FUhxUFTRBmhw4425.json',
-                    'user_cid': str(example_cid(User)),
-                    'title': {
-                        'title': 'Old west photography'
-                    },
-                    'credits': {
-                        'role': 'photographer',
-                        'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
-                    },
-                    'genres': ['photography', 'long exposure'],
-                    'tags': ['black and white', 'long exposure', 'star trails']
-                }
-            ]
-        }
-    }
+    model_config = content_model_json_schema('StillImageAlbum')
 
 
 class StillImageAlbumCreator(ModelCreator):
@@ -587,31 +544,7 @@ class StillImage(ContentModel):
 
     alt_text: Optional[str]
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0VWImoAL2-xX9uHQtRrV6mr715UxoQxcgwMbfIWqeFK0578.json',
-                    'user_cid': str(example_cid(User)),
-                    'release': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                    'title': {
-                        'title': 'My cool Painting'
-                    },
-                    'credits': [
-                        {
-                            'role': 'painter',
-                            'artist': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json'
-                        }
-                    ],
-                    'genres': ['surrealism', 'painting'],
-                    'tags': ['surrealism', 'painting', 'oil painting'],
-                    'album': '0Ue5vZVoC3uxXZD3MTx1x9QbddAHNSqM25scwxG3RlAs707.json',
-                    'alt_text': 'a surrealistic oil painting'
-                }
-            ]
-        }
-    }
+    model_config = content_model_json_schema('StillImage')
 
 
 class StillImageCreator(ModelCreator):
@@ -685,33 +618,7 @@ class VideoProgram(ContentModel):
     genres: GenreList
     tags: TagList
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '03aVCqkWiBKUrvhELCXDYPaZmsptLZ8uGxDGbWDK4SiM639.json',
-                    'user_cid': str(example_cid(User)),
-                    'title': {
-                        'title': 'My cool Movie'
-                    },
-                    'type': 'feature',
-                    'release': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
-                    'trailers': [
-                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
-                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
-                    ],
-                    'cover_artwork': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
-                    'other_artwork': [
-                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
-                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
-                    ],
-                    'genres': ['drama', 'thriller'],
-                    'tags': ['best actress', 'academy award winner']
-                }
-            ]
-        }
-    }
+    model_config = content_model_json_schema('VideoProgram')
 
 
 class VideoProgramCreator(ModelCreator):
@@ -778,35 +685,7 @@ class VideoSeason(ContentModel):
     cover_artwork: Optional[StillImageCid] = None
     other_artwork: OtherArtworkList
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0x7m9XjJQ_xlvhBmmwu2ylYr_3SZTBW4taBsBumhHb6U670.json',
-                    'user_cid': str(example_cid(User)),
-                    'title': {
-                        'title': 'My cool Season'
-                    },
-                    'episodes': [
-                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
-                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
-                    ],
-                    'trailers': [
-                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
-                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
-                    ],
-                    'genres': ['drama', 'thriller'],
-                    'tags': ['award winner', 'best actor'],
-                    'cover_artwork': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
-                    'other_artwork': [
-                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
-                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
-                    ]
-                }
-            ]
-        }
-    }
+    model_config = content_model_json_schema('VideoSeason')
 
 
 class VideoSeasonCreator(ModelCreator):
@@ -858,35 +737,7 @@ class VideoMiniSeries(VideoSeason):
     cid: VideoMiniSeriesCid = Field(**cid_kwargs)
     # user_cid: defined by parent class
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0-UqowlTPqw00LvKaoeFT7kwJiiyzH_0SBZ-FMAqkN1k687.json',
-                    'user_cid': str(example_cid(User)),
-                    'title': {
-                        'title': 'My Docuseries'
-                    },
-                    'episodes': [
-                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
-                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
-                    ],
-                    'trailers': [
-                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
-                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
-                    ],
-                    'genres': ['documentary', 'investigative'],
-                    'tags': ['crowd funded', 'indy award winner'],
-                    'cover_artwork': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
-                    'other_artwork': [
-                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json',
-                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfcs134.json'
-                    ]
-                }
-            ]
-        }
-    }
+    model_config = content_model_json_schema('VideoMiniSeries')
 
 
 class VideoMiniSeriesCreator(VideoSeasonCreator):
@@ -944,33 +795,7 @@ class VideoSeries(ContentModel):
     cover_artwork: Optional[StillImageCid] = None
     other_artwork: OtherArtworkList
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0jJ1CqRH89rLHILbeG_W8GvZ3l4GB7gzEkfnZYHuo97Y546.json',
-                    'user_cid': str(example_cid(User)),
-                    'title': {
-                        'title': 'My Sitcom'
-                    },
-                    'seasons': [
-                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json',
-                        '0X-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json'
-                    ],
-                    'trailers': [
-                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json',
-                    ],
-                    'genres': ['comedy', 'sitcom'],
-                    'tags': ['award winner', 'best actor'],
-                    'cover_artwork': '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json',
-                    'other_artwork': [
-                        '0W-cnbvjGdsrkMwP-nrFbd3Is3k6rXakqL3vw9h1Hfc134.json',
-                    ]
-                }
-            ]
-        }
-    }
+    model_config = content_model_json_schema('VideoSeries')
 
 
 class VideoSeriesCreator(ModelCreator):
@@ -1033,30 +858,7 @@ class Song(ContentModel):
     other_artwork: OtherArtworkList
     lyrics: Optional[TextFileCid] = None
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '01iEnTt6YHwLaaKTVu3zTWCvn54gXkWfpuSyDoVn68Nw613.json',
-                    'user_cid': str(example_cid(User)),
-                    'title': {
-                        'title': 'My cool Song'
-                    },
-                    'release': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                    'genres': ['rock', 'blues'],
-                    'tags': ['rock', 'blues', 'guitar'],
-                    'music_video': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                    'cover_artwork': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                    'other_artwork': [
-                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
-                    ],
-                    'lyrics': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
-                }
-            ]
-        }
-    }
+    model_config = content_model_json_schema('Song')
 
 
 class SongCreator(ModelCreator):
@@ -1121,32 +923,7 @@ class MusicAlbum(ContentModel):
     cover_artwork: Optional[StillImageCid] = None
     other_artwork: OtherArtworkList
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'user_cid': str(example_cid(User)),
-                    'title': {
-                        'title': 'My cool Album'
-                    },
-                    'type': 'ep',
-                    'genres': ['rock', 'blues'],
-                    'tags': ['rock', 'blues', 'guitar'],
-                    'songs': [
-                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
-                    ],
-                    'cover_artwork': '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                    'other_artwork': [
-                        '0kjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json',
-                        '0jjGMpCpqNxrV10G5CAbz3oXH2fmJBnoP2nsXfuGS7W4576.json'
-                    ]
-                }
-            ]
-        }
-    }
+    model_config = content_model_json_schema('MusicAlbum')
 
 
 class MusicAlbumCreator(ModelCreator):
@@ -1219,32 +996,7 @@ class PodcastEpisode(ContentModel):
             raise ValueError('must provide either an audio or video program')
         return self
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0hx6NJx4sZqTRra4aaOIvAacQHsHFXYWKd27F3CmXZ_c633.json',
-                    'user_cid': str(example_cid(User)),
-                    'title': {
-                        'title': 'My cool Episode'
-                    },
-                    'podcast': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'program_audio': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'program_video': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'genres': ['politics', 'news'],
-                    'trailers': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'tags': ['us', 'election'],
-                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'other_artwork': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ]
-                }
-            ]
-        }
-    }
+    model_config = content_model_json_schema('PodcastEpisode')
 
 
 class PodcastEpisodeCreator(ModelCreator):
@@ -1316,31 +1068,7 @@ class PodcastSeason(ContentModel):
     cover_artwork: Optional[ImageReleaseCid] = None
     other_artwork: OtherArtworkList = None
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0cLJq23m8Vpag8kWVW3CBYF1VfKqbu6Cr94lSEDDCGYw457.json',
-                    'user_cid': str(example_cid(User)),
-                    'title': {
-                        'title': 'My cool Season'
-                    },
-                    'episodes': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'trailers': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'tags': ['us', 'election'],
-                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'other_artwork': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ]
-                }
-            ]
-        }
-    }
+    model_config = content_model_json_schema('PodcastSeason')
 
 class PodcastSeasonCreator(ModelCreator):
     MODEL: ClassVar[Type[PodcastSeason]] = PodcastSeason
@@ -1400,31 +1128,7 @@ class Podcast(ContentModel):
     cover_artwork: Optional[ImageReleaseCid] = None
     other_artwork: OtherArtworkList = None
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0AZzUOZfdK0gdYoOjfQ2l4EFJ1Q-lLlrCX68-xzD-n_8457.json',
-                    'user_cid': str(example_cid(User)),
-                    'title': {
-                        'title': 'My cool Podcast'
-                    },
-                    'seasons': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'trailers': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ],
-                    'tags': ['us', 'election'],
-                    'cover_artwork': '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    'other_artwork': [
-                        '0zL8fq9j_lPNf6xg8Z3V6djjsPtoOnPFqI-FzirbWDCk547.json',
-                    ]
-                }
-            ]
-        }
-    }
+    model_config = content_model_json_schema('Podcast')
 
 
 class PodcastCreator(ModelCreator):

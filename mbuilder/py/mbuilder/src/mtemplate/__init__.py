@@ -48,7 +48,7 @@ class SourceModel(BaseModel):
     json_example_creator:str
 
     @classmethod
-    def from_model_type(cls, model_type:BaseModel | ContentModel) -> 'SourceModel':
+    def from_model_type(cls, model_type:BaseModel | ContentModel, model_type_creator:ModelCreator) -> 'SourceModel':
         name_split = model_type.LOWER_CASE.split(' ')
         snake_case = '_'.join(name_split)
         pascal_case = ''.join([name.capitalize() for name in name_split])
@@ -68,10 +68,8 @@ class SourceModel(BaseModel):
         except AttributeError:
             db_name = None
 
-        cid = example_cid(model_type)
-
-        example_creator:ModelCreator = example_model(model_type)
-        example_model = example_creator.create_model()
+        example_creator:ModelCreator = example_model(model_type_creator)
+        example = example_creator.create_model()
 
         kwargs = {
             'type': pascal_case,
@@ -88,10 +86,11 @@ class SourceModel(BaseModel):
             'pascal_case': pascal_case,
             'lower_case': model_type.LOWER_CASE,
 
-            'example_cid_hash': cid.hash,
-            'example_cid_size': cid.size,
-            'example_model': example_model.model_dump_json(),
-            'example_creator': example_creator.model_dump_json()
+            'example_cid_hash': example.cid.hash,
+            'example_cid_size': example.cid.size,
+
+            'json_example': example.model_dump_json(),
+            'json_example_creator': example_creator.model_dump_json()
         }
         return cls(**kwargs)
 
@@ -115,50 +114,63 @@ class SourceModelList:
         return self.models.__len__()
 
     def _load(self):
+        
+        #
+        # create map
+        #
+
+        model_map = {}
         for name in self.module.__all__:
             model = getattr(self.module, name)
 
             try:
-                is_base_model = issubclass(model, BaseModel)
-                is_content_model = issubclass(model, ContentModel)
+                # is_base_model = issubclass(model, BaseModel)
+                # is_content_model = issubclass(model, ContentModel)
+                is_model_creator = issubclass(model, ModelCreator)
             except TypeError:
                 continue
 
-            # print(is_base_model, is_content_model, name)
+            if is_model_creator:
+                model_map[model.MODEL] = model
+        
+        #
+        # process models
+        #
 
-            if is_base_model and is_content_model:
-                try:
-                    source_model = SourceModel.from_model_type(model)
-                except ValidationError as e:
-                    raise ValueError(f'error creating source model from {name} | {e}')
+        for model, creator in model_map.items():
 
-                # verify cid type #
+            try:
+                source_model = SourceModel.from_model_type(model, creator)
+            except ValidationError as e:
+                raise ValueError(f'error creating source model from {name} | {e}')
 
-                try:
-                    cid = getattr(self.module, source_model.cid_type)
-                except AttributeError:
-                    raise AttributeError(f'model {name} must havee CID defined as {source_model.cid_type}')
-                
-                try:
-                    if not cid.__args__[0] is ContentId:
-                        raise TypeError(f'{source_model.cid_type} must be ContentId')
-                except IndexError:
+            # verify cid type #
+
+            try:
+                cid = getattr(self.module, source_model.cid_type)
+            except AttributeError:
+                raise AttributeError(f'model {name} must havee CID defined as {source_model.cid_type}')
+            
+            try:
+                if not cid.__args__[0] is ContentId:
                     raise TypeError(f'{source_model.cid_type} must be ContentId')
+            except IndexError:
+                raise TypeError(f'{source_model.cid_type} must be ContentId')
 
-                # verify id type #
+            # verify id type #
 
-                try:
-                    id = getattr(self.module, source_model.id_type)
-                except AttributeError:
-                    raise AttributeError(f'model {name} must have ID defined as {source_model.id_type}')
-                
-                try:
-                    if not id.__args__[0] is ObjectId:
-                        raise TypeError(f'{source_model.id_type} must be ObjectId')
-                except IndexError:
+            try:
+                id = getattr(self.module, source_model.id_type)
+            except AttributeError:
+                raise AttributeError(f'model {name} must have ID defined as {source_model.id_type}')
+            
+            try:
+                if not id.__args__[0] is ObjectId:
                     raise TypeError(f'{source_model.id_type} must be ObjectId')
-                
-                self.models.append(source_model)
+            except IndexError:
+                raise TypeError(f'{source_model.id_type} must be ObjectId')
+            
+            self.models.append(source_model)
 
     @property
     def with_endpoint(self) -> list[SourceModel]:
@@ -359,17 +371,18 @@ class MTemplateExtractor:
 
         try:
             block_vars = json.loads(definition_split[2].strip())
-            if not isinstance(block_vars, dict):
-                raise MTemplateError(f'vars must be a json object not "{type(block_vars).__name__}" on line {start_line_no}')
-            
-            print('can i delete this line?')
-            self.template_vars.update(block_vars)
 
-        except IndexError:
-            """no vars defined for block, ignore exception"""
-
-        except json.JSONDecodeError as e:
-            raise MTemplateError(f'caught JSONDecodeError in vars definition on line {start_line_no} | {e}')
+        except json.JSONDecodeError:
+            try:
+                block_vars = eval(definition_split[2].strip())
+            except Exception as e:
+                raise MTemplateError(f'error parsing block vars on line {start_line_no} of {self.path} | {e}')
+        
+        if not isinstance(block_vars, dict):
+            raise MTemplateError(f'vars must be a dict not "{type(block_vars).__name__}" on line {start_line_no} of {self.path}')
+        
+        print('can i delete this line?')
+        self.template_vars.update(block_vars)
         
         # append lines to template #
 
@@ -377,7 +390,7 @@ class MTemplateExtractor:
 
         for line in lines:
             new_line = line 
-            for key, value in sort_dict_by_key_length(block_vars):
+            for key, value in sort_dict_by_key_length(block_vars).items():
                 new_line = new_line.replace(key, '{{ ' + value + ' }}')
             self.template_lines.append(new_line)
         
@@ -385,7 +398,7 @@ class MTemplateExtractor:
 
     def create_template(self) -> str:
         template = ''.join(self.template_lines)
-        for key, value in sort_dict_by_key_length(self.template_vars):
+        for key, value in sort_dict_by_key_length(self.template_vars).items():
             template = template.replace(key, '{{ ' + value + ' }}')
         return template
 

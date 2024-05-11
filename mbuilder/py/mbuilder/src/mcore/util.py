@@ -76,6 +76,7 @@ def register_model_examples(model_config:dict):
 
 def content_model_example(content_model_name:str) -> dict:
     global model_examples
+    return model_examples.get(content_model_name, None)
     try:
         return model_examples[content_model_name]
     except KeyError:
