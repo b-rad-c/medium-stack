@@ -5,12 +5,13 @@ import shutil
 import importlib
 
 from pathlib import Path
+from collections import OrderedDict
 from configparser import ConfigParser
 from typing import Generator
 
 from mcore.util import example_model, example_cid
 from mcore.types import ContentId
-from mcore.models import ContentModel
+from mcore.models import ContentModel, ModelCreator
 
 from jinja2 import Environment, FunctionLoader, StrictUndefined, UndefinedError
 from pydantic import BaseModel, ValidationError
@@ -43,6 +44,9 @@ class SourceModel(BaseModel):
     example_cid_hash:str
     example_cid_size:int
 
+    json_example:str
+    json_example_creator:str
+
     @classmethod
     def from_model_type(cls, model_type:BaseModel | ContentModel) -> 'SourceModel':
         name_split = model_type.LOWER_CASE.split(' ')
@@ -66,6 +70,9 @@ class SourceModel(BaseModel):
 
         cid = example_cid(model_type)
 
+        example_creator:ModelCreator = example_model(model_type)
+        example_model = example_creator.create_model()
+
         kwargs = {
             'type': pascal_case,
             'creator_type': f'{pascal_case}Creator',
@@ -83,6 +90,8 @@ class SourceModel(BaseModel):
 
             'example_cid_hash': cid.hash,
             'example_cid_size': cid.size,
+            'example_model': example_model.model_dump_json(),
+            'example_creator': example_creator.model_dump_json()
         }
         return cls(**kwargs)
 
@@ -159,7 +168,10 @@ class SourceModelList:
     def with_db(self) -> list[SourceModel]:
         return filter(lambda model: model.db_name is not None, self.models)
 
-
+    @property
+    def creators(self) -> list[SourceModel]:
+        return filter(lambda model: issubclass(model, ModelCreator), self.models)
+    
 class MTemplateProject:
 
     template_root = Path(__file__).parent / 'app'
@@ -304,6 +316,13 @@ class MTemplateProject:
             executable_path = self.dist_directory / executable_file
             os.chmod(executable_path, os.stat(executable_path).st_mode | stat.S_IXUSR)
 
+
+def sort_dict_by_key_length(dictionary:dict) -> OrderedDict:
+    """sort dictionary by key length in descending order, it is used when replacing template variables,
+    by sorting the dictionary by key length, we can ensure that the longest keys are replaced first, so that
+    shorter keys that are substrings of longer keys are not replaced prematurely"""
+    return OrderedDict(sorted(dictionary.items(), key=lambda item: len(item[0]), reverse=True))
+
     
 class MTemplateExtractor:
 
@@ -343,6 +362,7 @@ class MTemplateExtractor:
             if not isinstance(block_vars, dict):
                 raise MTemplateError(f'vars must be a json object not "{type(block_vars).__name__}" on line {start_line_no}')
             
+            print('can i delete this line?')
             self.template_vars.update(block_vars)
 
         except IndexError:
@@ -357,7 +377,7 @@ class MTemplateExtractor:
 
         for line in lines:
             new_line = line 
-            for key, value in block_vars.items():
+            for key, value in sort_dict_by_key_length(block_vars):
                 new_line = new_line.replace(key, '{{ ' + value + ' }}')
             self.template_lines.append(new_line)
         
@@ -365,7 +385,7 @@ class MTemplateExtractor:
 
     def create_template(self) -> str:
         template = ''.join(self.template_lines)
-        for key, value in self.template_vars.items():
+        for key, value in sort_dict_by_key_length(self.template_vars):
             template = template.replace(key, '{{ ' + value + ' }}')
         return template
 

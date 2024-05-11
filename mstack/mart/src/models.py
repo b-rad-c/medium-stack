@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, conlist, model_validator
 from lorem_text import lorem
 
 from mcore.types import TagList, unique_list_validator
-from mcore.util import example_cid, adjectives, nouns, art_genres
+from mcore.util import example_cid, adjectives, nouns, art_genres, content_model_json_schema
 
 from mcore.models import (
     MongoId, 
@@ -202,26 +202,7 @@ class Artist(ContentModel):
     mediums: ArtMediumList
     tags: TagList = None
 
-    model_config = {
-        'json_schema_extra': {
-            'examples': [
-                {
-                    'id': '6546a5cd1a209851b7136441',
-                    'cid': '0SXvy_2EV0Pm6YAmfznDb5nwT4l7RfIXN9RNe9v279vk707.json',
-                    'user_cid': str(example_cid(User)),
-                    'name': 'Frida Kahlo',
-                    'short_name': 'Kahlo',
-                    'abreviated_name': 'FK',
-                    'summary': 'Mexican painter known for her many portraits, self-portraits, and works inspired by the nature and artifacts of Mexico.',
-                    'description': 'Frida Kahlo de Rivera was a Mexican artist who painted many portraits, self-portraits, '
-                        'and works inspired by the nature and artifacts of Mexico. Her work has been celebrated internationally as emblematic of '
-                        'Mexican national and indigenous traditions, and by feminists for its uncompromising depiction of the female experience and form.',
-                    'mediums': ['still'],
-                    'tags': ['painting', 'mexico', 'feminist', 'surrealism']
-                }
-            ]
-        }
-    }
+    model_config = content_model_json_schema('artist')
 
 
 class ArtistCreator(ModelCreator):

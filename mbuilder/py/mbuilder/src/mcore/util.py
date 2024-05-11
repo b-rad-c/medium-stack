@@ -14,6 +14,10 @@ __all__ = [
     'utc_now',
     'DaemonController',
 
+    'register_model_examples',
+    'content_model_example',
+    'content_model_json_schema',
+
     'example_model',
     'example_cid',
 
@@ -62,6 +66,27 @@ class DaemonController:
 #
 # examples
 #
+
+model_examples = {}
+
+def register_model_examples(model_config:dict):
+    global model_examples
+    for key, value in model_config.items():
+        model_examples[key] = value
+
+def content_model_example(content_model_name:str) -> dict:
+    global model_examples
+    try:
+        return model_examples[content_model_name]
+    except KeyError:
+        raise KeyError(f'No model example found for: {content_model_name}')
+    
+def content_model_json_schema(content_model_name:str) -> dict:
+    return {
+        'json_schema_extra': {
+            'examples': [content_model_example(content_model_name)]
+        }
+    }
 
 
 def example_model(model_type:BaseModel, index=0):
