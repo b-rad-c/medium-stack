@@ -22,9 +22,9 @@
         * 🟢 update generator to use extracted templates
             * 🟢 make repo public, update `mtemplate/app/Dockerfile` to clone repo
         * 🟢 generate app is building passing unittests
-            * 🔴 confirm sample_app build, developement and testing works
+            * 🟡 rework sample app so it and generated app work
             * 🔴 delete unneeded docker files at root of repo
-    * 🔴 refactor unittests?
+            * 🔴 refactor unittests?
 
 # Roadmap
 
