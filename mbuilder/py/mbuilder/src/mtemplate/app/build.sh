@@ -8,14 +8,19 @@ if [ "$1" == "--no-cache" ]; then
     no_cache=true
 fi
 
-git clone https://github.com/b-rad-c/medium-stack.git
+# if ./medium-stack does NOT exist
 
-# exit if the git clone fails #
+if [ ! -d "./medium-stack" ]; then
+    echo "cloning medium-stack"
+    git clone https://github.com/b-rad-c/medium-stack.git
 
-if [ $? -ne 0 ]; then
-    echo "git clone failed"
-    exit 1
+    if [ $? -ne 0 ]; then
+        echo "git clone failed"
+        exit 1
+    fi
+
 fi
+
 
 # checkout branch templating #
 
