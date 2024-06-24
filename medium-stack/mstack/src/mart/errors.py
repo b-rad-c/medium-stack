@@ -1,2 +1,0 @@
-class MediumArtError(Exception):
-    pass

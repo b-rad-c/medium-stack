@@ -1,0 +1,29 @@
+[build-system]
+requires = ['setuptools>=61.0']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'mbuilder'
+version = '0.0.1'
+authors = [
+  { name='Brad Corlett', email='brad.corlett@gmail.com' },
+]
+description = 'The medium tech stack'
+readme = 'README.md'
+requires-python = '>=3.7'
+dependencies = [
+    'boto3',
+    'email-validator',
+    'fastapi[all]',
+    'lorem-text',
+    'Jinja2',
+    'requests',
+    'passlib[bcrypt]',
+    'phonenumbers',
+    'pydantic',
+    'pydantic-extra-types',
+    'pymediainfo',
+    'pymongo',
+    'python-jose[cryptography]',
+    'python-multipart'
+]

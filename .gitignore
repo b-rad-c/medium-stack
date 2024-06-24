@@ -8,3 +8,4 @@ __pycache__
 lstack/
 node_modules/
 dist/
+mbuilder/py/mbuilder/src/mtemplate/app/medium-stack/

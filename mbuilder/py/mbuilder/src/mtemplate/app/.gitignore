@@ -1,0 +1,10 @@
+.venv
+.env*
+!.env.example
+build
+__pycache__
+*.egg-info
+.DS_Store
+lstack/
+node_modules/
+dist/

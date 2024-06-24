@@ -1,0 +1,1 @@
+Create tests to verify example app(s) can be generated and pass tests

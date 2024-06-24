@@ -1,5 +1,5 @@
 {
     "python.analysis.extraPaths": [
-        "./medium-stack/mstack/src"
+        "mstack/mart/dist/src"
     ]
 }
