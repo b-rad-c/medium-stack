@@ -6,24 +6,20 @@
 
 🟢 = finished
 
-1. 🟢 build out client/server unittest test template
-1. 🟢 create new environment for generated app, verify it passes unittests
-1. 🟢 rewrite templates to be extracted from actual code
-    * 🟢 GENERATE new minimal test project called 'sample_app'
-    * 🟢 integrate into mstack module, app+docker+tests should work w/o generating code
-    * 🟢 restructure folders, verify tests works
-        * 🟢 restructure folders
-        * 🟢 rework `./medium-stack/` docker files and scripts to be for the builder
-            * is used to test app which is used for template extraction
-            * is different than the dockerfile in mapplication/mtemplate/app
-        * 🟢 create `sample_app` specific unittests
-    * 🟢 template extraction
-        * 🟢 add extractor to mtemplate package
-        * 🟢 update generator to use extracted templates
-            * 🟢 make repo public, update `mtemplate/app/Dockerfile` to clone repo
-        * 🟢 generate app is building passing unittests
-            * 🟢 rework sample app so it and generated app work
-            * 🟢 delete unneeded docker files at root of repo
+* 🔴 add ability for generated apps to extend app
+    * 🔴 router
+    * 🔴 ops class
+    * 🔴 additional unittests
+
+* 🔴 split repos
+    * 🔴 new repo: mbuilder
+        * 🔴 unittests passing
+    * 🔴 new repo: mstack
+        * 🔴 generated app passing unittests
+
+* 🔴 remove audio file/releases from ramp-core
+
+* 🔴 build out mstack
 
 # Roadmap
 
