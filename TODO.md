@@ -1,27 +1,25 @@
-# TODO
-
 🔴 = not started
 
 🟡 = started
 
 🟢 = finished
 
-* 🔴 add ability for generated apps to extend app
-    * 🔴 router
-    * 🔴 ops class
-    * 🔴 additional unittests
 
-* 🔴 split repos
-    * 🔴 new repo: mbuilder
-        * 🔴 unittests passing
-    * 🔴 new repo: mstack
-        * 🔴 generated app passing unittests
 
-* 🔴 remove audio file/releases from ramp-core
 
-* 🔴 build out mstack
+# TODO
 
-# Roadmap
+
+
+* 🔴 mstack2
+
+
+
+
+
+
+
+# backlog todo
 
 ---
 
